@@ -1,0 +1,12 @@
+# dependencies (npm ci)
+node_modules/
+# build output
+dist/
+# Playwright E2E runtime data / reports (never commit)
+.e2e-data/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+# live-workbench.cjs screenshots are temporary artifacts
+live-workbench*.png
