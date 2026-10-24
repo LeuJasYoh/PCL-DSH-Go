@@ -17,7 +17,7 @@ const (
 	// 精确 SemVer（含可选 prerelease/build），与 https://semver.org/spec/v2.0.0.html 一致。
 	semverPattern  = `^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(\.(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?$`
 	profilePattern = `^[A-Za-z0-9._-]+$`
-	sshUserPattern = `^[A-Za-z0-9._-]+$`
+	sshUserPattern = `^[A-Za-z0-9._-]{1,32}$`
 
 	maxNameRunes    = 40
 	maxVersionBytes = 128
@@ -157,7 +157,7 @@ func normalizeSettings(in Settings) (Settings, error) {
 		sshUser = defaultDirectAccessSSHUser
 	}
 	if !sshUserRE.MatchString(sshUser) {
-		return Settings{}, fmt.Errorf("%w: directAccessSshUser %q 只允许字母、数字、点、下划线和连字符", ErrInvalidInput, sshUser)
+		return Settings{}, fmt.Errorf("%w: directAccessSshUser %q 只允许 1-32 位字母、数字、点、下划线和连字符", ErrInvalidInput, sshUser)
 	}
 	out.DirectAccessSSHUser = sshUser
 	return out, nil

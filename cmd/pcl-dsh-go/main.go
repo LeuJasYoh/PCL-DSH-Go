@@ -4,9 +4,11 @@
 // one DeepSeek Harness instance on a Linux host and reverse-proxies its
 // workbench under /workbench/{id}/.
 //
-// M0 wiring: config -> logging -> data root -> single-instance lock -> store ->
-// toolchain -> orchestrator -> HTTP server. On SIGINT/SIGTERM the manager stops
-// accepting requests, then stops the instance(s) it owns, then releases the lock.
+// M1 wiring: config -> logging/audit -> data root -> single-instance lock ->
+// store + admin credentials -> security (sessions/CSRF) -> app orchestrator ->
+// job manager -> v1 API server. On SIGINT/SIGTERM the manager stops accepting
+// requests, cancels running jobs, stops the DSH instance(s) it owns and then
+// releases the lock.
 package main
 
 import (
@@ -26,6 +28,8 @@ import (
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/config"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/logging"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/server"
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/server/job"
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/server/security"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/store"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/tools"
 )
@@ -45,7 +49,8 @@ func main() {
 }
 
 // run performs the full startup/shutdown cycle and returns the process exit
-// code; deferred cleanup guarantees the lock and log files are released.
+// code; deferred cleanup guarantees credentials, lock and log files are
+// released even on failure.
 func run(args []string) int {
 	startedAt := time.Now()
 
@@ -80,9 +85,19 @@ func run(args []string) int {
 		"port", cfg.ServerPort,
 		"dataRoot", dirs.DataRoot,
 		"toolRoot", cfg.ToolRoot,
-		"devMode", cfg.DevMode,
 		"pid", os.Getpid(),
 	)
+
+	audit, err := logging.OpenAudit(dirs.LogsDir)
+	if err != nil {
+		logger.Error("初始化审计日志失败", "error", err)
+		return 1
+	}
+	defer func() {
+		if closeErr := audit.Close(); closeErr != nil {
+			logger.Warn("关闭审计日志失败", "error", closeErr)
+		}
+	}()
 
 	lock, err := config.AcquireLock(dirs.DataRoot)
 	if err != nil {
@@ -106,8 +121,25 @@ func run(args []string) int {
 		}
 	}()
 
+	admin, err := store.OpenAdmin(dirs.DataRoot)
+	if err != nil {
+		logger.Error("初始化管理员凭据失败", "error", err)
+		return 1
+	}
+	defer func() {
+		if closeErr := admin.Close(); closeErr != nil {
+			logger.Warn("关闭管理员凭据失败", "error", closeErr)
+		}
+	}()
+	if admin.InitialPasswordPending() {
+		// Never log the password itself: only where the operator can read it.
+		logger.Warn("管理员仍使用初始密码，请登录后立即修改", "initialPasswordFile", admin.InitialPasswordPath())
+	}
+
+	securityManager := security.NewManager(security.Config{}, admin, audit, logger)
+
 	// A missing toolchain must not prevent the manager from starting: the
-	// install/launch endpoints report an actionable error instead.
+	// runtime/instance endpoints report an actionable error instead.
 	var toolchain *tools.Tools
 	if located, locateErr := tools.Locate(cfg.ToolRoot, dirs.DataRoot); locateErr != nil {
 		logger.Warn("未定位到内置 Node/pnpm 工具链，运行时安装与实例启动将不可用", "error", locateErr)
@@ -127,11 +159,17 @@ func run(args []string) int {
 		return 1
 	}
 
+	jobs := job.NewManager(logger, job.Options{})
+
 	managerServer, err := server.New(server.Deps{
-		Config:       cfg,
-		Logger:       logger,
-		Store:        instanceStore,
-		Orchestrator: application,
+		Config:    cfg,
+		Logger:    logger,
+		Dirs:      dirs,
+		Store:     instanceStore,
+		Security:  securityManager,
+		Jobs:      jobs,
+		App:       application,
+		StartedAt: startedAt,
 	})
 	if err != nil {
 		logger.Error("初始化 HTTP 服务失败", "error", err)
@@ -179,6 +217,10 @@ func run(args []string) int {
 		_ = httpServer.Close()
 	}
 	cancel()
+
+	// Cancel in-flight jobs before stopping instances so that a running launch
+	// task cannot race the instance shutdown.
+	jobs.Shutdown()
 
 	instanceCtx, cancelInstances := context.WithTimeout(context.Background(), instanceShutdownTimeout)
 	if shutdownErr := application.Shutdown(instanceCtx); shutdownErr != nil {

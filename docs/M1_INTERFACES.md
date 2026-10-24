@@ -109,6 +109,7 @@ func (m *Manager) Logout(sessionID string) // 幂等
 func (m *Manager) Authenticate(r *http.Request) (*Session, bool) // 读 JSESSIONID、过期清理、滑动续期
 func (m *Manager) SessionCount() int
 func (m *Manager) ChangePassword(sessionID, oldPassword, newPassword string) error // *apierr.Error{400 VALIDATION}
+// 实现加固：改密成功后废止除当前会话外的其它会话（防被盗 Cookie 存活）；当前会话保持有效。
 func (m *Manager) InitialPasswordPending() bool
 func (m *Manager) LoginLocked(clientIP string) (retryAfterSeconds int, locked bool) // 供登录接口提前返回 423
 
@@ -186,7 +187,8 @@ SSE 契约（IMPLEMENTATION_SPEC §4.5）：
 - 每事件 `id: <seq>\nevent: <name>\ndata: <json>\n\n`；事件名 state/log/result/error。
 - data：state `{jobId,seq,ts,state,phase,message}`；log `{jobId,seq,ts,level:"info",line}`；result `{jobId,state,result}`；error `{jobId,state,code,message,details}`。
 - 15s 心跳注释 `": ping"\n\n"`（不占 seq）；支持 `Last-Event-ID` 补发（环形缓存）；终态事件发完关闭；连接最长 30min。
-- JSON 错误响应 `{code,message,traceId?}`（traceId 取响应头 X-Trace-Id）；404 NOT_FOUND、409 CONFLICT_JOB_FINISHED。
+- JSON 错误响应**恒四字段** `{code,message,details,traceId}`（details 恒为 JSON 对象，无内容时 `{}`；traceId 取响应头 X-Trace-Id）；404 NOT_FOUND、409 CONFLICT_JOB_FINISHED。JobView.error.details 与 SSE error 事件 details 同样为对象（不出现 null）。
+- 取消/超时是协作式：Task 必须响应 ctx；Task 不返回时管理器保持忙（不做强制终止）。已完成超过历史上限（20）的 Job 会被裁剪，Get 返回 404。
 - 任务错误映射：`*apierr.Error` → 其 code/message/details；ctx 取消 → CANCELLED；超时 → FAILED + TIMEOUT；其它 → INTERNAL（原错误只进日志）。
 
 ## 7. app 扩展（runtime-process）
@@ -223,6 +225,7 @@ func (a *App) UpdateInstance(ctx context.Context, id string, name *string, port 
 // 运行中改端口 → 409 CONFLICT_INSTANCE_RUNNING；未找到 404；校验错误 400。
 func (a *App) DeleteInstance(ctx context.Context, id string) (trashedPath string, err error)
 // 运行中（或正在启动）→ 409 CONFLICT_INSTANCE_RUNNING；实例 dir → trash；store 删除；选中项清空。
+// CreateInstance 成功即预建 instances/<id>/{dsh-home,workspace,agents-home}（0700，幂等），因此“从未启动的实例”删除也返回非空 trashedPath；旧数据目录缺失时兼容返回空。
 func (a *App) DeleteRuntime(ctx context.Context, version string) (trashedPath string, err error)
 // 任一实例引用 → 409 CONFLICT_IN_USE；未安装 404；runtime 目录 → trash；清探测缓存。
 func (a *App) Runtimes() []RuntimeInfo          // 已安装（入口校验通过）+ Compatibility（verified/unverified）

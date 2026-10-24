@@ -1,0 +1,37 @@
+=== M1 acceptance selfcheck 20261024-145146 ===
+PASS  bash -n m1-acceptance.sh  
+PASS  bash -n windows-dsh-baseline.sh  
+PASS  required input M1_INTERFACES.md  path=/mnt/d/Projects/DSHL/PCL-DSH-Go/docs/M1_INTERFACES.md
+PASS  required input IMPLEMENTATION_SPEC.md  path=/mnt/d/Projects/DSHL/PCL-DSH-Go/docs/IMPLEMENTATION_SPEC.md
+PASS  required input ACCEPTANCE.md  path=/mnt/d/Projects/DSHL/PCL-DSH-Go/docs/ACCEPTANCE.md
+PASS  required input contract-matrix.md  path=/mnt/d/Projects/DSHL/PCL-DSH-Go/docs/evidence/m1/contract-matrix.md
+PASS  helper defined: san  
+PASS  helper defined: log  
+PASS  helper defined: check  
+PASS  helper defined: info  
+PASS  helper defined: now_ms  
+PASS  helper defined: api  
+PASS  helper defined: json_get  
+PASS  helper defined: baseline_capture  
+PASS  helper defined: baseline_verify  
+PASS  helper defined: start_manager  
+PASS  helper defined: stop_manager  
+PASS  helper defined: init_data_root  
+PASS  helper defined: wait_port_free  
+PASS  helper defined: build_linux_manager  
+PASS  helper defined: phase_login  
+PASS  helper defined: phase_instances  
+PASS  helper defined: phase_runtime_jobs_sse  
+PASS  helper defined: phase_workbench_direct_access  
+PASS  sanitizer masks token/cookie/session/authorization  masked=http://x/?token=*** dsh-auth-***=*** JSESSIONID=*** X-XSRF-TOKEN: abc Authorization: ***
+PASS  tool available: curl  
+PASS  tool available: /opt/pcl-dsh-go/tools/node/bin/node  
+PASS  tool available: ss  
+PASS  tool available: setsid  
+PASS  tool available: find  
+PASS  tool available: sha256sum  
+PASS  tool available: timeout  
+PASS  Windows DSH baseline hash computed (read-only)  program_hash=d21dbbc5855f4bfd...
+
+selfcheck: pass=33 fail=0 info=0
+SELFCHECK=OK (phases pending task-19: task-18 wiring not required for this check)

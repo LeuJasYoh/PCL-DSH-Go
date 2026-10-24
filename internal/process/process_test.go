@@ -203,7 +203,10 @@ func TestStatusMessages(t *testing.T) {
 
 func TestHandleAccessors(t *testing.T) {
 	startedAt := time.Unix(1750000000, 0)
-	handle := &Handle{port: 3080, startedAt: startedAt, code: StatusStarting, desc: map[int]descendant{}}
+	handle := &Handle{instanceID: "i-000000000000", port: 3080, startedAt: startedAt, code: StatusStarting, desc: map[int]descendant{}}
+	if handle.InstanceID() != "i-000000000000" || handle.Port() != 3080 {
+		t.Fatalf("InstanceID/Port accessor 不符: %q %d", handle.InstanceID(), handle.Port())
+	}
 	status := handle.Status()
 	if status.Code != StatusStarting || status.Message != "启动中" || status.PID != 0 || !status.StartedAt.Equal(startedAt) {
 		t.Fatalf("初始 Status 不符: %+v", status)

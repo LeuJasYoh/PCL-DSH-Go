@@ -4,6 +4,8 @@
 //
 //   - <data-root>/config/instances.json：实例清单（schemaVersion 1）
 //   - <data-root>/config/manager.json：选中实例与管理设置（schemaVersion 1）
+//   - <data-root>/config/admin.json：单管理员 BCrypt 密码凭据（schemaVersion 1）
+//   - <data-root>/trash/：删除的实例/运行时回收站
 //
 // 所有写入都使用“同目录临时文件 + fsync + rename”的原子写，配置文件权限 0600；
 // Store 的方法可在多 goroutine 下并发调用。损坏的 JSON 或不受支持的 schemaVersion

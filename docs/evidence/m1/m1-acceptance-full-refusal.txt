@@ -1,0 +1,5 @@
+REFUSED: M1 wiring not marked ready (set M1_WIRING_READY=1 only after task-18/task-19).
+Skeleton helpers are available via --selfcheck / --baseline.
+RESULT=REFUSED (expected pre-wiring state; exit 3, not a test failure)
+EXIT_CODE=3
+exit_code=3

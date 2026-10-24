@@ -1,0 +1,9 @@
+# Windows DSH read-only baseline (find -printf path|size|mtime | sha256sum)
+captured_at=2026-10-24T14:48:49+08:00
+windows_dsh_dir=/mnt/d/DevelopSoftware/DSH
+windows_dsh_dir_exists=yes
+windows_dsh_program_hash=d21dbbc5855f4bfdf5e2c6542c872930e3546a239e15b699cde37d1eb0d12351
+windows_user_dsh_dir=/mnt/c/Users/23500/.dsh
+windows_user_dsh_exists=yes
+windows_user_dsh_hash=14d84e8a8a7424eb02ca72a4e9b2a256ab0aec4d7585ff79bb13258e43cd03cf
+note=read-only traversal only; the running Windows DSH may write its own user data (session/cache), so the user-data hash is informational while the program tree is compared strictly.

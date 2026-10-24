@@ -333,6 +333,9 @@ type Handle struct {
 // InstanceID 返回实例 ID。
 func (h *Handle) InstanceID() string { return h.instanceID }
 
+// Port 返回启动参数中登记的实例端口（M1 app 用于 LiveStatus）。
+func (h *Handle) Port() int { return h.port }
+
 // Status 返回当前状态快照。
 func (h *Handle) Status() Status {
 	h.mu.Lock()
