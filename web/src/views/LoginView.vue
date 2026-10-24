@@ -47,7 +47,7 @@ onMounted(() => {
 function loginErrorMessage(caught: unknown): string {
   if (caught instanceof ApiError) {
     if (caught.status === 401) return '密码错误，请重试。'
-    if (caught.status === 423) return '登录尝试次数过多，账户已暂时锁定，请 60 秒后再试。'
+    if (caught.status === 423) return '登录尝试次数过多，已暂时锁定，请 60 秒后再试。'
     if (caught.status === 403) return caught.code === 'PASSWORD_CHANGE_REQUIRED' ? '' : (caught.message || '没有权限登录。')
     if (caught.status === 404) return '登录接口尚未实现（后端开发中），无法登录。'
     if (caught.status === 0) return '无法连接后端服务，请确认服务已在 127.0.0.1:8080 启动。'
@@ -126,9 +126,9 @@ async function retryBackend(): Promise<void> {
     <div class="login-page__scrim" aria-hidden="true"></div>
     <div class="card login-card">
       <div class="login-brand">
-        <img class="login-logo" :src="iconUrl" alt="PCL-DSH-Linux" />
+        <img class="login-logo" :src="iconUrl" alt="PCL-DSH-Go" />
         <div>
-          <p class="login-title">PCL-DSH-Linux</p>
+          <p class="login-title">PCL-DSH-Go</p>
           <p class="login-subtitle">Web 管理界面 · {{ auth.version }}</p>
         </div>
       </div>
@@ -206,7 +206,7 @@ async function retryBackend(): Promise<void> {
 
     <footer class="login-footer">
       <p>界面改编自 Hello Minecraft! Launcher · 版权所有 © 2013-2026 huangyuhui 及贡献者</p>
-      <p>PCL-DSH-Linux 2026 · GPLv3 或后续版本 · 含 HMCL 附加条款</p>
+      <p>PCL-DSH-Go 2026 · GPLv3 或后续版本 · 含 HMCL 附加条款</p>
     </footer>
   </div>
 </template>

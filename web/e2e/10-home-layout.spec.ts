@@ -13,8 +13,8 @@ test('首页布局：40px 页头 / 200px 侧栏 / 7 个导航 / 200x55 启动按
   expect(sidebar).not.toBeNull()
   expect(Math.round(sidebar!.width)).toBe(200)
 
-  // Plan 5.2: three groups, 7 navigation entries plus the current-instance item.
-  await expect(page.locator('[data-testid^="nav-"]')).toHaveCount(7)
+  // M4: instance/runtimes/packs/plugins + settings/logs = 6 navigation entries (+ current-instance item).
+  await expect(page.locator('[data-testid^="nav-"]')).toHaveCount(6)
   await expect(page.getByTestId('current-instance-item')).toBeVisible()
 
   const launch = await page.getByTestId('primary-launch').boundingBox()

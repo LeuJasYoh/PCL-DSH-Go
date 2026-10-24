@@ -34,7 +34,10 @@ type Config struct {
 	ServerPort    int
 	DataRoot      string
 	ToolRoot      string
-	DevMode       bool
+	// StaticDir is the optional absolute directory of the built WebUI
+	// (docs/M4_INTERFACES.md 2). Empty keeps the built-in placeholder page.
+	StaticDir string
+	DevMode   bool
 }
 
 // Load 解析命令行参数（args 不含 argv[0]），并应用 PCL_DSH_DATA 兜底与基础校验。
@@ -46,16 +49,18 @@ func Load(args []string, getenv func(string) string) (Config, error) {
 	fs := flag.NewFlagSet("pcl-dsh-go", flag.ContinueOnError)
 	fs.SetOutput(io.Discard) // 由调用方统一打印错误，避免重复输出
 	var (
-		address  string
-		port     int
-		dataRoot string
-		toolRoot string
-		devMode  bool
+		address   string
+		port      int
+		dataRoot  string
+		toolRoot  string
+		staticDir string
+		devMode   bool
 	)
 	fs.StringVar(&address, "server.address", DefaultServerAddress, "HTTP 监听地址")
 	fs.IntVar(&port, "server.port", DefaultServerPort, "HTTP 监听端口（1-65535）")
 	fs.StringVar(&dataRoot, "pcl.data-root", "", "数据目录（默认 ./data，环境变量 PCL_DSH_DATA 兜底）")
 	fs.StringVar(&toolRoot, "pcl.tool-root", "", "内置 Node/pnpm 的 tools 目录（空表示自动查找）")
+	fs.StringVar(&staticDir, "server.static-dir", "", "WebUI 静态资源目录（构建产物 dist；空表示使用内置占位页）")
 	fs.BoolVar(&devMode, "pcl.dev-mode", false, "开发模式（M0 调试 API 开关）")
 	if err := fs.Parse(args); err != nil {
 		return Config{}, err
@@ -100,11 +105,23 @@ func Load(args []string, getenv func(string) string) (Config, error) {
 		}
 	}
 
+	// The static directory is optional. Relative values are resolved against
+	// the process working directory; existence is validated at startup by the
+	// server (docs/M4_INTERFACES.md 2).
+	staticDir = strings.TrimSpace(staticDir)
+	if staticDir != "" {
+		staticDir, err = filepath.Abs(staticDir)
+		if err != nil {
+			return Config{}, fmt.Errorf("解析 --server.static-dir 绝对路径失败：%w", err)
+		}
+	}
+
 	return Config{
 		ServerAddress: address,
 		ServerPort:    port,
 		DataRoot:      dataRoot,
 		ToolRoot:      toolRoot,
+		StaticDir:     staticDir,
 		DevMode:       devMode,
 	}, nil
 }
@@ -138,6 +155,7 @@ func UsageText() string {
 		"  --server.port int         HTTP 监听端口（默认 " + fmt.Sprintf("%d", DefaultServerPort) + "，范围 1-65535）",
 		"  --pcl.data-root string    数据目录（默认 ./data；环境变量 " + EnvDataRoot + " 兜底）",
 		"  --pcl.tool-root string    内置 Node/pnpm 的 tools 目录（空表示依次查找 tool-root、data-root/tools、PATH）",
+		"  --server.static-dir string WebUI 静态资源目录（构建产物 dist；空表示使用内置占位页，相对路径按当前目录解析）",
 		"  --pcl.dev-mode            M0 调试模式（默认 false）",
 		"  -h, --help                显示本帮助",
 		"",

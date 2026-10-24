@@ -1,23 +1,27 @@
 /**
- * Typed DTOs for the REST contract in docs/IMPLEMENTATION_PLAN.md 4.2 / 4.3 / 4.9.
+ * Shared DTOs for the PCL-DSH-Go manager API v1.
  *
- * The backend is implemented in parallel, so every field is read defensively
- * (see api/normalize.ts). Screens must degrade instead of showing made-up data.
+ * Contract: docs/IMPLEMENTATION_SPEC.md `4.2/`4.3, docs/M3_INTERFACES.md `8,
+ * docs/M4_INTERFACES.md `4. Every field is read defensively in
+ * api/normalize.ts so screens degrade instead of showing made-up data.
  */
 
-/** /api/state mixes a desktop-era status string with the planned {code,message}. */
-export type StatusSnapshot = string | { code?: string; message?: string } | null
+/** GET /api/state status: READY when idle, RUNNING while a job is active. */
+export interface StatusSnapshot {
+  code: string
+  message: string
+}
 
+/** One configured instance (docs/IMPLEMENTATION_SPEC.md `4.3 InstanceDto). */
 export interface InstanceSummary {
   id: string
   name: string
   version: string
   profile: string
-  port: number | null
-  profiles: string[]
-  accountId: string | null
-  path: string | null
+  port: number
   status: string
+  path: string | null
+  profiles: string[]
 }
 
 export interface RuntimeSummary {
@@ -26,30 +30,22 @@ export interface RuntimeSummary {
   compatibility: string
 }
 
-export interface AccountSummary {
-  id: string
-  name: string
-  provider: string
-  baseUrl?: string
-  model?: string
-  hasKey?: boolean
-  status?: string
-}
-
+/** GET/PUT /api/settings and the settings block of /api/state. */
 export interface AppSettings {
   proxy: string
   registry: string
-  background: string
+  directAccessSshUser: string
 }
 
 export interface StateResponse {
+  version: string
   currentInstanceId: string | null
-  settings: AppSettings
   instances: InstanceSummary[]
   runtimes: RuntimeSummary[]
-  accounts: AccountSummary[]
-  availableVersions: string[]
   status: StatusSnapshot
+  settings: AppSettings
+  availableVersions: string[]
+  warnings: string[]
 }
 
 export interface AuthMe {
@@ -64,10 +60,9 @@ export interface WebUrl {
 }
 
 /**
- * GET /api/instances/{id}/direct-access：远程完成 DeepSeek 账号网页登录所需的直连信息。
- *
- * 上游 DSH 的账号 OAuth 回调只接受回环地址（127.0.0.1/localhost），远程浏览器无法直接完成
- * 登录；需要先用 SSH 隧道把实例端口映射到本机，再打开 directUrl 完成一次登录。
+ * GET /api/instances/{id}/direct-access: loopback URL plus SSH tunnel command.
+ * The upstream DSH web login only accepts loopback addresses, so a remote
+ * operator has to open a tunnel once.
  */
 export interface DirectAccess {
   ready: boolean
@@ -79,20 +74,26 @@ export interface DirectAccess {
   note: string
 }
 
-/** POST/PUT instance payload (plan 4.2). port === null means "auto assign". */
-export interface InstanceInput {
+/** POST /api/instances body (docs/IMPLEMENTATION_SPEC.md `4.2). */
+export interface CreateInstanceInput {
   name: string
-  version?: string
-  profile?: string
+  version: string
+  profile: string
+  /** null/omitted means "let the manager pick a free port". */
   port?: number | null
-  accountId?: string
+}
+
+/** PUT /api/instances/{id} body: version/profile are immutable after creation. */
+export interface UpdateInstanceInput {
+  name?: string
+  port?: number | null
 }
 
 export interface DeleteInstanceResult {
   trashedPath: string
 }
 
-/** GET /api/runtimes/available (plan 4.2). */
+/** GET /api/runtimes/available. */
 export interface AvailableRuntimes {
   versions: string[]
 }
@@ -101,7 +102,7 @@ export interface LogTail {
   lines: string[]
 }
 
-/** Job state machine from plan 4.3. */
+/** Job state machine (docs/IMPLEMENTATION_SPEC.md `4.5). */
 export type JobState = 'RUNNING' | 'SUCCEEDED' | 'FAILED' | 'CANCELLED'
 
 export interface JobError {
@@ -165,7 +166,7 @@ export interface JobAccepted {
   type?: string
 }
 
-/** Unified error body from plan 4.10. */
+/** Unified error body (docs/IMPLEMENTATION_SPEC.md `4.4). */
 export interface ApiErrorBody {
   code?: string
   message?: string
@@ -174,83 +175,22 @@ export interface ApiErrorBody {
 }
 
 /* ------------------------------------------------------------------ */
-/* Third increment (M2 F-7/F-13/F-15): accounts, plugins, catalog, assets */
+/* M3 DTOs: installed plugins, packs, artifacts                        */
 /* ------------------------------------------------------------------ */
 
-/** GET /api/accounts/providers: official provider presets. */
-export interface ProviderPreset {
-  id: string
-  name: string
-  baseUrl: string
-  model: string
-}
-
-/** POST/PUT /api/accounts body; a blank apiKey on edit keeps the stored secret. */
-export interface AccountInput {
-  name: string
-  provider: string
-  baseUrl: string
-  model: string
-  apiKey?: string
-}
-
-/** GET /api/instances/{id}/plugins?profile= item. */
-export interface PluginEntry {
+/** GET /api/instances/{id}/plugins?profile= item (InstalledPluginDto). */
+export interface InstalledPluginDto {
   name: string
   version: string
   description: string
   source: string
 }
 
-/** GET /api/plugin-catalog?q=&page=&refresh= item. */
-export interface CatalogItem {
-  repo: string
-  name: string
-  description: string
-  stars: number
-  url: string
-  spec: string
-  status: string
-}
+/** Reference name kept by the views. */
+export type PluginEntry = InstalledPluginDto
 
-export interface CatalogPage {
-  query: string
-  page: number
-  total: number
-  hasNext: boolean
-  fromCache: boolean
-  warning: string
-  items: CatalogItem[]
-}
-
-/** GET /api/plugin-catalog/{owner}/{repo}: resolved install targets. */
-export interface InstallTarget {
-  name: string
-  version: string
-  spec: string
-  packagePath: string
-  evidenceUrl: string
-}
-
-export interface PluginDetails {
-  repo: string
-  status: string
-  message: string
-  fromCache: boolean
-  targets: InstallTarget[]
-}
-
-/** POST /api/settings/background response. */
-export interface BackgroundAsset {
-  background: string
-}
-
-/* ------------------------------------------------------------------ */
-/* Fourth increment (M3): pack preview / import / export / artifacts   */
-/* ------------------------------------------------------------------ */
-
-/** POST /api/packs/preview response (multipart field "file", 200, previewId TTL 30min). */
-export interface PackPreview {
+/** POST /api/packs/preview response (multipart field "file", previewId TTL 30min). */
+export interface PackPreviewDto {
   previewId: string
   name: string
   format: string
@@ -262,7 +202,10 @@ export interface PackPreview {
   warnings: string[]
 }
 
-/** POST /api/packs/import body → 202 Job (type=IMPORT_PACK, result {instanceId,name}). */
+/** Reference name kept by the views. */
+export type PackPreview = PackPreviewDto
+
+/** POST /api/packs/import body → 202 Job(IMPORT_PACK). */
 export interface ImportPackInput {
   previewId: string
   name?: string
@@ -272,20 +215,63 @@ export interface ImportPackInput {
 
 export type PackExportMode = 'profile' | 'home'
 
-/** POST /api/packs/export body → 202 Job (type=EXPORT_PACK, result {artifactId,filename,size}). */
+/** POST /api/packs/export body → 202 Job(EXPORT_PACK). */
 export interface ExportPackInput {
   instanceId: string
   mode: PackExportMode
 }
 
+/** EXPORT_PACK artifact reference parsed from a Job result. */
 export interface ArtifactRef {
   artifactId: string
   filename: string
   size: number
 }
 
-/** PUT /api/instances/{id}: 200 returns the updated Instance, 202 returns a Job. */
-export interface InstanceSaveResult {
-  instance: InstanceSummary | null
-  job: JobView | null
+/* ------------------------------------------------------------------ */
+/* Job result payloads (docs/M3_INTERFACES.md `7)                      */
+/* ------------------------------------------------------------------ */
+
+export interface LaunchJobResult {
+  instanceId: string
+  /** Console path only: never a token URL. */
+  webUrl: string
 }
+
+export interface InstallRuntimeJobResult {
+  version: string
+  installed: boolean
+  compatibility: string
+}
+
+export interface ProbeRuntimeJobResult {
+  version: string
+  compatibility: string
+}
+
+export interface ImportPackJobResult {
+  instanceId: string
+  name: string
+}
+
+export interface ExportPackJobResult {
+  artifactId: string
+  filename: string
+  size: number
+}
+
+export interface PluginMutateJobResult {
+  instanceId: string
+  profile: string
+  action: string
+  name: string
+}
+
+/** Union of every typed Job result payload. */
+export type JobResult =
+  | LaunchJobResult
+  | InstallRuntimeJobResult
+  | ProbeRuntimeJobResult
+  | ImportPackJobResult
+  | ExportPackJobResult
+  | PluginMutateJobResult

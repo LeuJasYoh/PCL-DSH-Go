@@ -1,8 +1,8 @@
 {
-  "name": "pcl-dsh-web",
+  "name": "pcl-dsh-go-web",
   "private": true,
-  "version": "0.3.2",
-  "description": "PCL-DSH-Linux Web UI: Vue 3 + TypeScript + Vite port of the HDSL desktop launcher",
+  "version": "0.1.0",
+  "description": "PCL-DSH-Go Web UI: Vue 3 + TypeScript + Vite management console for DeepSeek Harness instances",
   "type": "module",
   "engines": {
     "node": ">=20.19.0"

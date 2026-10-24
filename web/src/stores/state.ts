@@ -5,7 +5,6 @@ import { stateApi } from '@/api'
 import { ApiError } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import type {
-  AccountSummary,
   AppSettings,
   InstanceSummary,
   RuntimeSummary,
@@ -16,7 +15,7 @@ import type {
 const DEFAULT_SETTINGS: AppSettings = {
   proxy: '',
   registry: '',
-  background: 'builtin:whale-01',
+  directAccessSshUser: 'root',
 }
 
 const POLL_IDLE_MS = 1500
@@ -26,18 +25,20 @@ const POLL_RETRY_MS = 5000
 export { POLL_IDLE_MS, POLL_BUSY_MS }
 
 /**
- * Aggregated workspace snapshot from GET /api/state (plan 5.3):
+ * Aggregated workspace snapshot from GET /api/state:
  * page-first frame, then 1.5s polling that pauses while the tab is hidden.
  * Failures are surfaced truthfully; polling backs off to 5s and recovers.
+ * GET /api/state has no account data (single-administrator manager).
  */
 export const useAppStateStore = defineStore('appState', () => {
+  const version = ref('')
   const currentInstanceId = ref<string | null>(null)
   const settings = ref<AppSettings>({ ...DEFAULT_SETTINGS })
   const instances = ref<InstanceSummary[]>([])
   const runtimes = ref<RuntimeSummary[]>([])
-  const accounts = ref<AccountSummary[]>([])
   const availableVersions = ref<string[]>([])
-  const status = ref<StatusSnapshot>(null)
+  const warnings = ref<string[]>([])
+  const status = ref<StatusSnapshot | null>(null)
   const lastUpdatedAt = ref<number | null>(null)
   const loading = ref(false)
   const pollIntervalMs = ref(POLL_IDLE_MS)
@@ -55,8 +56,7 @@ export const useAppStateStore = defineStore('appState', () => {
 
   const statusText = computed(() => {
     const snapshot = status.value
-    if (typeof snapshot === 'string' && snapshot) return snapshot
-    if (snapshot && typeof snapshot === 'object') return snapshot.message ?? snapshot.code ?? ''
+    if (snapshot) return snapshot.message || snapshot.code || ''
     return error.value ? '读取工作空间失败' : '就绪'
   })
 
@@ -75,12 +75,13 @@ export const useAppStateStore = defineStore('appState', () => {
   })
 
   function apply(snapshot: StateResponse): void {
+    version.value = snapshot.version
     currentInstanceId.value = snapshot.currentInstanceId
     settings.value = snapshot.settings
     instances.value = snapshot.instances
     runtimes.value = snapshot.runtimes
-    accounts.value = snapshot.accounts
     availableVersions.value = snapshot.availableVersions
+    warnings.value = snapshot.warnings
     status.value = snapshot.status
   }
 
@@ -148,7 +149,7 @@ export const useAppStateStore = defineStore('appState', () => {
     }
   }
 
-  /** Plan 5.3: 1.5s while idle, 3s while a background task is running. */
+  /** 1.5s while idle, 3s while a background task is running. */
   function setPollInterval(ms: number): void {
     pollIntervalMs.value = Math.max(500, ms)
   }
@@ -161,18 +162,14 @@ export const useAppStateStore = defineStore('appState', () => {
     settings.value = next
   }
 
-  /** Optimistic list replacement after account mutations (server refresh still follows). */
-  function replaceAccounts(next: AccountSummary[]): void {
-    accounts.value = next
-  }
-
   return {
+    version,
     currentInstanceId,
     settings,
     instances,
     runtimes,
-    accounts,
     availableVersions,
+    warnings,
     status,
     lastUpdatedAt,
     loading,
@@ -191,6 +188,5 @@ export const useAppStateStore = defineStore('appState', () => {
     setPollInterval,
     setCurrentInstanceId,
     replaceSettings,
-    replaceAccounts,
   }
 })

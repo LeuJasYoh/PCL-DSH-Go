@@ -2,12 +2,12 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
-import { artifactsApi, instancesApi, packsApi } from '@/api'
-import { isRecord } from '@/api/normalize'
-import type { ArtifactRef, PackExportMode, PackPreview } from '@/api/types'
+import { ApiError, artifactsApi, instancesApi, jobResults, packsApi } from '@/api'
+import type { ArtifactRef, PackExportMode, PackPreviewDto } from '@/api/types'
 import AppIcon from '@/components/AppIcon.vue'
 import AppNotice from '@/components/AppNotice.vue'
 import TaskProgressStrip from '@/components/TaskProgressStrip.vue'
+import PackPreviewPanel from '@/components/m4/PackPreviewPanel.vue'
 import { useJobStore } from '@/stores/jobs'
 import { useNotifyStore } from '@/stores/notify'
 import { useAppStateStore } from '@/stores/state'
@@ -16,6 +16,11 @@ import { triggerDownload } from '@/utils/download'
 import { describeApiError } from '@/utils/errors'
 import { validateInstanceName, validateVersion } from '@/utils/validation'
 
+/**
+ * Integration packs (M3 API): synchronous preview (multipart, 2 GiB limit),
+ * async import/export Jobs, then an artifact download through the session cookie.
+ * No account filtering: packs are instance-independent.
+ */
 const appState = useAppStateStore()
 const jobs = useJobStore()
 const notify = useNotifyStore()
@@ -27,7 +32,7 @@ const selectedFile = ref<File | null>(null)
 const uploading = ref(false)
 const uploadPercent = ref<number | null>(null)
 const uploadError = ref('')
-const preview = ref<PackPreview | null>(null)
+const preview = ref<PackPreviewDto | null>(null)
 const uploadController = ref<AbortController | null>(null)
 
 // ---------------------------------------------------------------- import
@@ -52,11 +57,6 @@ const exportInstance = computed(
 const exportBlocked = computed(
   () => exportInstance.value !== null && isRunningStatus(exportInstance.value.status),
 )
-// Backend rule: "home" export requires a non-web, initialized profile; web instances
-// only support exporting the current profile (desktop behaves the same way).
-const homeModeAllowed = computed(
-  () => exportInstance.value !== null && exportInstance.value.profile !== 'web',
-)
 
 onMounted(() => {
   void appState.refresh()
@@ -72,45 +72,47 @@ watch(
   },
 )
 
-watch(
-  homeModeAllowed,
-  (allowed) => {
-    if (!allowed && exportMode.value === 'home') exportMode.value = 'profile'
-  },
-)
-
 // Watch result as well: the terminal "state" event arrives before the "result" event.
 watch(
-  [() => jobs.state, () => jobs.result, () => jobs.type],
+  [() => jobs.state, () => jobs.result, () => jobs.type, () => jobs.jobId],
   () => {
     if (jobs.state !== 'SUCCEEDED' || !jobs.jobId) return
-    const result = isRecord(jobs.result) ? jobs.result : null
-    if (jobs.type === 'IMPORT_PACK' && result && typeof result.instanceId === 'string') {
-      if (handledImportJob === jobs.jobId) return
+    if (jobs.type === 'IMPORT_PACK') {
+      const result = jobResults.importPack(jobs.result)
+      if (!result || handledImportJob === jobs.jobId) return
       handledImportJob = jobs.jobId
       void finishImport(result)
-    } else if (jobs.type === 'EXPORT_PACK' && result) {
-      // The terminal "state" event arrives before the "result" payload; wait for it.
-      if (handledExportJob === jobs.jobId) return
+    } else if (jobs.type === 'EXPORT_PACK') {
+      const result = jobResults.exportPack(jobs.result)
+      if (!result || handledExportJob === jobs.jobId) return
       handledExportJob = jobs.jobId
       finishExport(result)
     }
   },
 )
 
-async function finishImport(result: Record<string, unknown>): Promise<void> {
-  const instanceId = typeof result.instanceId === 'string' ? result.instanceId : ''
-  const name = typeof result.name === 'string' ? result.name : ''
-  notify.success('整合包导入完成' + (name ? '：' + name : '') + '。')
+// Surface job-level failures (e.g. archive validation) on this page as well.
+watch(
+  () => jobs.state,
+  (state) => {
+    if (state !== 'FAILED' && state !== 'CANCELLED') return
+    if (jobs.type !== 'IMPORT_PACK' && jobs.type !== 'EXPORT_PACK') return
+    const message = jobs.error?.message || (state === 'CANCELLED' ? '任务已取消。' : '任务未完成，请查看任务与日志页。')
+    notify.error(message)
+  },
+)
+
+async function finishImport(result: { instanceId: string; name: string }): Promise<void> {
+  notify.success('整合包导入完成' + (result.name ? '：' + result.name : '') + '。')
   preview.value = null
   selectedFile.value = null
   importName.value = ''
   importVersion.value = ''
   await appState.refresh()
-  if (instanceId) {
+  if (result.instanceId) {
     try {
-      await instancesApi.select(instanceId)
-      appState.setCurrentInstanceId(instanceId)
+      await instancesApi.select(result.instanceId)
+      appState.setCurrentInstanceId(result.instanceId)
     } catch {
       // The new instance still appears in the list even if selecting it failed.
     }
@@ -119,15 +121,10 @@ async function finishImport(result: Record<string, unknown>): Promise<void> {
   void router.push({ name: 'instances' })
 }
 
-function finishExport(result: unknown): void {
-  const artifact = packsApi.artifactFromResult(result)
-  if (!artifact) {
-    notify.error('导出任务完成，但没有返回可下载的产物信息。请稍后在任务页或数据目录查看。')
-    return
-  }
-  lastExport.value = artifact
-  triggerDownload(artifactsApi.url(artifact.artifactId), artifact.filename)
-  notify.success('导出完成，已开始下载' + (artifact.filename ? '：' + artifact.filename : '。'))
+function finishExport(result: ArtifactRef): void {
+  lastExport.value = result
+  triggerDownload(artifactsApi.url(result.artifactId), result.filename)
+  notify.success('导出完成，已开始下载' + (result.filename ? '：' + result.filename : '。'))
 }
 
 function pickFile(): void {
@@ -176,6 +173,8 @@ async function startUpload(file: File): Promise<void> {
   } catch (caught) {
     if (caught instanceof DOMException && caught.name === 'AbortError') {
       uploadError.value = '已取消上传，可重新选择整合包。'
+    } else if (caught instanceof ApiError && caught.status === 413) {
+      uploadError.value = caught.message || '整合包超过 2 GiB 上传上限（PAYLOAD_TOO_LARGE）。'
     } else {
       uploadError.value = describeApiError(caught, '上传整合包')
     }
@@ -305,13 +304,13 @@ function redownload(): void {
       </AppNotice>
       <AppNotice title="分享包的导出范围" tone="info">
         <p class="paragraph">
-          分享包不包含凭据、会话和可能含密钥的 patch 配置；导入后可能需要重新配置。
+          分享包不包含凭据、会话和可能含密钥的 patch 配置；导出整个实例会跳过 web/headless 基线 profile。导入后可能需要重新配置。
         </p>
       </AppNotice>
 
       <section class="card content-card" data-testid="pack-upload-card">
         <p class="card-title">导入整合包</p>
-        <p class="paragraph">选择 .dspack 或兼容的快照 ZIP，先检查包信息，再导入为新实例。</p>
+        <p class="paragraph">选择 .dspack 或兼容的快照 ZIP（≤ 2 GiB），先检查包信息，再导入为新实例。</p>
         <input
           ref="fileInput"
           class="sr-only"
@@ -354,31 +353,7 @@ function redownload(): void {
         </div>
         <p v-if="uploadError" class="validation-error" data-testid="pack-upload-error" role="alert">{{ uploadError }}</p>
 
-        <div v-if="preview" class="pack-preview" data-testid="pack-preview">
-          <div class="pack-preview__heading">
-            <span class="card-title">包预览</span>
-            <button class="btn btn-subtle btn--small" type="button" data-testid="pack-reset" @click="resetPreview">
-              重新选择
-            </button>
-          </div>
-          <dl class="pack-preview__grid">
-            <div class="pack-preview__row"><dt>名称</dt><dd data-testid="pack-preview-name">{{ preview.name || '未声明' }}</dd></div>
-            <div class="pack-preview__row"><dt>格式</dt><dd>{{ preview.format || '未声明' }}</dd></div>
-            <div class="pack-preview__row"><dt>包版本</dt><dd>{{ preview.version || '未声明' }}</dd></div>
-            <div class="pack-preview__row"><dt>Harness 版本</dt><dd>{{ preview.dshVersion || '未声明' }}</dd></div>
-            <div class="pack-preview__row">
-              <dt>Profile</dt>
-              <dd>{{ preview.profiles.length ? preview.profiles.join('、') : '未声明' }}</dd>
-            </div>
-            <div class="pack-preview__row"><dt>解压体积约</dt><dd>{{ formatBytes(preview.unpackedBytes) }}</dd></div>
-          </dl>
-          <div v-if="preview.warnings.length" class="pack-warning" data-testid="pack-warning" role="alert">
-            <p class="pack-warning__title">兼容性 / 安全提示（请确认后再导入）</p>
-            <ul>
-              <li v-for="warning in preview.warnings" :key="warning">{{ warning }}</li>
-            </ul>
-          </div>
-        </div>
+        <PackPreviewPanel v-if="preview" :preview="preview" @reset="resetPreview" />
       </section>
 
       <section v-if="preview" class="card content-card" data-testid="pack-import-card">
@@ -450,24 +425,15 @@ function redownload(): void {
               <input v-model="exportMode" type="radio" value="profile" data-testid="pack-export-mode-profile" />
               <span>当前 profile</span>
             </label>
-            <label class="choice-item" :class="{ 'is-disabled': !homeModeAllowed }">
-              <input
-                v-model="exportMode"
-                type="radio"
-                value="home"
-                data-testid="pack-export-mode-home"
-                :disabled="!homeModeAllowed"
-              />
+            <label class="choice-item">
+              <input v-model="exportMode" type="radio" value="home" data-testid="pack-export-mode-home" />
               <span>整个实例</span>
             </label>
           </div>
           <p class="form-hint">
             {{ exportMode === 'profile'
               ? '仅导出所选实例当前 profile 的可分享配置与插件。'
-              : '导出整个实例目录（仍不包含凭据、会话与数据库缓存）。' }}
-          </p>
-          <p v-if="!homeModeAllowed" class="form-hint" data-testid="pack-export-home-hint">
-            web 实例只能导出当前 profile；整个实例导出要求该实例使用非 web 的已初始化 profile。
+              : '导出整个实例 dsh-home（仍不包含凭据、会话、缓存，且跳过 web/headless 基线 profile）。' }}
           </p>
         </div>
         <p v-if="exportBlocked" class="validation-error" data-testid="pack-export-running" role="alert">

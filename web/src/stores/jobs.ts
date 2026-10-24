@@ -7,7 +7,7 @@ import { normalizeJob } from '@/api/normalize'
 import type { JobLogEntry, JobState, JobView } from '@/api/types'
 import { jobStateLabel, jobTypeLabel } from '@/utils/jobs'
 
-const STORAGE_KEY = 'pcl-dsh-linux.currentJobId'
+const STORAGE_KEY = 'pcl-dsh-go.currentJobId'
 const MAX_LOG_LINES = 4000
 /** After a terminal "state" event wait this long for the matching result/error event. */
 const TERMINAL_GRACE_MS = 3000

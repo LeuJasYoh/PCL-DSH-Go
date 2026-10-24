@@ -3,8 +3,8 @@ import { fileURLToPath, URL } from 'node:url'
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
 
-// Development proxy keeps the browser on one origin so the Spring session
-// cookie and the XSRF-TOKEN cookie are shared with the SPA (see plan 3.4/4.4).
+// Development proxy keeps the browser on one origin so the JSESSIONID and
+// XSRF-TOKEN cookies are shared with the Go manager SPA.
 export default defineConfig({
   plugins: [vue()],
   resolve: {

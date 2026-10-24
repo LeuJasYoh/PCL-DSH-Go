@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
-import { logsApi } from '@/api'
+import { jobsApi, logsApi } from '@/api'
+import type { JobView } from '@/api/types'
 import AppIcon from '@/components/AppIcon.vue'
 import AppNotice from '@/components/AppNotice.vue'
 import BaseModal from '@/components/BaseModal.vue'
@@ -11,8 +12,16 @@ import { useNotifyStore } from '@/stores/notify'
 import { copyText } from '@/utils/clipboard'
 import { elapsedText } from '@/utils/display'
 import { describeApiError } from '@/utils/errors'
-import { emptyJobHint } from '@/utils/jobs'
+import { emptyJobHint, jobStateLabel, jobTypeLabel } from '@/utils/jobs'
 
+/**
+ * Tasks and logs:
+ *  - the current Job is followed through the jobs store (SSE, cancel, reconnect);
+ *  - the recent Job list (GET /api/jobs, max 20) can be selected for replay;
+ *  - GET /api/logs/tail provides the manager log tail. Instance process logs are
+ *    not exposed by the Go API yet (documented M4 limitation), so the tail is
+ *    labelled "manager 日志".
+ */
 const jobs = useJobStore()
 const notify = useNotifyStore()
 
@@ -27,6 +36,11 @@ const tailLines = ref<string[]>([])
 const tailLoading = ref(false)
 const tailError = ref('')
 const tailStatus = ref('')
+const tailCount = ref(800)
+
+const recentJobs = ref<JobView[]>([])
+const recentLoading = ref(false)
+const recentError = ref('')
 
 const now = ref(Date.now())
 let clock: number | null = null
@@ -54,6 +68,7 @@ onMounted(() => {
     now.value = Date.now()
   }, 1000)
   void loadTail()
+  void loadRecentJobs()
 })
 
 onBeforeUnmount(() => {
@@ -143,18 +158,55 @@ async function copyLogs(): Promise<void> {
 async function loadTail(): Promise<void> {
   if (tailLoading.value) return
   tailLoading.value = true
-  tailStatus.value = '正在读取后端日志…'
+  tailStatus.value = '正在读取 manager 日志…'
   try {
-    const result = await logsApi.tail(800)
+    const result = await logsApi.tail(tailCount.value)
     tailLines.value = result.lines
     tailError.value = ''
-    tailStatus.value = result.lines.length ? '已读取 ' + String(result.lines.length) + ' 行。' : '暂无后端日志。'
+    tailStatus.value = result.lines.length
+      ? '已读取 ' + String(result.lines.length) + ' 行（manager 日志）。'
+      : '暂无 manager 日志。'
   } catch (caught) {
-    tailError.value = describeApiError(caught, '读取后端日志')
+    tailError.value = describeApiError(caught, '读取 manager 日志')
     tailStatus.value = ''
   } finally {
     tailLoading.value = false
   }
+}
+
+async function loadRecentJobs(): Promise<void> {
+  if (recentLoading.value) return
+  recentLoading.value = true
+  recentError.value = ''
+  try {
+    recentJobs.value = await jobsApi.list()
+  } catch (caught) {
+    recentError.value = describeApiError(caught, '读取任务列表')
+  } finally {
+    recentLoading.value = false
+  }
+}
+
+function followJob(job: JobView): void {
+  jobs.begin(job)
+  clearedSeq.value = 0
+  stickToBottom.value = true
+  notify.info('正在跟随任务 ' + job.id + ' 的实时输出。')
+  void nextTick(scrollToBottom)
+}
+
+function jobBadgeClass(job: JobView): string {
+  if (job.state === 'RUNNING') return 'badge--blue'
+  if (job.state === 'SUCCEEDED') return 'badge--green'
+  return 'badge--red'
+}
+
+function jobTime(job: JobView): string {
+  const value = job.createdAt ?? job.startedAt
+  if (value === null || value === undefined) return '—'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '—'
+  return date.toLocaleString('zh-CN', { hour12: false })
 }
 </script>
 
@@ -201,7 +253,7 @@ async function loadTail(): Promise<void> {
           :disabled="tailLoading"
           @click="loadTail"
         >
-          <AppIcon name="refresh" :size="15" />刷新后端日志
+          <AppIcon name="refresh" :size="15" />刷新 manager 日志
         </button>
       </div>
 
@@ -250,26 +302,68 @@ async function loadTail(): Promise<void> {
       </button>
 
       <div class="toolbar">
-        <span class="section-title">后端日志</span>
+        <span class="section-title">任务列表</span>
+        <span class="small-muted" data-testid="job-list-status">
+          {{ recentLoading ? '正在读取…' : recentJobs.length ? '最近 ' + String(recentJobs.length) + ' 个任务' : '暂无任务记录' }}
+        </span>
+        <span class="toolbar__spacer"></span>
+        <button class="btn btn-secondary btn--small" type="button" :disabled="recentLoading" @click="loadRecentJobs">
+          <AppIcon name="refresh" :size="14" />刷新列表
+        </button>
+      </div>
+      <AppNotice v-if="recentError" title="任务列表读取失败" tone="warn">
+        <p class="paragraph">{{ recentError }}</p>
+      </AppNotice>
+      <div v-else-if="recentJobs.length" class="card-list" data-testid="job-list">
+        <div v-for="job in recentJobs" :key="job.id" class="card job-list-row" :data-testid="'job-list-item-' + job.id">
+          <div class="job-list-row__info">
+            <span class="badge" :class="jobBadgeClass(job)">{{ jobStateLabel(job.state) }}</span>
+            <span>{{ jobTypeLabel(job.type) }}</span>
+            <span class="mono small-muted">{{ job.id }}</span>
+            <span class="small-muted">{{ jobTime(job) }}</span>
+          </div>
+          <div class="instance-card__actions">
+            <button
+              class="btn btn-secondary btn--small"
+              type="button"
+              :data-testid="'job-follow-' + job.id"
+              @click="followJob(job)"
+            >
+              查看输出
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <span class="section-title">manager 日志</span>
         <span class="small-muted" data-testid="log-tail-status">{{ tailStatus }}</span>
         <span class="toolbar__spacer"></span>
+        <select v-model.number="tailCount" class="input log-tail-lines" aria-label="日志行数" :disabled="tailLoading" @change="loadTail">
+          <option :value="200">200 行</option>
+          <option :value="800">800 行</option>
+          <option :value="2000">2000 行</option>
+        </select>
         <button class="btn btn-secondary btn--small" type="button" :disabled="tailLoading" @click="loadTail">
           <AppIcon name="refresh" :size="14" />刷新
         </button>
       </div>
-      <AppNotice v-if="tailError" title="后端日志读取失败" tone="warn">
+      <AppNotice v-if="tailError" title="manager 日志读取失败" tone="warn">
         <p class="paragraph">{{ tailError }}</p>
         <div class="toolbar">
           <button class="btn btn-secondary btn--small" type="button" @click="loadTail">重试</button>
-          <span class="small-muted">GET /api/logs/tail?lines=800</span>
+          <span class="small-muted">GET /api/logs/tail?lines={{ tailCount }}</span>
         </div>
       </AppNotice>
-      <pre v-else class="log-area log-area--tail" data-testid="log-tail" aria-label="后端日志尾部">{{ tailLines.length ? tailLines.join('\n') : '暂无后端日志。' }}</pre>
+      <pre v-else class="log-area log-area--tail" data-testid="log-tail" aria-label="manager 日志尾部">{{ tailLines.length ? tailLines.join('\n') : '暂无 manager 日志。' }}</pre>
+      <p class="small-muted">
+        说明：后端目前仅提供 manager 日志 tail（已脱敏）；实例进程日志暂不通过 API 提供，请通过任务输出查看启动/运行阶段日志。
+      </p>
 
       <EmptyState
         v-if="!hasJob"
-        title="还没有正在进行的任务"
-        description="安装运行时、检测能力或启动实例后，这里会实时显示任务阶段与日志；任务结束后可回到首页或实例页继续操作。"
+        title="还没有正在跟随的任务"
+        description="安装运行时、检测能力、导入整合包或启动实例后，这里会实时显示任务阶段与日志；也可以从上方任务列表选择历史任务查看输出。"
         icon="terminal"
       />
     </div>
@@ -293,3 +387,25 @@ async function loadTail(): Promise<void> {
     </BaseModal>
   </div>
 </template>
+
+<style scoped>
+.job-list-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.job-list-row__info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.log-tail-lines {
+  flex: 0 0 auto;
+  width: 110px;
+}
+</style>

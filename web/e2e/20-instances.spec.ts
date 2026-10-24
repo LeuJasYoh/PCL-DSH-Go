@@ -8,7 +8,7 @@ test.beforeEach(async ({ page }) => {
     route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ versions: ['0.2.0-rc.2', '0.2.0-rc.1'] }),
+      body: JSON.stringify({ versions: ['0.2.1-rc.3', '0.2.1-rc.2'] }),
     }),
   )
 })
@@ -31,7 +31,7 @@ test('创建实例校验、创建成功、选择当前实例与删除确认', as
     await page.getByTestId('instance-version').fill('')
     await page.getByTestId('instance-save').click()
     await expect(page.getByTestId('instance-validation')).toContainText('请输入 Harness 版本。')
-    await page.getByTestId('instance-version').fill('0.2.0-rc.2')
+    await page.getByTestId('instance-version').fill('0.2.1-rc.3')
 
     // 端口范围
     await page.getByTestId('instance-port').fill('80')
@@ -44,13 +44,17 @@ test('创建实例校验、创建成功、选择当前实例与删除确认', as
     await expect(page.getByTestId('instance-dialog')).toHaveCount(0)
     const card = page.locator('.instance-card').filter({ hasText: 'E2E 新实例' }).first()
     await expect(card).toBeVisible()
+
+    // 选择新实例（若已自动选中则直接断言徽标；否则点击选择按钮）
+    const selectNew = card.locator('[data-testid^="instance-select-"]')
+    if (await selectNew.count()) await selectNew.click()
     await expect(card.locator('.badge', { hasText: '当前' })).toBeVisible()
 
-    // 选择当前实例（切换到之前通过 API 创建的实例）
+    // 切换回之前通过 API 创建的实例
     const seededCard = page.locator('.instance-card').filter({ hasText: 'E2E 第二实例' }).first()
     await expect(seededCard).toBeVisible()
-    await expect(seededCard.locator('[data-testid^="instance-select-"]')).toBeVisible({ timeout: 10_000 })
-    await seededCard.locator('[data-testid^="instance-select-"]').click()
+    const selectSeeded = seededCard.locator('[data-testid^="instance-select-"]')
+    if (await selectSeeded.count()) await selectSeeded.click()
     await expect(seededCard.locator('.badge', { hasText: '当前' })).toBeVisible()
     await expect(card.locator('.badge', { hasText: '当前' })).toHaveCount(0)
 

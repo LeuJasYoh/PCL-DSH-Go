@@ -2,7 +2,7 @@
 
 PCL-DSH-Go 是 [PCL-DSH-Linux](https://github.com/LeuJasYoh/pcl-dsh-linux) 的 Go 重写版：在 Linux 服务器上以 WebUI 管理 DeepSeek Harness（DSH）实例的管理器。
 
-> 状态：**M0 垂直切片 + M1 后端核心 + M2 反代硬化/Nginx + M3 整合包与插件已完成**（2026-10-24，真实 DSH `0.2.1-rc.3` 在 WSL 验收通过）；M4（WebUI）、M5（发布）等待实现。本仓库包含计划、实现规格、DSH 集成契约、前端迁移指南、验收标准、任务拆解与实现提示词。
+> 状态：**M0 垂直切片 + M1 后端核心 + M2 反代硬化/Nginx + M3 整合包与插件 + M4 WebUI 已完成**（2026-10-24，真实 DSH `0.2.1-rc.3` 在 WSL 验收通过；WebUI Playwright E2E 18/18）；M5（发布/部署）等待实现。本仓库包含计划、实现规格、DSH 集成契约、前端迁移指南、验收标准、任务拆解与实现提示词。
 
 ## 目标
 
@@ -11,6 +11,17 @@ PCL-DSH-Go 是 [PCL-DSH-Linux](https://github.com/LeuJasYoh/pcl-dsh-linux) 的 G
 - 任务与日志、整合包导入导出、已装插件管理、直连登录（SSH 隧道 + 一次性 token URL，SSH 用户可配置）；
 - 保留 WebUI；不含账户系统、社区插件目录、背景图管理、旧数据兼容；
 - 内置 Node 24.22.1 + pnpm 11.28.5，服务器无需系统 Node/npm/JDK。
+
+## M4 状态（2026-10-24）
+
+M4 WebUI 已完成并通过 **Playwright E2E 18/18 PASS**（Edge 155 channel，Lead 独立复跑 18/18；证据 `docs/evidence/m4/`）：
+
+- `web/`：复用参考 Vue 3 + TS + Vite + Pinia 并瘦身，8 个页面（登录/首页/实例/运行时/整合包/已装插件/任务与日志/设置）+ 直连登录对话框 + 关于/许可；**无账户/社区目录/背景图/复制版本**入口、文案与网络请求；
+- Go 静态服务：`--server.static-dir` 提供 SPA fallback、MIME/缓存、404/400/405 与路径穿越防护（未配置时保留占位页）；生产 Nginx 静态根指向同一 `dist`；
+- 构建/运行：Windows `pwsh -File scripts/frontend-build.ps1`（npm ci + vue-tsc + vite build，dist 26 文件/≈0.65MB）；WSL 内 manager 加 `--server.static-dir=/mnt/d/Projects/DSHL/PCL-DSH-Go/web/dist` 即可直接访问 WebUI；
+- E2E：`cd web && npx playwright test`（Windows + Edge channel，自动启停 Go manager + fresh data-root，证据/截图入 `docs/evidence/m4/`）。
+
+已知限制：实例进程日志无独立 API（页面展示 manager 日志 tail + Job SSE）；整合包/插件页面 E2E 的导入导出与插件变更使用页面级 mock，真实链路由 M3 真实 E2E（124/124）覆盖；仅 Edge 浏览器/桌面尺寸验证。
 
 ## M3 状态（2026-10-24）
 
@@ -110,6 +121,9 @@ M0 调试 API（仅 `--pcl.dev-mode` 启用并绑定 127.0.0.1；M1 由正式认
 
 ## 文档
 
+- [M4 验收报告（WebUI / G8）](docs/M4_RESULTS.md)
+- [M4 构建与运行指南](docs/M4_BUILD.md)
+- [M4 冻结决策](docs/M4_INTERFACES.md)
 - [M3 验收报告（整合包 + 已装插件）](docs/M3_RESULTS.md)
 - [M3 冻结决策](docs/M3_INTERFACES.md)
 - [M2 验收报告（反代硬化 + Nginx 生产链路）](docs/M2_RESULTS.md)

@@ -38,7 +38,7 @@ const dotClass = computed(() => {
       <span class="footer-status__backend" title="GET /api/state 轮询状态">
         <span class="backend-dot" :class="dotClass"></span>{{ label }}
       </span>
-      <span>PCL-DSH-Linux {{ auth.version }}</span>
+      <span>PCL-DSH-Go {{ auth.version }}</span>
       <span>GPLv3 · HMCL 附加条款</span>
     </span>
   </footer>

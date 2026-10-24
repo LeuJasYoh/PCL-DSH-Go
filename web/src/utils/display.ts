@@ -1,15 +1,14 @@
 import type { InstanceSummary, StatusSnapshot } from '@/api/types'
 
-export const APP_VERSION = '0.3.2'
+export const APP_VERSION = '0.1.0'
 
 const TASK_PREFIX = '进行中：'
 
 export type InstanceStatusKind = 'running' | 'starting' | 'ready' | 'error' | 'unknown'
 
-export function statusToText(status: StatusSnapshot): string {
-  if (typeof status === 'string') return status
-  if (status && typeof status === 'object') return status.message ?? status.code ?? ''
-  return ''
+export function statusToText(status: StatusSnapshot | null): string {
+  if (!status) return ''
+  return status.message || status.code || ''
 }
 
 export function shortStatus(value: string | null | undefined, max = 160): string {
@@ -18,35 +17,40 @@ export function shortStatus(value: string | null | undefined, max = 160): string
   return first.length > max ? first.slice(0, max - 3) + '…' : first
 }
 
-export function isTaskStatus(status: StatusSnapshot): boolean {
+export function isTaskStatus(status: StatusSnapshot | null): boolean {
   return statusToText(status).startsWith(TASK_PREFIX)
 }
 
-export function taskPhase(status: StatusSnapshot): string {
+export function taskPhase(status: StatusSnapshot | null): string {
   const text = statusToText(status)
   if (!text.startsWith(TASK_PREFIX)) return ''
   return text.slice(TASK_PREFIX.length).trim()
 }
 
+/** Active process states (starting/running/not-ready/stopping) show "停止". */
 export function isRunningStatus(status: string): boolean {
   const value = (status || '').toLowerCase()
   return [
     'running',
     'starting',
+    'stopping',
     '运行中',
     '已启动',
     '启动中',
+    '停止中',
     '进程运行中，服务未就绪',
-    '子进程仍在运行',
   ].includes(value)
 }
 
 export function instanceStatusKind(status: string): InstanceStatusKind {
   const value = (status || '').toLowerCase()
   if (value === 'running' || value === '运行中' || value === '已启动') return 'running'
-  if (value === 'starting' || value === '启动中' || value === '进程运行中，服务未就绪' || value === '子进程仍在运行') return 'starting'
-  if (value === 'error' || value === 'failed') return 'error'
-  if (value === '' || value === 'stopped' || value === 'ready' || value === 'idle' || value === '就绪') return 'ready'
+  if (value === 'starting' || value === '启动中' || value === '进程运行中，服务未就绪') return 'starting'
+  if (value === 'error' || value === 'failed' || value === '端口被占用') return 'error'
+  if (value === '' || value === 'stopped' || value === 'ready' || value === 'idle' || value === '就绪'
+      || value === '未启动' || value === '已停止') {
+    return 'ready'
+  }
   return 'unknown'
 }
 
@@ -54,13 +58,13 @@ export function displayInstanceStatus(status: string): string {
   const kind = instanceStatusKind(status)
   if (kind === 'running') return '运行中'
   if (kind === 'starting') return '启动中'
-  if (kind === 'ready') return '就绪'
-  if (kind === 'error') return '需要检查'
-  return status || '就绪'
+  if (kind === 'error') return status || '需要检查'
+  if (kind === 'ready') return status || '未启动'
+  return status || '未启动'
 }
 
 export function displayPort(instance: InstanceSummary): string {
-  return instance.port === null ? '自动分配' : String(instance.port)
+  return String(instance.port)
 }
 
 export function elapsedText(startedAt: number | null, now: number): string {
@@ -73,7 +77,7 @@ export function elapsedText(startedAt: number | null, now: number): string {
   return '已用时 ' + body
 }
 
-/** Human-readable byte size, e.g. "12.3 MiB" (binary units, as in the desktop pack preview). */
+/** Human-readable byte size, e.g. "12.3 MiB" (binary units, as in pack preview). */
 export function formatBytes(bytes: number): string {
   const value = Number.isFinite(bytes) ? Math.max(0, bytes) : 0
   if (value < 1024) return String(Math.round(value)) + ' B'

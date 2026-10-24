@@ -553,46 +553,6 @@
   align-items: center;
 }
 
-.background-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-}
-
-.background-choice {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  align-items: center;
-  width: 114px;
-  padding: 4px;
-  background: transparent;
-  border: 2px solid transparent;
-  border-radius: var(--radius);
-}
-
-.background-choice:hover {
-  border-color: var(--monet-secondary-container);
-}
-
-.background-choice.is-selected {
-  background: var(--color-selected);
-  border-color: var(--monet-primary-container);
-}
-
-.background-thumb {
-  width: 102px;
-  height: 57px;
-  object-fit: cover;
-  background: var(--monet-surface-container-high);
-  border-radius: 2px;
-}
-
-.background-choice__label {
-  font-size: 11px;
-  text-align: center;
-}
-
 .about-lines {
   display: flex;
   flex-direction: column;
@@ -1012,30 +972,6 @@ body.modal-open {
   color: var(--color-text-muted);
 }
 
-/* ---------- account list ---------- */
-
-.account-card {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  padding: 14px 16px;
-}
-
-.account-card__info {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-}
-
-.account-card__heading {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-}
-
 /* ---------- page tabs (下载页 运行时 / 插件目录) ---------- */
 
 .page-tabs {
@@ -1072,8 +1008,7 @@ body.modal-open {
 
 /* ---------- plugin page ---------- */
 
-.plugin-instance-select,
-.account-bind-select {
+.plugin-instance-select {
   width: 230px;
   min-height: 34px;
 }
@@ -1100,46 +1035,6 @@ body.modal-open {
   align-items: center;
 }
 
-/* ---------- plugin catalog ---------- */
-
-.catalog-search {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.catalog-search .input {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.catalog-card {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  padding: 14px 16px;
-}
-
-.catalog-card__info {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  gap: 5px;
-  min-width: 0;
-}
-
-.catalog-card__heading {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-}
-
-.catalog-card .instance-card__actions {
-  flex-wrap: wrap;
-  max-width: 360px;
-}
-
 /* ---------- licenses ---------- */
 
 .license-text {
@@ -1160,13 +1055,6 @@ body.modal-open {
 
 a.btn {
   text-decoration: none;
-}
-
-.background-thumb--custom {
-  display: inline-block;
-  background-color: var(--monet-surface-container-high);
-  background-repeat: no-repeat;
-  background-size: cover;
 }
 
 /* ---------- packs: upload / preview / export ---------- */

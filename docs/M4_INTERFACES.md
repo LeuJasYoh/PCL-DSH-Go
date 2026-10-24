@@ -51,11 +51,17 @@ Nginx 生产模板静态根 = release `static/`（M5 打包时放 `dist` 内容�
 | 实例 | `GET/POST /api/instances`、`GET/PUT/DELETE /api/instances/{id}`、`POST .../{id}/launch|stop`（202 Job）、`PUT /api/state/selection`、`GET .../{id}/web-url`、`GET .../{id}/direct-access` |
 | 运行时 | `GET /api/runtimes`、`GET /api/runtimes/available`、`POST /api/runtimes/{version}/install`（202）、`POST .../delete`、`POST /api/runtimes/{version}/probe`（202） |
 | Job/SSE | `GET /api/jobs`（最近 20）、`GET /api/jobs/{id}`、`GET /api/jobs/{id}/events`（SSE，Last-Event-ID）、`POST /api/jobs/{id}/cancel` |
-| 日志 | `GET /api/logs?source=manager|instance&tail=N` |
+| 日志 | `GET /api/logs/tail?lines=N`（manager 日志；实例日志只经实例停止/Job 摘要展示，M4 不新增源参数） |
 | 设置 | `GET/PUT /api/settings`：`{proxy, registry, directAccessSshUser}` |
 | 整合包 | `POST /api/packs/preview`（multipart file，2GiB）、`POST /api/packs/import`（202 IMPORT_PACK）、`POST /api/packs/export`（202 EXPORT_PACK）、`GET /api/artifacts/{id}`（下载） |
 | 插件 | `GET /api/instances/{id}/plugins?profile=`、`POST .../plugins {spec}`（202）、`PATCH/DELETE .../plugins/{name...}`（202） |
 | 已删除（前端不得调用） | `/api/accounts*`、`/api/instances/{id}/account`、`/api/instances/{id}/copy`、`/api/plugin-catalog*`、`/api/settings/background`、`/api/assets/backgrounds/*` |
+
+**JSON 严格性（重要）**：Go `decodeJSON` 使用 `DisallowUnknownFields`，请求体带任何未声明字段都会 `400 BAD_REQUEST`。前端必须删除已删字段：实例创建/编辑不带 `accountId`；设置 PUT 只发 `{proxy,registry,directAccessSshUser}`（不带 `background`）；实例 PUT 只发 `{name?,port?}`（version/profile 只读，不发送；发送改动会 409 CONFLICT_UNSUPPORTED_CHANGE，无 COPY_INSTANCE Job，参考 `instancesApi.save()` 的 202 分支删除）。packs/plugins 请求体与 Go 一致（`{previewId,name?,version?}`、`{instanceId,mode}`、`{spec}`）。
+
+**GET /api/state 实际形状**：`{version,currentInstanceId,instances,runtimes,status:{code,message},settings:{proxy,registry,directAccessSshUser},availableVersions,warnings}`；前端删 `accounts` 与 `settings.background`，`status` 对象正常处理（参考 normalizer 已兼容）。**Job SSE 事件数据字段与参考 store 完全一致**（`state: {jobId,seq,ts,state,phase,message}`、`log: {jobId,seq,ts,level,line}`、`result: {jobId,state,result}`、`error: {jobId,state,code,message,details}`），jobs store 无需改。
+
+**packsApi/pluginsApi 沿用参考函数名**：`packsApi.preview/importPack/exportPack/artifactFromResult`、`artifactsApi.url(id)`、`pluginsApi.list/add/update/remove(profile?)`、`jobResults.*` typed helpers、`instancesApi.directAccess/select/launch/stop/remove`、`runtimesApi.installed/available/install/probe/remove`、`logsApi.tail`、`jobsApi.list/get/cancel/eventsPath` —— 只改归一化/类型/删除账户与目录/背景相关，不重命名（frontend-core 草稿即最终命名）。
 
 类型调整（`web/src/api/types.ts`）：删除 `AccountSummary/ProviderPreset/AccountInput/Catalog*/BackgroundAsset`；`InstanceSummary` 去 `accountId`；`AppSettings` 增 `directAccessSshUser: string`；新增 M3 DTO：`PackPreviewDto {previewId,name,format,version,dshVersion,profiles,unpackedBytes,warnings}`、`InstalledPluginDto {name,version,description,source}`、`JobView.result/error` 按 M3（`{instanceId,name}` / `{artifactId,filename,size}` / `{instanceId,profile,action,name}`）。错误统一 `{code,message,details,traceId}`，前端用中文 message；`409 CONFLICT_BUSY` 与前端忙态一致。
 
@@ -72,3 +78,11 @@ Nginx 生产模板静态根 = release `static/`（M5 打包时放 `dist` 内容�
 - G5：直连对话框展示 `tunnelCommand/directUrl/sshUser/note`，未就绪提示，复制回退。
 - G4（UI 侧）：实例页/首页打开 /workbench 链接、SSE/WS 在 iframe/新窗口可用（浏览器验收在 M2 证据基础上补一条 UI 触发）。
 - G6/G7（UI 侧）：预览/导入/导出下载、插件列表/安装/更新/移除的进度、错误（同步 400 vs Job VALIDATION/NOT_FOUND）、忙态。
+## 7. 实施结果与偏差（Lead 复核，2026-10-24）
+
+- Go 静态服务按 §2 落地（`--server.static-dir`、SPA fallback、MIME/缓存、404/400/405、未配置占位页）；cmd 已透传 `cfg.StaticDir`；生产 Nginx 静态根复用同一 `dist`。
+- 前端沿用参考函数名（packsApi.preview/importPack/exportPack/artifactFromResult、pluginsApi.*(profile?)、jobResults.* 等）；请求体严格匹配 Go `DisallowUnknownFields`（实例 create {name,version,profile,port}、update {name?,port?}；settings 仅 {proxy,registry,directAccessSshUser}）。
+- 日志页仅 manager tail（`GET /api/logs/tail?lines=N`）+ Job SSE/列表；实例进程日志无 API，记为已知限制。
+- E2E 采用 Windows 构建 + WSL Go manager 静态服务 + Playwright Edge channel（`web/e2e`，18 tests）；Lead 独立复跑 18/18。
+- 首页底部提示改为 `.home-notes` 纵向容器（task-59），修复两条提示绝对定位重叠；构建产物 dist 26 文件/652,427 B。
+- package-lock 根元数据已刷新为 `pcl-dsh-go-web@0.1.0`；`npm ci` 可复现。

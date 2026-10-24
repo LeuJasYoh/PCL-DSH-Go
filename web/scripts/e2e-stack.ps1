@@ -1,238 +1,153 @@
 #requires -Version 7.0
 <#
-.SYNOPSIS
-  Start/stop a disposable E2E stack for the PCL-DSH-Linux web UI:
-  the Spring Boot jar with a temporary data directory plus the Vite dev server.
-
-.DESCRIPTION
-  Data lives in pcl-dsh-web/.e2e-data (git-ignored) so repository data is never
-  touched. The initial admin password generated on first boot is copied to
-  .e2e-data/e2e-initial-password.txt (Playwright reads it before login).
-
-.EXAMPLE
-  pwsh -File scripts/e2e-stack.ps1 start
-  pwsh -File scripts/e2e-stack.ps1 status
-  pwsh -File scripts/e2e-stack.ps1 stop        # stops and removes .e2e-data
-  pwsh -File scripts/e2e-stack.ps1 stop -KeepData
+  Start/stop the disposable M4 E2E stack: Go manager (WSL) serving built web/dist.
+  Data root: /tmp/pcl-dsh-go-test/m4-data (fresh on start). Playwright runs on
+  Windows against http://127.0.0.1:18080 and reads .e2e-data/e2e-initial-password.txt.
 #>
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
     [ValidateSet('start', 'stop', 'restart', 'status')]
     [string]$Action = 'start',
-
-    # Keep .e2e-data when stopping (useful for post-mortem debugging).
-    [switch]$KeepData
+    [switch]$KeepData,
+    [int]$ManagerPort = 18080,
+    [string]$Distro = 'Ubuntu',
+    [string]$DataRootWsl = '/tmp/pcl-dsh-go-test/m4-data'
 )
 
 $ErrorActionPreference = 'Stop'
-
+$nl = [Environment]::NewLine
 $WebRoot = Split-Path -Parent $PSScriptRoot
 $RepoRoot = Split-Path -Parent $WebRoot
 $DataDir = Join-Path $WebRoot '.e2e-data'
 $StateFile = Join-Path $DataDir 'e2e-stack.json'
-$Jar = Join-Path $RepoRoot 'pcl-dsh-server/target/pcl-dsh-linux.jar'
-$ServerPort = 8080
-$WebPort = 5173
-$HealthUrl = "http://127.0.0.1:$ServerPort/api/health"
-$WebUrl = "http://127.0.0.1:$WebPort/"
-$ServerOut = Join-Path $DataDir 'logs/server.out.log'
-$ServerErr = Join-Path $DataDir 'logs/server.err.log'
-$ViteOut = Join-Path $DataDir 'logs/vite.out.log'
-$ViteErr = Join-Path $DataDir 'logs/vite.err.log'
 $InitialPasswordCopy = Join-Path $DataDir 'e2e-initial-password.txt'
+$HealthUrl = 'http://127.0.0.1:' + $ManagerPort + '/api/health'
+$StartScriptWin = Join-Path $DataDir 'start-manager.sh'
 
-function Get-StackState {
-    if (Test-Path $StateFile) {
-        try {
-            return Get-Content $StateFile -Raw | ConvertFrom-Json
-        } catch {
-            return $null
-        }
+function ConvertTo-WslPath([string]$p) {
+    $full = [System.IO.Path]::GetFullPath($p)
+    if ($full -match '^([A-Za-z]):\\(.*)$') {
+        return '/mnt/' + $Matches[1].ToLowerInvariant() + '/' + $Matches[2].Replace('\', '/')
     }
-    return $null
+    throw "Path is not on a Windows drive: $full"
 }
 
-function Test-ProcessAlive([int]$ProcessId) {
+$RepoWsl = ConvertTo-WslPath $RepoRoot
+$DataDirWsl = ConvertTo-WslPath $DataDir
+$DistWsl = ConvertTo-WslPath (Join-Path $WebRoot 'dist')
+$StartScriptWsl = ConvertTo-WslPath $StartScriptWin
+$PidFileWsl = $DataDirWsl + '/manager.pid'
+$LogWsl = $DataDirWsl + '/logs/manager.log'
+
+function Write-Lf([string]$Path, [string]$Content) {
+    $cr = [string]([char]13)
+    [System.IO.File]::WriteAllText($Path, $Content.Replace($cr, ''), [System.Text.UTF8Encoding]::new($false))
+}
+
+function State { if (Test-Path $StateFile) { try { return Get-Content $StateFile -Raw | ConvertFrom-Json } catch { return $null } } return $null }
+
+function Healthy {
+    try { return ((Invoke-WebRequest -UseBasicParsing -Uri $HealthUrl -TimeoutSec 3).StatusCode -eq 200) } catch { return $false }
+}
+
+function Alive([int]$ProcessId) {
     if (-not $ProcessId) { return $false }
-    return [bool](Get-Process -Id $ProcessId -ErrorAction SilentlyContinue)
+    $null = & wsl.exe -d $Distro -- bash -c "kill -0 $ProcessId 2>/dev/null"
+    return ($LASTEXITCODE -eq 0)
 }
 
-function Stop-ProcessTree([int]$ProcessId) {
-    if (-not $ProcessId) { return }
-    try {
-        & taskkill.exe /PID $ProcessId /T /F 2>&1 | Out-Null
-    } catch {
-        # Process already gone.
-    }
-}
-
-function Wait-Http([string]$Url, [int]$TimeoutSeconds) {
-    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
-    while ((Get-Date) -lt $deadline) {
-        try {
-            $response = Invoke-WebRequest -UseBasicParsing -Uri $Url -TimeoutSec 3 -ErrorAction Stop
-            if ($response.StatusCode -ge 200 -and $response.StatusCode -lt 500) { return $true }
-        } catch {
-            # Not ready yet.
+function Stop-Stack {
+    $s = State
+    if ($s -and $s.managerPid) {
+        Write-Lf $StartScriptWin ('#!/usr/bin/env bash' + $nl + 'kill -TERM -- -' + $s.managerPid + ' 2>/dev/null || kill -TERM ' + $s.managerPid + ' 2>/dev/null || true' + $nl)
+        & wsl.exe -d $Distro -- bash $StartScriptWsl | Out-Null
+        Start-Sleep -Milliseconds 800
+        if (Alive ([int]$s.managerPid)) {
+            Write-Lf $StartScriptWin ('#!/usr/bin/env bash' + $nl + 'kill -KILL -- -' + $s.managerPid + ' 2>/dev/null || true' + $nl)
+            & wsl.exe -d $Distro -- bash $StartScriptWsl | Out-Null
         }
-        Start-Sleep -Milliseconds 500
-    }
-    return $false
-}
-
-function Wait-ProcessHttp([int]$ProcessId, [string]$Url, [int]$TimeoutSeconds) {
-    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
-    while ((Get-Date) -lt $deadline) {
-        if (-not (Test-ProcessAlive $ProcessId)) { return 'exited' }
-        try {
-            $response = Invoke-WebRequest -UseBasicParsing -Uri $Url -TimeoutSec 3 -ErrorAction Stop
-            if ($response.StatusCode -ge 200 -and $response.StatusCode -lt 500) { return 'ready' }
-        } catch {
-            # Not ready yet.
-        }
-        Start-Sleep -Milliseconds 500
-    }
-    return 'timeout'
-}
-
-function Read-LogTail([string]$LogPath, [int]$Lines = 25) {
-    if (Test-Path $LogPath) {
-        return ((Get-Content $LogPath -Tail $Lines) -join [Environment]::NewLine)
-    }
-    return ''
-}
-
-function Get-PortOwners([int[]]$Ports) {
-    try {
-        return @(Get-NetTCPConnection -State Listen -LocalPort $Ports -ErrorAction SilentlyContinue |
-            Select-Object -ExpandProperty OwningProcess -Unique)
-    } catch {
-        return @()
-    }
-}
-
-function Stop-Stack([switch]$Clean) {
-    $state = Get-StackState
-    if ($state) {
-        Stop-ProcessTree ([int]$state.vitePid)
-        Stop-ProcessTree ([int]$state.serverPid)
     }
     Remove-Item $StateFile -Force -ErrorAction SilentlyContinue
-    Start-Sleep -Milliseconds 400
-    if ($Clean -and (Test-Path $DataDir)) {
-        Remove-Item $DataDir -Recurse -Force -ErrorAction SilentlyContinue
+    if (-not $KeepData) {
+        Write-Lf $StartScriptWin ('#!/usr/bin/env bash' + $nl + "rm -rf '$DataRootWsl'" + $nl)
+        & wsl.exe -d $Distro -- bash $StartScriptWsl | Out-Null
     }
+    Remove-Item $StartScriptWin -Force -ErrorAction SilentlyContinue
     Write-Output 'E2E stack stopped.'
 }
 
 function Start-Stack {
-    if (-not (Test-Path $Jar)) {
-        throw "Backend jar not found: $Jar. Build it first with scripts/mvn.ps1 -B -ntp package."
+    if (-not (Test-Path (Join-Path $WebRoot 'dist\index.html'))) {
+        throw 'web/dist/index.html not found. Build first: cd web; npm ci; npm run type-check; npm run build'
     }
-
-    $java = if ($env:JAVA_HOME) { Join-Path $env:JAVA_HOME 'bin/java.exe' } else { 'D:/DevelopSoftware/Java/JDK-21/bin/java.exe' }
-    if (-not (Test-Path $java)) {
-        throw 'java.exe not found. Set JAVA_HOME to a JDK 21 installation.'
-    }
-    $node = (Get-Command node -ErrorAction Stop).Source
-    $viteBin = Join-Path $WebRoot 'node_modules/vite/bin/vite.js'
-    if (-not (Test-Path $viteBin)) {
-        throw "Vite is not installed. Run 'npm install' in $WebRoot first."
-    }
-
-    # Always start fresh so the initial-password / forced-change flow is deterministic.
-    if (Get-StackState) { Stop-Stack -Clean }
-    $owners = Get-PortOwners @($ServerPort, $WebPort)
-    if ($owners.Count -gt 0) {
-        throw "Ports $ServerPort/$WebPort are already in use (PID: $($owners -join ', ')); stop the other process first."
-    }
-    if (Test-Path $DataDir) { Remove-Item $DataDir -Recurse -Force }
+    $null = & wsl.exe -d $Distro -- bash -c "test -x '$RepoWsl/bin/pcl-dsh-go'"
+    if ($LASTEXITCODE -ne 0) { throw "Go manager not found in WSL: $RepoWsl/bin/pcl-dsh-go" }
+    if (State) { Stop-Stack }
+    $listener = Get-NetTCPConnection -State Listen -LocalPort $ManagerPort -ErrorAction SilentlyContinue
+    if ($listener) { throw "Port $ManagerPort is already in use; stop the other process first." }
     New-Item -ItemType Directory -Force -Path (Join-Path $DataDir 'logs') | Out-Null
+    Write-Lf $StartScriptWin ('#!/usr/bin/env bash' + $nl + "rm -rf '$DataRootWsl'" + $nl)
+    & wsl.exe -d $Distro -- bash $StartScriptWsl | Out-Null
 
-    Write-Output "Starting backend (temporary data: $DataDir)..."
-    $serverArgs = @("-Dpcl.data=$DataDir", '-jar', $Jar)
-    $server = Start-Process -FilePath $java -ArgumentList $serverArgs -WorkingDirectory $RepoRoot -RedirectStandardOutput $ServerOut -RedirectStandardError $ServerErr -PassThru -WindowStyle Hidden
-    $newline = [Environment]::NewLine
-    $backendState = Wait-ProcessHttp $server.Id $HealthUrl 120
-    if ($backendState -ne 'ready') {
-        Stop-ProcessTree $server.Id
-        $tail = (Read-LogTail $ServerErr) + $newline + (Read-LogTail $ServerOut)
-        throw "Backend failed to start ($backendState; port $ServerPort may already be used by another service).$newline$tail"
-    }
+    $body = @'
+#!/usr/bin/env bash
+set -euo pipefail
+cd "__REPO__"
+mkdir -p "__LOGDIR__" "__DATA_ROOT__"
+setsid ./bin/pcl-dsh-go \
+  --pcl.data-root="__DATA_ROOT__" \
+  --pcl.tool-root=/opt/pcl-dsh-go/tools \
+  --server.address=127.0.0.1 \
+  --server.port=__PORT__ \
+  --server.static-dir="__DIST__" \
+  >> "__LOG__" 2>&1 &
+echo $! > "__PIDFILE__"
+'@
+    Write-Lf $StartScriptWin $body.Replace('__REPO__', $RepoWsl).Replace('__LOGDIR__', $DataDirWsl + '/logs').Replace('__DATA_ROOT__', $DataRootWsl).Replace('__PORT__', [string]$ManagerPort).Replace('__DIST__', $DistWsl).Replace('__LOG__', $LogWsl).Replace('__PIDFILE__', $PidFileWsl)
+    & wsl.exe -d $Distro -- bash $StartScriptWsl | Out-Null
 
-    # A fresh data dir must produce initial-password. Wait for it while watching our
-    # own process: a foreign service can otherwise answer /api/health first.
-    $initialFile = Join-Path $DataDir 'initial-password'
-    $initialDeadline = (Get-Date).AddSeconds(30)
-    while (-not (Test-Path $initialFile) -and (Get-Date) -lt $initialDeadline) {
-        if (-not (Test-ProcessAlive $server.Id)) { break }
-        Start-Sleep -Milliseconds 250
+    $deadline = (Get-Date).AddSeconds(120)
+    while ((Get-Date) -lt $deadline -and -not (Healthy)) { Start-Sleep -Milliseconds 300 }
+    if (-not (Healthy)) {
+        $tail = (& wsl.exe -d $Distro -- bash -c "tail -n 40 '$LogWsl' 2>/dev/null") -join $nl
+        throw ('Go manager did not become healthy on ' + $HealthUrl + '. ' + $tail)
     }
-    if (-not (Test-Path $initialFile)) {
-        Stop-ProcessTree $server.Id
-        $tail = (Read-LogTail $ServerErr) + $newline + (Read-LogTail $ServerOut)
-        throw "initial-password was not generated in $DataDir. Another service may be answering on port $ServerPort; stop it and retry.$newline$tail"
+    $initial = $null
+    $deadline = (Get-Date).AddSeconds(30)
+    while ((Get-Date) -lt $deadline -and -not $initial) {
+        $value = (& wsl.exe -d $Distro -- bash -c "cat '$DataRootWsl/initial-password' 2>/dev/null") -join ''
+        if ($value.Trim()) { $initial = $value.Trim() } else { Start-Sleep -Milliseconds 250 }
     }
-    Write-Output "Backend ready: $HealthUrl (pid $($server.Id))"
-    $initial = (Get-Content $initialFile -Raw).Trim()
+    if (-not $initial) { throw "initial-password not found under $DataRootWsl" }
     Set-Content -Path $InitialPasswordCopy -Value $initial -NoNewline
-
-    Write-Output 'Starting Vite dev server...'
-    $viteArgs = @($viteBin)
-    $vite = Start-Process -FilePath $node -ArgumentList $viteArgs -WorkingDirectory $WebRoot -RedirectStandardOutput $ViteOut -RedirectStandardError $ViteErr -PassThru -WindowStyle Hidden
-    $viteState = Wait-ProcessHttp $vite.Id $WebUrl 90
-    if ($viteState -ne 'ready') {
-        Stop-ProcessTree $vite.Id
-        Stop-ProcessTree $server.Id
-        $tail = (Read-LogTail $ViteErr) + $newline + (Read-LogTail $ViteOut)
-        throw "Vite failed to start ($viteState; port $WebPort may already be used by another service).$newline$tail"
-    }
-    Write-Output "Vite ready: $WebUrl (pid $($vite.Id))"
-
-    $state = [ordered]@{
-        serverPid = [int]$server.Id
-        vitePid = [int]$vite.Id
-        dataDir = $DataDir
-        serverPort = $ServerPort
-        webPort = $WebPort
-        initialPasswordFile = $InitialPasswordCopy
+    $pidText = ((& wsl.exe -d $Distro -- bash -c "cat '$PidFileWsl' 2>/dev/null") -join '').Trim()
+    $managerPid = 0
+    [void][int]::TryParse($pidText, [ref]$managerPid)
+    [ordered]@{
+        managerPid = $managerPid
+        managerPort = $ManagerPort
+        dataRootWsl = $DataRootWsl
+        managerLogWsl = $LogWsl
+        distro = $Distro
         startedAt = (Get-Date).ToString('o')
-    }
-    $state | ConvertTo-Json | Set-Content -Path $StateFile -Encoding utf8
-
-    Write-Output ''
-    Write-Output 'E2E stack is ready.'
-    if ($initial) {
-        Write-Output "  initial password: $initial"
-    } else {
-        Write-Output '  initial password: (initial-password file not found; password was already changed?)'
-    }
-    Write-Output "  data directory:   $DataDir"
-    Write-Output "  logs:             $(Join-Path $DataDir 'logs')"
-    Write-Output '  run tests:        npm run e2e'
-    Write-Output '  stop + clean:     pwsh -File scripts/e2e-stack.ps1 stop'
+    } | ConvertTo-Json | Set-Content -Path $StateFile -Encoding utf8
+    Write-Output ('E2E stack is ready: http://127.0.0.1:' + $ManagerPort + ' (pid ' + $managerPid + ')')
+    Write-Output ('  data root: ' + $DataRootWsl)
+    Write-Output ('  log: ' + $LogWsl)
 }
 
 function Show-Status {
-    $state = Get-StackState
-    if (-not $state) {
-        Write-Output 'E2E stack is not running (no state file).'
-        return
-    }
-    $healthy = $false
-    try {
-        $healthy = (Invoke-WebRequest -UseBasicParsing -Uri $HealthUrl -TimeoutSec 3).StatusCode -eq 200
-    } catch { }
-    Write-Output ("server pid={0} alive={1}" -f $state.serverPid, (Test-ProcessAlive ([int]$state.serverPid)))
-    Write-Output ("vite   pid={0} alive={1}" -f $state.vitePid, (Test-ProcessAlive ([int]$state.vitePid)))
-    Write-Output ("backend health: {0}" -f $(if ($healthy) { 'ok' } else { 'down' }))
-    Write-Output ("data directory: {0}" -f $state.dataDir)
+    $s = State
+    if (-not $s) { Write-Output 'E2E stack is not running.'; return }
+    Write-Output ('manager pid=' + $s.managerPid + ' alive=' + (Alive ([int]$s.managerPid)))
+    Write-Output ('health: ' + $(if (Healthy) { 'ok' } else { 'down' }))
+    Write-Output ('data root: ' + $s.dataRootWsl)
 }
 
 switch ($Action) {
     'start' { Start-Stack }
-    'restart' { Start-Stack }
-    'stop' { Stop-Stack -Clean:(-not $KeepData) }
+    'restart' { Stop-Stack; Start-Stack }
+    'stop' { Stop-Stack }
     'status' { Show-Status }
 }

@@ -495,8 +495,9 @@ type testEnv struct {
 }
 
 // newTestEnv builds a full API stack on a temporary data root. pending controls
-// the initial-password state.
-func newTestEnv(t *testing.T, pending bool) *testEnv {
+// the initial-password state; configure may adjust the Deps before api.New
+// (e.g. to enable the M4 static file server).
+func newTestEnv(t *testing.T, pending bool, configure ...func(*Deps)) *testEnv {
 	t.Helper()
 	dataRoot := filepath.Join(t.TempDir(), "data")
 	dirs, err := config.InitDataRoot(config.Config{DataRoot: dataRoot})
@@ -528,7 +529,7 @@ func newTestEnv(t *testing.T, pending bool) *testEnv {
 	if err != nil {
 		t.Fatalf("artifact.Open() error = %v", err)
 	}
-	server, err := New(Deps{
+	deps := Deps{
 		Config:    config.Config{Version: testVersion},
 		Logger:    logger,
 		Dirs:      dirs,
@@ -541,7 +542,11 @@ func newTestEnv(t *testing.T, pending bool) *testEnv {
 		StartedAt: time.Now().Add(-90 * time.Second),
 		Workbench: workbench,
 		Artifacts: artifactStore,
-	})
+	}
+	for _, apply := range configure {
+		apply(&deps)
+	}
+	server, err := New(deps)
 	if err != nil {
 		t.Fatalf("api.New() error = %v", err)
 	}

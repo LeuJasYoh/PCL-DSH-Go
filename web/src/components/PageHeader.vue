@@ -18,7 +18,7 @@ const jobs = useJobStore()
 
 const isHome = computed(() => route.name === 'home')
 const title = computed(
-  () => 'PCL-DSH-Linux ' + auth.version + (isHome.value ? '' : '  /  ' + String(route.meta.title ?? '')),
+  () => 'PCL-DSH-Go ' + auth.version + (isHome.value ? '' : '  /  ' + String(route.meta.title ?? '')),
 )
 const taskActive = computed(() => jobs.active || appState.taskActive)
 const statusText = computed(() => {

@@ -29,12 +29,6 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '下载' },
   },
   {
-    path: '/accounts',
-    name: 'accounts',
-    component: () => import('@/views/AccountsView.vue'),
-    meta: { title: '账户' },
-  },
-  {
     path: '/plugins',
     name: 'plugins',
     component: () => import('@/views/PluginsView.vue'),
@@ -90,7 +84,7 @@ router.beforeEach(async (to) => {
 
 router.afterEach((to) => {
   const page = to.meta.title ?? '启动'
-  document.title = page + ' · PCL-DSH-Linux'
+  document.title = page + ' · PCL-DSH-Go'
 })
 
 export default router

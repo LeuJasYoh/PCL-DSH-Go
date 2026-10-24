@@ -9,7 +9,7 @@ test('运行时版本刷新与安装任务卡/日志（202 + SSE mock）', async
     route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ versions: ['0.2.0-rc.3', '0.2.0-rc.2'] }),
+      body: JSON.stringify({ versions: ['0.2.1-rc.3', '0.2.1-rc.3'] }),
     }),
   )
   await page.route('**/api/runtimes', async (route) => {
@@ -28,17 +28,17 @@ test('运行时版本刷新与安装任务卡/日志（202 + SSE mock）', async
     { event: 'log', data: { level: 'info', line: '[安装] E2E 模拟安装日志' } },
     {
       event: 'result',
-      data: { state: 'SUCCEEDED', result: { version: '0.2.0-rc.3', installed: true, compatibility: 'E2E' } },
+      data: { state: 'SUCCEEDED', result: { version: '0.2.1-rc.3', installed: true, compatibility: 'E2E' } },
     },
   ])
 
   await page.goto('/runtimes')
   await expect(page.getByTestId('page-runtimes')).toBeVisible()
   await page.getByTestId('runtimes-refresh').click()
-  await expect(page.getByTestId('runtimes-available')).toContainText('0.2.0-rc.3')
+  await expect(page.getByTestId('runtimes-available')).toContainText('0.2.1-rc.3')
   await expect(page.getByTestId('runtimes-available-status')).toContainText('已获取')
 
-  const row = page.locator('.version-row', { hasText: '0.2.0-rc.3' }).first()
+  const row = page.locator('.version-row', { hasText: '0.2.1-rc.3' }).first()
   await row.locator('button').click()
   await expect(page.locator('.toast').filter({ hasText: '已提交任务' })).toBeVisible()
   await expect(page.locator('.toast').filter({ hasText: '任务完成：安装运行时' })).toBeVisible({

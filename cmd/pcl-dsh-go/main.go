@@ -220,6 +220,7 @@ func run(args []string) int {
 		Pack:      packService,
 		Plugins:   pluginService,
 		Artifacts: artifactStore,
+		StaticDir: cfg.StaticDir,
 		StartedAt: startedAt,
 	})
 	if err != nil {

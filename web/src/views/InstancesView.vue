@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
-import { ApiError, instancesApi } from '@/api'
-import { isRecord } from '@/api/normalize'
-import type { InstanceInput, InstanceSummary } from '@/api/types'
+import { instancesApi } from '@/api'
+import type { CreateInstanceInput, InstanceSummary, UpdateInstanceInput } from '@/api/types'
 import AppIcon from '@/components/AppIcon.vue'
 import AppNotice from '@/components/AppNotice.vue'
-import BaseModal from '@/components/BaseModal.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import DirectAccessDialog from '@/components/DirectAccessDialog.vue'
 import EmptyState from '@/components/EmptyState.vue'
@@ -18,7 +16,6 @@ import { useNotifyStore } from '@/stores/notify'
 import { useAppStateStore } from '@/stores/state'
 import { displayPort, isRunningStatus } from '@/utils/display'
 import { describeApiError } from '@/utils/errors'
-import { validateInstanceName } from '@/utils/validation'
 
 const appState = useAppStateStore()
 const jobs = useJobStore()
@@ -31,20 +28,10 @@ const editing = ref<InstanceSummary | null>(null)
 const dialogError = ref('')
 const deleteTarget = ref<InstanceSummary | null>(null)
 const deleting = ref(false)
-const readonlyVersionProfile = ref(false)
-
 const directTarget = ref<InstanceSummary | null>(null)
 
-const copyTarget = ref<InstanceSummary | null>(null)
-const copyName = ref('')
-const copyError = ref('')
-const copying = ref(false)
-let handledCopyJob: string | null = null
-
 const instances = computed(() => appState.instances)
-const busy = computed(
-  () => jobs.active || saving.value || deleting.value || copying.value || pendingId.value !== null,
-)
+const busy = computed(() => jobs.active || saving.value || deleting.value || pendingId.value !== null)
 const installedVersions = computed(() =>
   appState.runtimes.filter((runtime) => runtime.installed).map((runtime) => runtime.version),
 )
@@ -75,7 +62,6 @@ function openEdit(instance: InstanceSummary): void {
   dialogMode.value = 'edit'
   editing.value = instance
   dialogError.value = ''
-  readonlyVersionProfile.value = false
 }
 
 function closeDialog(): void {
@@ -83,82 +69,40 @@ function closeDialog(): void {
   dialogMode.value = null
   editing.value = null
   dialogError.value = ''
-  readonlyVersionProfile.value = false
 }
 
-// COPY_INSTANCE also backs "edit version/profile": the original instance is kept and
-// a new instance is created; select it after the Job finishes.
-watch(
-  [() => jobs.state, () => jobs.result, () => jobs.type],
-  () => {
-    if (jobs.state !== 'SUCCEEDED' || jobs.type !== 'COPY_INSTANCE' || !jobs.jobId) return
-    if (handledCopyJob === jobs.jobId) return
-    const result = isRecord(jobs.result) ? jobs.result : null
-    if (!result || typeof result.instanceId !== 'string') return
-    handledCopyJob = jobs.jobId
-    const instanceId = result.instanceId
-    const name = typeof result.name === 'string' ? result.name : ''
-    void finishCopy(instanceId, name)
-  },
-)
-
-async function finishCopy(instanceId: string, name: string): Promise<void> {
-  await appState.refresh()
-  try {
-    await instancesApi.select(instanceId)
-    appState.setCurrentInstanceId(instanceId)
-  } catch {
-    // The new instance is still listed if selecting it failed.
-  }
-  await appState.refresh()
-  notify.success('复制完成' + (name ? '：' + name : '') + '，已选择新实例。')
-}
-
-async function submitDialog(input: InstanceInput): Promise<void> {
-  if (saving.value || dialogMode.value === null) return
+async function createInstance(input: CreateInstanceInput): Promise<void> {
+  if (saving.value) return
   saving.value = true
   dialogError.value = ''
-  const creating = dialogMode.value === 'create'
-  const target = editing.value
   try {
-    if (creating) {
-      await instancesApi.create(input)
-      notify.success('实例已创建。')
-    } else if (target) {
-      const versionChanged = input.version !== target.version
-      const profileChanged = input.profile !== target.profile
-      if (versionChanged || profileChanged) {
-        const result = await instancesApi.save(target.id, input)
-        if (result.job) {
-          handledCopyJob = null
-          jobs.begin(result.job, { instanceId: target.id, version: input.version })
-          notify.success('已提交任务：' + jobs.typeLabel + '（保留原实例，完成后自动选择新实例）。')
-          dialogMode.value = null
-          editing.value = null
-          await appState.refresh()
-          return
-        }
-      } else {
-        await instancesApi.update(target.id, input)
-      }
-      notify.success('实例设置已保存。')
-    }
+    await instancesApi.create(input)
+    notify.success('实例已创建。')
     dialogMode.value = null
     editing.value = null
     await appState.refresh()
   } catch (caught) {
-    if (
-      caught instanceof ApiError &&
-      caught.status === 409 &&
-      (caught.code === 'CONFLICT_UNSUPPORTED_CHANGE' || caught.code.includes('UNSUPPORTED'))
-    ) {
-      // Older backend: fall back to read-only version/profile instead of a generic error.
-      readonlyVersionProfile.value = true
-      dialogError.value =
-        '当前后端暂不支持修改 Harness 版本或 profile；已切换为只读，可继续修改名称、端口与账户。'
-    } else {
-      dialogError.value = describeApiError(caught, creating ? '创建实例' : '保存实例')
-    }
+    dialogError.value = describeApiError(caught, '创建实例')
+  } finally {
+    saving.value = false
+  }
+}
+
+async function saveInstance(input: UpdateInstanceInput): Promise<void> {
+  const target = editing.value
+  if (saving.value || !target) return
+  saving.value = true
+  dialogError.value = ''
+  try {
+    // version/profile are immutable: only name/port are sent (a 409 would mean
+    // the UI tried to change them, which the dialog prevents).
+    await instancesApi.update(target.id, input)
+    notify.success('实例设置已保存。')
+    dialogMode.value = null
+    editing.value = null
+    await appState.refresh()
+  } catch (caught) {
+    dialogError.value = describeApiError(caught, '保存实例')
   } finally {
     saving.value = false
   }
@@ -259,47 +203,6 @@ async function confirmDelete(): Promise<void> {
     notify.error(describeApiError(caught, '删除实例'))
   } finally {
     deleting.value = false
-  }
-}
-
-function openCopy(instance: InstanceSummary): void {
-  if (busy.value) return
-  copyTarget.value = instance
-  copyName.value = instance.name + ' 副本'
-  copyError.value = ''
-}
-
-function closeCopy(): void {
-  if (copying.value) return
-  copyTarget.value = null
-  copyError.value = ''
-}
-
-async function confirmCopy(): Promise<void> {
-  const target = copyTarget.value
-  if (!target || copying.value) return
-  copyError.value = ''
-  const name = copyName.value.trim()
-  const nameError = validateInstanceName(name)
-  if (nameError) {
-    copyError.value = nameError
-    return
-  }
-  if (jobs.active) {
-    copyError.value = '当前有任务正在执行，请等待完成或取消。'
-    return
-  }
-  copying.value = true
-  try {
-    const job = await instancesApi.copy(target.id, name)
-    handledCopyJob = null
-    jobs.begin(job, { instanceId: target.id })
-    notify.success('已提交任务：' + jobs.typeLabel + '（' + job.id + '）。')
-    copyTarget.value = null
-  } catch (caught) {
-    copyError.value = describeApiError(caught, '复制实例')
-  } finally {
-    copying.value = false
   }
 }
 </script>
@@ -415,7 +318,7 @@ async function confirmCopy(): Promise<void> {
                 class="btn btn-secondary"
                 type="button"
                 :disabled="busy"
-                title="远程完成 DeepSeek 账号网页登录（SSH 隧道 + 回环直连地址）"
+                title="远程完成 DeepSeek 网页登录（SSH 隧道 + 回环直连地址）"
                 :data-testid="'instance-direct-' + instance.id"
                 @click="openDirectAccess(instance)"
               >
@@ -429,16 +332,6 @@ async function confirmCopy(): Promise<void> {
                 @click="openEdit(instance)"
               >
                 <AppIcon name="settings" :size="15" />编辑
-              </button>
-              <button
-                class="btn btn-subtle"
-                type="button"
-                :disabled="busy"
-                title="复制实例（保留原实例，新实例自动分配端口）"
-                :data-testid="'instance-copy-' + instance.id"
-                @click="openCopy(instance)"
-              >
-                <AppIcon name="copy" :size="15" />复制
               </button>
               <button
                 class="btn btn-subtle btn--danger"
@@ -461,12 +354,11 @@ async function confirmCopy(): Promise<void> {
       v-if="dialogMode"
       :mode="dialogMode"
       :instance="editing"
-      :accounts="appState.accounts"
       :installed-versions="installedVersions"
       :submitting="saving"
       :submit-error="dialogError"
-      :readonly-version-profile="readonlyVersionProfile"
-      @submit="submitDialog"
+      @create="createInstance"
+      @save="saveInstance"
       @close="closeDialog"
     />
 
@@ -480,37 +372,5 @@ async function confirmCopy(): Promise<void> {
       @confirm="confirmDelete"
       @cancel="deleteTarget = null"
     />
-
-    <BaseModal
-      v-if="copyTarget"
-      title="复制实例"
-      testid="copy-dialog"
-      :closable="!copying"
-      @close="closeCopy"
-    >
-      <p class="paragraph">
-        复制「{{ copyTarget.name }}」当前 profile（{{ copyTarget.profile }}）的可分享配置与插件；
-        凭据、会话和可能含密钥的 patch 配置留在原实例。新实例会自动分配端口并成为当前实例。
-      </p>
-      <div class="form-field">
-        <label class="field-label" for="copy-name">新实例名称</label>
-        <input
-          id="copy-name"
-          v-model="copyName"
-          class="input"
-          data-testid="copy-name"
-          :disabled="copying"
-          placeholder="新实例名称"
-          autofocus
-        />
-      </div>
-      <p v-if="copyError" class="validation-error" data-testid="copy-error" role="alert">{{ copyError }}</p>
-      <template #footer>
-        <button class="btn btn-secondary" type="button" :disabled="copying" @click="closeCopy">取消</button>
-        <button class="btn btn-primary" type="button" data-testid="copy-confirm" :disabled="copying" @click="confirmCopy">
-          {{ copying ? '正在提交…' : '复制实例' }}
-        </button>
-      </template>
-    </BaseModal>
   </div>
 </template>

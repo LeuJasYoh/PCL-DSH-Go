@@ -46,6 +46,9 @@ type Deps struct {
 	Plugins api.PluginService
 	// Artifacts serves pack export downloads (GET /api/artifacts/{id}).
 	Artifacts *artifact.Store
+	// StaticDir is the optional built WebUI directory served at "/"
+	// (docs/M4_INTERFACES.md 2). Empty keeps the built-in placeholder page.
+	StaticDir string
 	StartedAt time.Time
 }
 
@@ -90,6 +93,7 @@ func New(deps Deps) (*Server, error) {
 		StartedAt: deps.StartedAt,
 		Workbench: workbench,
 		Artifacts: deps.Artifacts,
+		StaticDir: deps.StaticDir,
 	})
 	if err != nil {
 		return nil, err

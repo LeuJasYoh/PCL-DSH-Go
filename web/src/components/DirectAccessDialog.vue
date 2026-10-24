@@ -16,6 +16,10 @@ import { describeApiError } from '@/utils/errors'
  * 上游 DSH 的账号 OAuth 回调只接受回环地址（127.0.0.1/localhost），浏览器在远程访问时
  * 无法直接完成登录；这里给出「SSH 隧道 + 回环直连地址」两步操作，登录一次后凭据保存在
  * 服务器实例目录，后续仍通过 /workbench/ 正常访问。
+ *
+ * Contract: docs/M4_INTERFACES.md 4 (GET /api/instances/{id}/direct-access) and
+ * docs/DSH_INTEGRATION.md 6.4. The one-time token only appears in directUrl, which
+ * is never logged by this dialog.
  */
 const props = defineProps<{ instance: InstanceSummary }>()
 const emit = defineEmits<{ close: [] }>()
@@ -80,22 +84,27 @@ async function copy(value: string, label: string): Promise<void> {
     </AppNotice>
 
     <template v-else-if="data">
+      <div class="direct-access-meta">
+        <span class="badge" :class="data.ready ? 'badge--green' : 'badge--gray'">
+          {{ data.ready ? '可以直连' : '暂不可直连' }}
+        </span>
+        <span class="small-muted">实例端口 {{ data.port }}</span>
+        <span class="small-muted" data-testid="direct-access-ssh">
+          SSH {{ data.sshUser }}@{{ data.sshHost }}
+        </span>
+      </div>
+
       <div class="form-field">
         <label class="field-label" for="direct-access-tunnel">
           步骤 1 · 在本机终端执行 SSH 隧道命令
         </label>
         <div class="direct-access-row">
-          <input
-            id="direct-access-tunnel"
-            class="input direct-access-input"
-            readonly
-            :value="data.tunnelCommand"
-            data-testid="direct-access-tunnel"
-          />
+          <code id="direct-access-tunnel" class="direct-access-value" data-testid="direct-access-tunnel">{{ data.tunnelCommand || '（实例就绪后显示）' }}</code>
           <button
             class="btn btn-secondary"
             type="button"
             data-testid="direct-access-copy-tunnel"
+            :disabled="!data.tunnelCommand"
             @click="copy(data.tunnelCommand, 'SSH 隧道命令')"
           >
             <AppIcon name="copy" :size="15" />复制
@@ -108,14 +117,12 @@ async function copy(value: string, label: string): Promise<void> {
           步骤 2 · 隧道建立后，在浏览器打开直连地址并完成登录
         </label>
         <div class="direct-access-row">
-          <input
+          <code
             id="direct-access-url"
-            class="input direct-access-input"
-            readonly
-            :disabled="!data.directUrl"
-            :value="data.directUrl || '（实例就绪后显示）'"
+            class="direct-access-value"
+            :class="{ 'is-disabled': !data.directUrl }"
             data-testid="direct-access-url"
-          />
+          >{{ data.directUrl || '（实例就绪后显示）' }}</code>
           <button
             class="btn btn-secondary"
             type="button"
@@ -129,24 +136,26 @@ async function copy(value: string, label: string): Promise<void> {
       </div>
 
       <AppNotice v-if="data.note" :title="data.ready ? '使用说明' : '暂不可用'" :tone="data.ready ? 'info' : 'warn'">
-        <p class="paragraph">{{ data.note }}</p>
+        <p class="paragraph" data-testid="direct-access-note">{{ data.note }}</p>
       </AppNotice>
 
       <p class="small-muted">
         提示：直连地址包含一次性访问 token，仅在当前这次实例运行期间有效；SSH 隧道只是把本机
         <code>127.0.0.1:{{ data.port }}</code> 端口映射到服务器的实例端口，不会改变服务器监听。
-        如果只是需要用模型跑任务，也可以直接使用「添加 API Key」方式，无需网页登录。
+        如果实例正在重启，请等待状态变为「运行中」后重试。
       </p>
 
-      <textarea
-        v-if="manualCopy"
-        class="input direct-access-input"
-        rows="2"
-        readonly
-        :value="manualCopy.text"
-        :aria-label="manualCopy.label"
-        data-testid="direct-access-manual-copy"
-      ></textarea>
+      <div v-if="manualCopy" class="form-field">
+        <label class="field-label" for="direct-access-manual-copy">手动复制 · {{ manualCopy.label }}</label>
+        <textarea
+          id="direct-access-manual-copy"
+          class="input direct-access-input"
+          rows="2"
+          readonly
+          :value="manualCopy.text"
+          data-testid="direct-access-manual-copy"
+        ></textarea>
+      </div>
     </template>
 
     <template #footer>
@@ -158,10 +167,35 @@ async function copy(value: string, label: string): Promise<void> {
 </template>
 
 <style scoped>
+.direct-access-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
 .direct-access-row {
   display: flex;
   gap: 8px;
   align-items: center;
+}
+
+.direct-access-value {
+  flex: 1 1 auto;
+  padding: 8px 10px;
+  border: 1px solid var(--border, #d8d8d8);
+  border-radius: 6px;
+  background: var(--surface-2, #f6f6f6);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  word-break: break-all;
+  user-select: all;
+}
+
+.direct-access-value.is-disabled {
+  color: var(--text-muted, #999);
 }
 
 .direct-access-input {

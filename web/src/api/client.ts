@@ -78,10 +78,10 @@ function defaultMessage(status: number, code: string): string {
     case 404: return '接口尚未实现，或请求的资源不存在。'
     case 409: return '当前有任务正在执行，请等待完成或取消。'
     case 422: return '当前版本或运行时不满足要求。'
-    case 423: return '尝试次数过多，账户已被暂时锁定，请稍后再试。'
+    case 423: return '尝试次数过多，登录已被暂时锁定，请稍后再试。'
     case 429: return '请求过于频繁，请稍后再试。'
     case 500: return '后端服务内部错误，请查看服务日志。'
-    case 502: case 503: return '无法连接后端服务，请确认 PCL-DSH-Linux 服务已启动。'
+    case 502: case 503: return '无法连接后端服务，请确认 PCL-DSH-Go 服务已启动。'
     default: return '请求失败（HTTP ' + String(status) + '）。'
   }
 }
@@ -109,7 +109,7 @@ function buildApiError(status: number, payload: unknown, path: string): ApiError
       ? errorBody.code
       : codeForStatus(status)
   const message = gatewayFailure
-    ? '无法连接后端服务，请确认 PCL-DSH-Linux 服务已在本机 8080 端口启动。'
+    ? '无法连接后端服务，请确认 PCL-DSH-Go 服务已在本机 8080 端口启动。'
     : typeof errorBody?.message === 'string' && errorBody.message.trim()
       ? errorBody.message
       : defaultMessage(effectiveStatus, code)
@@ -120,7 +120,7 @@ function buildApiError(status: number, payload: unknown, path: string): ApiError
 }
 
 function networkError(): ApiError {
-  return new ApiError(0, 'NETWORK_ERROR', '无法连接后端服务，请确认 PCL-DSH-Linux 服务已在本机 8080 端口启动。')
+  return new ApiError(0, 'NETWORK_ERROR', '无法连接后端服务，请确认 PCL-DSH-Go 服务已在本机 8080 端口启动。')
 }
 
 /**

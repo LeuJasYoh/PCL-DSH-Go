@@ -9,7 +9,12 @@ export const e2eDataDir = path.join(webRoot, '.e2e-data')
 export const authStatePath = path.join(e2eDataDir, 'auth.json')
 export const initialPasswordCopy = path.join(e2eDataDir, 'e2e-initial-password.txt')
 
-/** Initial admin password created by the fresh disposable backend. */
+/** Password set by global-setup (first login change) — shared by auth tests. */
+export const E2E_NEW_PASSWORD = process.env.E2E_NEW_PASSWORD ?? 'E2e-Password-123'
+/** Runtime version installed in the disposable (or external) data root. */
+export const E2E_DSH_VERSION = process.env.E2E_DSH_VERSION ?? '0.2.1-rc.3'
+
+/** Initial admin password created by the fresh disposable manager. */
 export function readInitialPassword(): string {
   const fromEnv = process.env.E2E_INITIAL_PASSWORD
   if (fromEnv) return fromEnv.trim()
@@ -34,7 +39,7 @@ export interface SeededInstance {
   name: string
 }
 
-/** Create an instance through the real backend API and select it. */
+/** Create an instance through the real Go API and select it. */
 export async function seedInstance(
   request: APIRequestContext,
   name: string,
@@ -42,7 +47,7 @@ export async function seedInstance(
 ): Promise<SeededInstance> {
   const headers = await csrfHeaders(request)
   const response = await request.post('/api/instances', {
-    data: { name, version: '0.2.0-rc.2', profile: 'web', ...overrides },
+    data: { name, version: E2E_DSH_VERSION, profile: 'web', ...overrides },
     headers,
   })
   if (!response.ok()) {
@@ -116,7 +121,7 @@ export async function mockAcceptedJob(
 ): Promise<void> {
   await page.route(pattern, async (route) => {
     const method = route.request().method()
-    if (method !== 'POST' && method !== 'PUT' && method !== 'PATCH') {
+    if (method !== 'POST' && method !== 'PUT' && method !== 'PATCH' && method !== 'DELETE') {
       await route.fallback()
       return
     }

@@ -3,7 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { instancesApi } from '@/api'
-import type { InstanceInput } from '@/api/types'
+import type { CreateInstanceInput } from '@/api/types'
 import HomeLaunchPane from '@/components/HomeLaunchPane.vue'
 import HomeTaskCard from '@/components/HomeTaskCard.vue'
 import InstanceDialog from '@/components/InstanceDialog.vue'
@@ -26,13 +26,11 @@ const saving = ref(false)
 const dialogError = ref('')
 const homeMessage = ref('')
 
-const backgroundStyle = computed(() => {
-  const background = appState.settings.background
-  return {
-    backgroundImage: 'url("' + resolveBackground(background) + '")',
-    backgroundPosition: backgroundPosition(background),
-  }
-})
+// M4: one fixed default background; background switching was removed.
+const backgroundStyle = computed(() => ({
+  backgroundImage: 'url("' + resolveBackground() + '")',
+  backgroundPosition: backgroundPosition(),
+}))
 const current = computed(() => appState.currentInstance)
 const running = computed(() => current.value !== null && isRunningStatus(current.value.status))
 const webReady = computed(() => {
@@ -80,7 +78,7 @@ function openCreate(): void {
   dialogError.value = ''
 }
 
-async function submitCreate(input: InstanceInput): Promise<void> {
+async function submitCreate(input: CreateInstanceInput): Promise<void> {
   if (saving.value) return
   saving.value = true
   dialogError.value = ''
@@ -215,11 +213,6 @@ async function selectInstance(id: string): Promise<void> {
       />
     </div>
 
-    <div v-if="firstLaunchHint" class="first-launch-note card content-card" data-testid="first-launch-hint">
-      <p>首次启动将下载 Harness 和依赖。</p>
-      <p>下载阶段和已用时会显示在这里，可查看任务或取消。</p>
-    </div>
-
     <button
       v-if="running"
       class="btn btn-secondary home-stop"
@@ -255,19 +248,29 @@ async function selectInstance(id: string): Promise<void> {
       <p class="paragraph">{{ homeMessage }}</p>
     </div>
 
-    <p v-if="!current && !appState.loading" class="first-launch-note">
-      当前工作空间还没有实例。点击右下角“创建实例”开始。
-    </p>
+    <!-- Bottom-left hints share one absolutely positioned, vertically stacked
+         container so they can never overlap each other. -->
+    <div class="home-notes" data-testid="home-notes">
+      <div v-if="firstLaunchHint" class="card content-card" data-testid="first-launch-hint">
+        <p>首次启动将下载 Harness 和依赖。</p>
+        <p>下载阶段和已用时会显示在这里，可查看任务或取消。</p>
+      </div>
+      <p v-if="!current && !appState.loading" class="first-launch-note" data-testid="home-no-instance-note">
+        当前工作空间还没有实例。点击右下角“创建实例”开始。
+      </p>
+      <p class="first-launch-note" data-testid="home-model-note">
+        本管理器不保存模型凭据或 API Key；请在启动后的 DSH 工作台内完成模型配置。
+      </p>
+    </div>
 
     <InstanceDialog
       v-if="dialogOpen"
       mode="create"
       :instance="null"
-      :accounts="appState.accounts"
       :installed-versions="installedVersions"
       :submitting="saving"
       :submit-error="dialogError"
-      @submit="submitCreate"
+      @create="submitCreate"
       @close="dialogOpen = false"
     />
   </div>

@@ -113,23 +113,27 @@ type Deps struct {
 	// Artifacts serves GET /api/artifacts/{id} (pack export downloads,
 	// docs/M3_INTERFACES.md 4). Optional: nil leaves the route unmounted.
 	Artifacts *artifact.Store
+	// StaticDir is the optional built WebUI directory (docs/M4_INTERFACES.md 2).
+	// Empty keeps the built-in placeholder page at GET /.
+	StaticDir string
 }
 
 // API serves the manager's REST API v1.
 type API struct {
-	cfg       config.Config
-	logger    *slog.Logger
-	dirs      config.Dirs
-	store     *store.Store
-	security  *security.Manager
-	jobs      Jobs
-	app       App
-	pack      PackService
-	plugins   PluginService
-	startedAt time.Time
-	workbench http.Handler
-	artifacts *artifact.Store
-	handler   http.Handler
+	cfg        config.Config
+	logger     *slog.Logger
+	dirs       config.Dirs
+	store      *store.Store
+	security   *security.Manager
+	jobs       Jobs
+	app        App
+	pack       PackService
+	plugins    PluginService
+	startedAt  time.Time
+	workbench  http.Handler
+	artifacts  *artifact.Store
+	staticRoot string
+	handler    http.Handler
 }
 
 // New validates deps and builds the API handler.
@@ -161,19 +165,24 @@ func New(deps Deps) (*API, error) {
 	if deps.Workbench == nil {
 		deps.Workbench = http.NotFoundHandler()
 	}
+	staticRoot, err := resolveStaticDir(deps.StaticDir)
+	if err != nil {
+		return nil, err
+	}
 	a := &API{
-		cfg:       deps.Config,
-		logger:    deps.Logger,
-		dirs:      deps.Dirs,
-		store:     deps.Store,
-		security:  deps.Security,
-		jobs:      deps.Jobs,
-		app:       deps.App,
-		pack:      deps.Pack,
-		plugins:   deps.Plugins,
-		startedAt: deps.StartedAt,
-		workbench: deps.Workbench,
-		artifacts: deps.Artifacts,
+		cfg:        deps.Config,
+		logger:     deps.Logger,
+		dirs:       deps.Dirs,
+		store:      deps.Store,
+		security:   deps.Security,
+		jobs:       deps.Jobs,
+		app:        deps.App,
+		pack:       deps.Pack,
+		plugins:    deps.Plugins,
+		startedAt:  deps.StartedAt,
+		workbench:  deps.Workbench,
+		artifacts:  deps.Artifacts,
+		staticRoot: staticRoot,
 	}
 	a.handler = a.buildHandler()
 	return a, nil
@@ -267,15 +276,25 @@ func (a *API) buildHandler() http.Handler {
 	mux.HandleFunc("/api", a.handleAPINotFound)
 	mux.HandleFunc("/api/", a.handleAPINotFound)
 
-	// Workbench reverse proxy and the placeholder root page.
+	// Workbench reverse proxy.
 	mux.Handle("/workbench/", a.workbench)
-	mux.HandleFunc("GET /{$}", a.handleRoot)
+	if a.staticRoot != "" {
+		// The built WebUI serves every non-API path; /api/** and /workbench/**
+		// are matched by the more specific patterns above.
+		mux.Handle("/", http.HandlerFunc(a.serveStatic))
+	} else {
+		// M0-M3 placeholder page (docs/M4_INTERFACES.md 2: unchanged when no
+		// static directory is configured).
+		mux.HandleFunc("GET /{$}", a.handleRoot)
+	}
 
 	return a.withTracing(
 		a.withWorkbenchRawPathGuard(
-			a.withSession(
-				a.withGuards(
-					a.withBodyLimit(mux),
+			a.withStaticRawPathGuard(
+				a.withSession(
+					a.withGuards(
+						a.withBodyLimit(mux),
+					),
 				),
 			),
 		),

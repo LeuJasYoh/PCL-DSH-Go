@@ -30,15 +30,6 @@ const router = useRouter()
 const appState = useAppStateStore()
 
 const current = computed(() => appState.currentInstance)
-const boundAccount = computed(() => {
-  const instance = current.value
-  if (!instance || !instance.accountId) return null
-  return appState.accounts.find((item) => item.id === instance.accountId) ?? null
-})
-const accountTitle = computed(() => boundAccount.value?.name ?? '账户管理')
-const accountSubtitle = computed(
-  () => boundAccount.value?.provider ?? '已保存 ' + String(appState.accounts.length) + ' 个账户',
-)
 const currentTitle = computed(() => current.value?.name ?? '未选择实例')
 const currentSubtitle = computed(() => {
   const instance = current.value
@@ -61,21 +52,6 @@ function openCurrent(): void {
 
 <template>
   <nav class="side-nav" id="hmcl-sidebar" data-testid="sidebar" aria-label="主导航">
-    <div class="nav-category">账户</div>
-    <button
-      class="nav-item"
-      :class="{ 'is-active': isActive('accounts') }"
-      type="button"
-      data-testid="nav-accounts"
-      @click="navigate('accounts')"
-    >
-      <span class="nav-item__icon"><AppIcon name="user" /></span>
-      <span class="nav-item__body">
-        <span class="nav-item__title">{{ accountTitle }}</span>
-        <span class="nav-item__subtitle">{{ accountSubtitle }}</span>
-      </span>
-    </button>
-
     <div class="nav-category">实例</div>
     <button
       class="nav-item"

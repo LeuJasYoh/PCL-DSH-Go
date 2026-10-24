@@ -4,11 +4,9 @@ const TYPE_LABELS: Record<string, string> = {
   LAUNCH_INSTANCE: '启动实例',
   INSTALL_RUNTIME: '安装运行时',
   PROBE_RUNTIME: '检测运行时能力',
-  COPY_INSTANCE: '复制实例',
   IMPORT_PACK: '导入整合包',
   EXPORT_PACK: '导出整合包',
   PLUGIN_MUTATE: '插件操作',
-  PREVIEW_PACK: '检查整合包',
   GENERIC: '后台任务',
 }
 

@@ -4,7 +4,7 @@ import { ApiError } from '@/api/client'
 export function describeApiError(error: unknown, action: string): string {
   if (error instanceof ApiError) {
     if (error.status === 0 || error.code === 'NETWORK_ERROR') {
-      return '无法连接后端服务，请确认 PCL-DSH-Linux 服务已在 127.0.0.1:8080 启动。'
+      return '无法连接后端服务，请确认 PCL-DSH-Go 服务已在 127.0.0.1:8080 启动。'
     }
     if (error.status === 401) return '登录状态已失效，请重新登录。'
     if (error.status === 403) {

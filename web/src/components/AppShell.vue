@@ -17,13 +17,11 @@ const jobs = useJobStore()
 const notify = useNotifyStore()
 let restoredJob = false
 
-const backdropStyle = computed(() => {
-  const background = appState.settings.background
-  return {
-    backgroundImage: 'url("' + resolveBackground(background) + '")',
-    backgroundPosition: backgroundPosition(background),
-  }
-})
+// M4: one fixed default background; switching/upload was removed.
+const backdropStyle = computed(() => ({
+  backgroundImage: 'url("' + resolveBackground() + '")',
+  backgroundPosition: backgroundPosition(),
+}))
 
 // Polling only exists for authenticated sessions: the login page (or the brief
 // pre-seed render before the router guard resolves) must not hit /api/state.
@@ -44,7 +42,7 @@ watch(
   { immediate: true },
 )
 
-// Plan 5.3: idle polling is 1.5s; while a background task runs it degrades to 3s
+// Idle polling is 1.5s; while a background task runs it degrades to 3s
 // because SSE is the source of truth for the task itself.
 watch(
   () => jobs.active,

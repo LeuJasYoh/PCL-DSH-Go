@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 
 import { runtimesApi } from '@/api'
-import type { AccountSummary, InstanceInput, InstanceSummary } from '@/api/types'
+import type { CreateInstanceInput, InstanceSummary, UpdateInstanceInput } from '@/api/types'
 import { parsePort, validateInstanceName, validatePort, validateProfile, validateVersion } from '@/utils/validation'
 
 import AppIcon from './AppIcon.vue'
@@ -12,43 +12,38 @@ const props = withDefaults(
   defineProps<{
     mode: 'create' | 'edit'
     instance?: InstanceSummary | null
-    accounts: AccountSummary[]
+    /** Installed Harness versions offered as datalist suggestions (create only). */
     installedVersions: string[]
     submitting?: boolean
     submitError?: string
-    /** Set after a backend 409 fallback: version/profile become read-only again. */
-    readonlyVersionProfile?: boolean
   }>(),
-  { instance: null, submitting: false, submitError: '', readonlyVersionProfile: false },
+  { instance: null, submitting: false, submitError: '' },
 )
 
-const emit = defineEmits<{ submit: [input: InstanceInput]; close: [] }>()
+const emit = defineEmits<{
+  create: [input: CreateInstanceInput]
+  save: [input: UpdateInstanceInput]
+  close: []
+}>()
 
 const create = computed(() => props.mode === 'create')
 
 const name = ref(props.instance?.name ?? '')
 const version = ref(props.instance?.version || props.installedVersions[0] || '')
 const profile = ref(props.instance?.profile || 'web')
-const port = ref(props.instance ? String(props.instance.port ?? '') : '')
-const accountId = ref(props.instance?.accountId ?? '')
+const port = ref(props.instance ? String(props.instance.port) : '')
 const validationError = ref('')
 
 const availableVersions = ref<string[]>([])
 const querying = ref(false)
+const versionEdited = ref(false)
+let queried = false
+
 const versionStatus = ref(
   create.value
     ? '可选择已知版本，或直接输入完整版本号。'
-    : '可修改 Harness 版本：修改会保留原实例，并将所选 profile 复制到新版本实例。',
+    : 'Harness 版本创建后不可修改。',
 )
-const profileChoices = computed(() => {
-  if (create.value) return ['web']
-  const set = new Set<string>()
-  if (props.instance?.profile) set.add(props.instance.profile)
-  for (const item of props.instance?.profiles ?? []) if (item) set.add(item)
-  return Array.from(set)
-})
-const versionEdited = ref(false)
-let queried = false
 
 const versionChoices = computed(() => {
   const set = new Set<string>()
@@ -56,13 +51,6 @@ const versionChoices = computed(() => {
   for (const item of availableVersions.value) if (item) set.add(item)
   return Array.from(set)
 })
-
-const accountChoices = computed(() =>
-  props.accounts.filter((account) => account.id).map((account) => ({
-    id: account.id,
-    label: account.name + ' · ' + (account.provider || '未知提供商'),
-  })),
-)
 
 async function queryVersions(manual: boolean): Promise<void> {
   if (querying.value || !create.value) return
@@ -91,7 +79,7 @@ function onVersionInput(event: Event): void {
 onMounted(() => {
   if (create.value && !queried) {
     queried = true
-    // Exactly one query on open (plan 5.4 #12); saving is never blocked by it.
+    // Exactly one query on open; saving is never blocked by it.
     void queryVersions(false)
   }
 })
@@ -103,30 +91,32 @@ function submit(): void {
     validationError.value = nameError
     return
   }
-  const versionError = validateVersion(version.value)
-  if (versionError) {
-    validationError.value = versionError
-    return
-  }
-  const profileError = validateProfile(profile.value)
-  if (profileError) {
-    validationError.value = profileError
-    return
-  }
   const portError = validatePort(port.value)
   if (portError) {
     validationError.value = portError
     return
   }
-  emit('submit', {
-    name: name.value.trim(),
-    // A changed version/profile makes the backend answer 202 + COPY_INSTANCE Job;
-    // unchanged values keep the ordinary 200 InstanceDto path.
-    version: version.value.trim(),
-    profile: profile.value.trim(),
-    port: parsePort(port.value),
-    accountId: accountId.value,
-  })
+  if (create.value) {
+    const versionError = validateVersion(version.value)
+    if (versionError) {
+      validationError.value = versionError
+      return
+    }
+    const profileError = validateProfile(profile.value)
+    if (profileError) {
+      validationError.value = profileError
+      return
+    }
+    emit('create', {
+      name: name.value.trim(),
+      version: version.value.trim(),
+      profile: profile.value.trim(),
+      port: parsePort(port.value),
+    })
+    return
+  }
+  // Edit: version/profile are immutable, so only name/port are sent.
+  emit('save', { name: name.value.trim(), port: parsePort(port.value) })
 }
 </script>
 
@@ -152,21 +142,19 @@ function submit(): void {
     </div>
 
     <div class="form-field">
-      <label class="field-label" for="instance-version">Harness 版本（可直接输入）</label>
-      <div class="inline-field">
+      <label class="field-label" for="instance-version">Harness 版本</label>
+      <div v-if="create" class="inline-field">
         <input
           id="instance-version"
           class="input"
           :value="version"
-          :readonly="readonlyVersionProfile"
-          :disabled="submitting || readonlyVersionProfile"
+          :disabled="submitting"
           data-testid="instance-version"
-          placeholder="完整版本号"
+          placeholder="完整版本号，例如 0.2.1-rc.3"
           list="instance-version-options"
           @input="onVersionInput"
         />
         <button
-          v-if="create"
           class="btn btn-secondary"
           type="button"
           data-testid="instance-refresh-versions"
@@ -175,46 +163,45 @@ function submit(): void {
         >
           <AppIcon name="refresh" :size="15" />刷新版本
         </button>
+        <datalist id="instance-version-options">
+          <option v-for="item in versionChoices" :key="item" :value="item"></option>
+        </datalist>
       </div>
-      <datalist id="instance-version-options">
-        <option v-for="item in versionChoices" :key="item" :value="item"></option>
-      </datalist>
-      <p class="form-hint" data-testid="instance-version-status">
-        {{ readonlyVersionProfile ? '当前后端不支持修改 Harness 版本，仅可修改名称、端口与账户。' : versionStatus }}
-      </p>
-      <p v-if="!create && !readonlyVersionProfile" class="form-hint" data-testid="instance-version-hint">
-        修改 Harness 版本会创建新的版本实例并保留原实例；profile 只能选择该实例中已有的值。
-      </p>
-      <p v-if="readonlyVersionProfile" class="form-hint" data-testid="instance-version-readonly">
-        当前后端暂不支持修改 Harness 版本或 profile（下一版本提供）；可修改名称、端口与账户。
-      </p>
+      <input
+        v-else
+        id="instance-version"
+        class="input"
+        :value="version"
+        readonly
+        disabled
+        data-testid="instance-version"
+      />
+      <p class="form-hint" data-testid="instance-version-status">{{ versionStatus }}</p>
     </div>
 
     <div class="form-field">
       <label class="field-label" for="instance-profile">{{ create ? '初始 Profile' : 'Profile' }}</label>
       <input
-        v-if="create || readonlyVersionProfile"
-        id="instance-profile"
-        class="input"
-        :value="profile"
-        readonly
-        data-testid="instance-profile"
-        :disabled="submitting"
-      />
-      <select
-        v-else
+        v-if="create"
         id="instance-profile"
         v-model="profile"
         class="input"
         data-testid="instance-profile"
         :disabled="submitting"
-      >
-        <option v-for="item in profileChoices" :key="item" :value="item">{{ item }}</option>
-      </select>
+      />
+      <input
+        v-else
+        id="instance-profile"
+        class="input"
+        :value="profile"
+        readonly
+        disabled
+        data-testid="instance-profile"
+      />
       <p class="form-hint">
         {{ create
-          ? '新实例默认使用 web。自定义 profile 需先通过整合包导入，或在 Harness 中创建。'
-          : '请选择此实例中已有的 profile。' }}
+          ? '新实例默认使用 web；自定义 profile 需先通过整合包导入，或在 Harness 中创建。'
+          : '版本与 profile 创建后不可修改；仅可编辑名称与端口。' }}
       </p>
     </div>
 
@@ -229,25 +216,6 @@ function submit(): void {
         placeholder="留空自动分配未使用的实例端口"
         :disabled="submitting"
       />
-    </div>
-
-    <div class="form-field">
-      <label class="field-label" for="instance-account">账户</label>
-      <select
-        id="instance-account"
-        v-model="accountId"
-        class="input"
-        data-testid="instance-account"
-        :disabled="submitting"
-      >
-        <option value="">不绑定 · 使用实例现有配置</option>
-        <option v-for="account in accountChoices" :key="account.id" :value="account.id">
-          {{ account.label }}
-        </option>
-      </select>
-      <p v-if="!accountChoices.length" class="form-hint">
-        尚未保存账户；可先创建实例，日后再绑定（账户管理将在下一增量完善）。
-      </p>
     </div>
 
     <p v-if="validationError || submitError" class="validation-error" data-testid="instance-validation" role="alert">

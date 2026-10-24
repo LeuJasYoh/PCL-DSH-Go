@@ -66,7 +66,9 @@ type wiredEnv struct {
 	cleanup  func()
 }
 
-func newWiredEnv(t *testing.T) *wiredEnv {
+// wiredDeps builds the fully wired dependency set used by the server tests; the
+// caller owns cleanup.
+func wiredDeps(t *testing.T) (Deps, string, func()) {
 	t.Helper()
 	dataRoot := filepath.Join(t.TempDir(), "data")
 	cfg := config.Config{Version: "wired-test-version", DataRoot: dataRoot, ServerAddress: "127.0.0.1"}
@@ -101,7 +103,7 @@ func newWiredEnv(t *testing.T) *wiredEnv {
 	if err != nil {
 		t.Fatalf("app.New() error = %v", err)
 	}
-	instance, err := New(Deps{
+	deps := Deps{
 		Config:    cfg,
 		Logger:    logger,
 		Dirs:      dirs,
@@ -112,9 +114,6 @@ func newWiredEnv(t *testing.T) *wiredEnv {
 		Pack:      stubPack{},
 		Plugins:   stubPlugins{},
 		StartedAt: time.Now(),
-	})
-	if err != nil {
-		t.Fatalf("server.New() error = %v", err)
 	}
 	cleanup := func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -124,6 +123,17 @@ func newWiredEnv(t *testing.T) *wiredEnv {
 		_ = admin.Close()
 		_ = st.Close()
 		_ = audit.Close()
+	}
+	return deps, password, cleanup
+}
+
+func newWiredEnv(t *testing.T) *wiredEnv {
+	t.Helper()
+	deps, password, cleanup := wiredDeps(t)
+	instance, err := New(deps)
+	if err != nil {
+		cleanup()
+		t.Fatalf("server.New() error = %v", err)
 	}
 	return &wiredEnv{server: instance, password: password, cleanup: cleanup}
 }
@@ -244,5 +254,79 @@ func TestWiredServerAuthFlow(t *testing.T) {
 	recorder = env.do(t, http.MethodGet, "/api/state", nil, cookies, "")
 	if recorder.Code != http.StatusUnauthorized {
 		t.Fatalf("state after logout = %d, want 401", recorder.Code)
+	}
+}
+func TestNewValidatesStaticDir(t *testing.T) {
+	deps, _, cleanup := wiredDeps(t)
+	defer cleanup()
+
+	relative := deps
+	relative.StaticDir = "web/dist"
+	if _, err := New(relative); err == nil {
+		t.Fatal("New with a relative static dir succeeded, want an error")
+	}
+
+	missing := deps
+	missing.StaticDir = filepath.Join(t.TempDir(), "does-not-exist")
+	if _, err := New(missing); err == nil {
+		t.Fatal("New with a missing static dir succeeded, want an error")
+	}
+
+	file := filepath.Join(t.TempDir(), "index.html")
+	if err := os.WriteFile(file, []byte("x"), 0o644); err != nil {
+		t.Fatalf("WriteFile() error = %v", err)
+	}
+	notDir := deps
+	notDir.StaticDir = file
+	if _, err := New(notDir); err == nil {
+		t.Fatal("New with a file as static dir succeeded, want an error")
+	}
+}
+
+func TestWiredServerServesStaticSPA(t *testing.T) {
+	deps, _, cleanup := wiredDeps(t)
+	defer cleanup()
+
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "index.html"),
+		[]byte("<!doctype html><div>WIRED-SPA-INDEX</div>"), 0o644); err != nil {
+		t.Fatalf("WriteFile(index.html) error = %v", err)
+	}
+	assets := filepath.Join(dir, "assets")
+	if err := os.MkdirAll(assets, 0o755); err != nil {
+		t.Fatalf("MkdirAll(assets) error = %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(assets, "app-abc123.js"), []byte("console.log(1);"), 0o644); err != nil {
+		t.Fatalf("WriteFile(asset) error = %v", err)
+	}
+	deps.StaticDir = dir
+
+	instance, err := New(deps)
+	if err != nil {
+		t.Fatalf("server.New() error = %v", err)
+	}
+
+	serve := func(method, target string) *httptest.ResponseRecorder {
+		recorder := httptest.NewRecorder()
+		request := httptest.NewRequest(method, target, nil)
+		instance.Handler().ServeHTTP(recorder, request)
+		return recorder
+	}
+
+	recorder := serve(http.MethodGet, "/instances")
+	if recorder.Code != http.StatusOK || !strings.Contains(recorder.Body.String(), "WIRED-SPA-INDEX") {
+		t.Fatalf("GET /instances = %d %q, want the SPA index", recorder.Code, recorder.Body.String())
+	}
+	recorder = serve(http.MethodGet, "/assets/app-abc123.js")
+	if recorder.Code != http.StatusOK || !strings.Contains(recorder.Body.String(), "console.log") {
+		t.Fatalf("GET asset = %d %q", recorder.Code, recorder.Body.String())
+	}
+	if cacheControl := recorder.Header().Get("Cache-Control"); !strings.Contains(cacheControl, "immutable") {
+		t.Fatalf("asset Cache-Control = %q, want immutable", cacheControl)
+	}
+	// API routing is untouched by the SPA configuration.
+	recorder = serve(http.MethodGet, "/api/health")
+	if recorder.Code != http.StatusOK || !strings.Contains(recorder.Body.String(), "\"status\":\"UP\"") {
+		t.Fatalf("GET /api/health = %d %q", recorder.Code, recorder.Body.String())
 	}
 }

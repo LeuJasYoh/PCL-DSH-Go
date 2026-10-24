@@ -140,9 +140,47 @@ func TestLoadNilGetenv(t *testing.T) {
 
 func TestUsageTextContainsFlags(t *testing.T) {
 	text := UsageText()
-	for _, want := range []string{"--server.address", "--server.port", "--pcl.data-root", "--pcl.tool-root", "--pcl.dev-mode", EnvDataRoot} {
+	for _, want := range []string{"--server.address", "--server.port", "--pcl.data-root", "--pcl.tool-root", "--server.static-dir", "--pcl.dev-mode", EnvDataRoot} {
 		if !strings.Contains(text, want) {
 			t.Errorf("UsageText 缺少 %q", want)
 		}
+	}
+}
+func TestLoadStaticDir(t *testing.T) {
+	// Default: not configured.
+	cfg, err := Load(nil, func(string) string { return "" })
+	if err != nil {
+		t.Fatalf("Load 默认参数失败：%v", err)
+	}
+	if cfg.StaticDir != "" {
+		t.Errorf("StaticDir = %q, 期望空", cfg.StaticDir)
+	}
+
+	// Absolute paths are kept (cleaned).
+	absolute := t.TempDir()
+	cfg, err = Load([]string{"--server.static-dir", absolute}, func(string) string { return "" })
+	if err != nil {
+		t.Fatalf("Load 失败：%v", err)
+	}
+	if cfg.StaticDir != filepath.Clean(absolute) {
+		t.Errorf("StaticDir = %q, 期望 %q", cfg.StaticDir, absolute)
+	}
+
+	// Relative paths are resolved against the working directory.
+	cfg, err = Load([]string{"--server.static-dir", "web/dist"}, func(string) string { return "" })
+	if err != nil {
+		t.Fatalf("Load 相对路径失败：%v", err)
+	}
+	if !filepath.IsAbs(cfg.StaticDir) || filepath.Base(cfg.StaticDir) != "dist" {
+		t.Errorf("StaticDir = %q, 期望绝对路径且以 dist 结尾", cfg.StaticDir)
+	}
+
+	// An explicit empty value keeps the placeholder page (no error).
+	cfg, err = Load([]string{"--server.static-dir="}, func(string) string { return "" })
+	if err != nil {
+		t.Fatalf("Load 空 static-dir 失败：%v", err)
+	}
+	if cfg.StaticDir != "" {
+		t.Errorf("StaticDir = %q, 期望空", cfg.StaticDir)
 	}
 }

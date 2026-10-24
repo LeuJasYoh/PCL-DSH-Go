@@ -376,12 +376,21 @@
   z-index: 3;
 }
 
-.first-launch-note {
+/* Bottom-left hints (first-launch card, no-instance hint, model note) are
+   stacked inside one absolutely positioned container so they never overlap. */
+.home-notes {
   position: absolute;
   bottom: 20px;
   left: 20px;
   z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   max-width: calc(100% - 300px);
+}
+
+.home-notes .first-launch-note {
+  margin: 0;
   font-size: 11px;
   color: var(--color-text-muted);
 }
