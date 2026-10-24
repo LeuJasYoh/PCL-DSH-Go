@@ -1,0 +1,192 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// Command pcl-dsh-go is the PCL-DSH-Go manager: a small Go service that manages
+// one DeepSeek Harness instance on a Linux host and reverse-proxies its
+// workbench under /workbench/{id}/.
+//
+// M0 wiring: config -> logging -> data root -> single-instance lock -> store ->
+// toolchain -> orchestrator -> HTTP server. On SIGINT/SIGTERM the manager stops
+// accepting requests, then stops the instance(s) it owns, then releases the lock.
+package main
+
+import (
+	"context"
+	"errors"
+	"flag"
+	"fmt"
+	"net"
+	"net/http"
+	"os"
+	"os/signal"
+	"strconv"
+	"syscall"
+	"time"
+
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/app"
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/config"
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/logging"
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/server"
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/store"
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/tools"
+)
+
+// version is injected at build time via -ldflags "-X main.version=...".
+var version = "dev"
+
+const (
+	// httpShutdownTimeout bounds graceful HTTP shutdown.
+	httpShutdownTimeout = 5 * time.Second
+	// instanceShutdownTimeout bounds stopping manager-owned DSH instances.
+	instanceShutdownTimeout = 30 * time.Second
+)
+
+func main() {
+	os.Exit(run(os.Args[1:]))
+}
+
+// run performs the full startup/shutdown cycle and returns the process exit
+// code; deferred cleanup guarantees the lock and log files are released.
+func run(args []string) int {
+	startedAt := time.Now()
+
+	cfg, err := config.Load(args, os.Getenv)
+	if err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			fmt.Fprint(os.Stdout, config.UsageText())
+			return 0
+		}
+		fmt.Fprintf(os.Stderr, "启动参数错误：%v\n\n%s\n", err, config.UsageText())
+		return 2
+	}
+	cfg.Version = version
+
+	dirs, err := config.InitDataRoot(cfg)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "初始化数据目录失败：%v\n", err)
+		return 1
+	}
+	logger, closeLogs, err := logging.Setup(dirs.LogsDir, version)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "初始化日志失败：%v\n", err)
+		return 1
+	}
+	defer func() {
+		if closeErr := closeLogs(); closeErr != nil {
+			fmt.Fprintf(os.Stderr, "关闭日志失败：%v\n", closeErr)
+		}
+	}()
+	logger.Info("pcl-dsh-go 正在启动",
+		"address", cfg.ServerAddress,
+		"port", cfg.ServerPort,
+		"dataRoot", dirs.DataRoot,
+		"toolRoot", cfg.ToolRoot,
+		"devMode", cfg.DevMode,
+		"pid", os.Getpid(),
+	)
+
+	lock, err := config.AcquireLock(dirs.DataRoot)
+	if err != nil {
+		logger.Error("获取数据目录单实例锁失败", "error", err)
+		return 1
+	}
+	defer func() {
+		if closeErr := lock.Close(); closeErr != nil {
+			logger.Warn("释放数据目录单实例锁失败", "error", closeErr)
+		}
+	}()
+
+	instanceStore, err := store.Open(dirs.DataRoot)
+	if err != nil {
+		logger.Error("打开实例配置失败", "error", err)
+		return 1
+	}
+	defer func() {
+		if closeErr := instanceStore.Close(); closeErr != nil {
+			logger.Warn("关闭实例配置失败", "error", closeErr)
+		}
+	}()
+
+	// A missing toolchain must not prevent the manager from starting: the
+	// install/launch endpoints report an actionable error instead.
+	var toolchain *tools.Tools
+	if located, locateErr := tools.Locate(cfg.ToolRoot, dirs.DataRoot); locateErr != nil {
+		logger.Warn("未定位到内置 Node/pnpm 工具链，运行时安装与实例启动将不可用", "error", locateErr)
+	} else {
+		toolchain = located
+	}
+
+	application, err := app.New(app.Deps{
+		Config: cfg,
+		Dirs:   dirs,
+		Logger: logger,
+		Store:  instanceStore,
+		Tools:  toolchain,
+	})
+	if err != nil {
+		logger.Error("初始化应用失败", "error", err)
+		return 1
+	}
+
+	managerServer, err := server.New(server.Deps{
+		Config:       cfg,
+		Logger:       logger,
+		Store:        instanceStore,
+		Orchestrator: application,
+	})
+	if err != nil {
+		logger.Error("初始化 HTTP 服务失败", "error", err)
+		return 1
+	}
+
+	address := net.JoinHostPort(cfg.ServerAddress, strconv.Itoa(cfg.ServerPort))
+	listener, err := net.Listen("tcp", address)
+	if err != nil {
+		logger.Error("监听端口失败", "address", address, "error", err)
+		return 1
+	}
+	httpServer := &http.Server{
+		Addr:              address,
+		Handler:           managerServer.Handler(),
+		ReadHeaderTimeout: 10 * time.Second,
+	}
+	serveErr := make(chan error, 1)
+	go func() {
+		serveErr <- httpServer.Serve(listener)
+	}()
+	logger.Info("HTTP 服务已就绪",
+		"address", listener.Addr().String(),
+		"health", "/api/health",
+		"startupMs", time.Since(startedAt).Milliseconds(),
+	)
+
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	exitCode := 0
+	select {
+	case <-ctx.Done():
+		logger.Info("收到退出信号，开始优雅停机", "httpTimeout", httpShutdownTimeout.String())
+	case serveErrValue := <-serveErr:
+		if !errors.Is(serveErrValue, http.ErrServerClosed) {
+			logger.Error("HTTP 服务异常退出", "error", serveErrValue)
+			exitCode = 1
+		}
+	}
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), httpShutdownTimeout)
+	if shutdownErr := httpServer.Shutdown(shutdownCtx); shutdownErr != nil {
+		logger.Warn("HTTP 优雅停机未在限期内完成，强制关闭", "error", shutdownErr)
+		_ = httpServer.Close()
+	}
+	cancel()
+
+	instanceCtx, cancelInstances := context.WithTimeout(context.Background(), instanceShutdownTimeout)
+	if shutdownErr := application.Shutdown(instanceCtx); shutdownErr != nil {
+		logger.Error("停止实例失败", "error", shutdownErr)
+		exitCode = 1
+	}
+	cancelInstances()
+
+	logger.Info("pcl-dsh-go 已停止")
+	return exitCode
+}
