@@ -1,0 +1,28 @@
+{"time":"2026-10-24T18:50:48.04591063+08:00","level":"INFO","msg":"pcl-dsh-go 正在启动","service":"pcl-dsh-go","version":"1.0.0","address":"127.0.0.1","port":18085,"dataRoot":"/tmp/pcl-dsh-go-test/m5/m5-scenario-20261024-184856/install-data","toolRoot":"/tmp/pcl-dsh-go-test/m5/m5-scenario-20261024-184856/prefix/current/tools","pid":147665}
+{"time":"2026-10-24T18:50:48.096787926+08:00","level":"WARN","msg":"管理员仍使用初始密码，请登录后立即修改","service":"pcl-dsh-go","version":"1.0.0","initialPasswordFile":"***"}
+{"time":"2026-10-24T18:50:48.790907428+08:00","level":"INFO","msg":"内置 Node/pnpm 工具链已就绪","service":"pcl-dsh-go","version":"1.0.0","node":"24.22.1","pnpm":"11.28.5","toolRoot":"/tmp/pcl-dsh-go-test/m5/m5-scenario-20261024-184856/prefix/current/tools"}
+{"time":"2026-10-24T18:50:48.838174193+08:00","level":"INFO","msg":"HTTP 服务已就绪","service":"pcl-dsh-go","version":"1.0.0","address":"127.0.0.1:18085","health":"/api/health","startupMs":793}
+{"time":"2026-10-24T18:50:49.032419797+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"1.0.0","traceId":"3850eeea48d8","method":"GET","path":"/api/health","status":200,"durationMs":0}
+{"time":"2026-10-24T18:50:49.146152149+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"1.0.0","traceId":"7118a345a0fa","method":"GET","path":"/","status":200,"durationMs":0}
+{"time":"2026-10-24T18:50:49.16627124+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"1.0.0","traceId":"0dfc2bf5b400","method":"GET","path":"/instances","status":200,"durationMs":0}
+{"time":"2026-10-24T18:50:49.186214649+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"1.0.0","traceId":"3071fe931418","method":"GET","path":"/assets/../../etc/passwd","status":400,"durationMs":0}
+{"time":"2026-10-24T18:50:49.203359057+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"1.0.0","traceId":"1a2318646546","method":"GET","path":"/api/state","status":401,"durationMs":0}
+{"time":"2026-10-24T18:50:49.313225994+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"1.0.0","traceId":"55df255d0747","method":"POST","path":"/api/auth/login","status":204,"durationMs":51}
+{"time":"2026-10-24T18:50:49.323606472+08:00","level":"INFO","msg":"收到退出信号，开始优雅停机","service":"pcl-dsh-go","version":"1.0.0","httpTimeout":"5s"}
+{"time":"2026-10-24T18:50:49.323765418+08:00","level":"INFO","msg":"pcl-dsh-go 已停止","service":"pcl-dsh-go","version":"1.0.0"}
+{"time":"2026-10-24T18:50:49.853084823+08:00","level":"INFO","msg":"pcl-dsh-go 正在启动","service":"pcl-dsh-go","version":"1.0.0","address":"127.0.0.1","port":18085,"dataRoot":"/tmp/pcl-dsh-go-test/m5/m5-scenario-20261024-184856/install-data","toolRoot":"/tmp/pcl-dsh-go-test/m5/m5-scenario-20261024-184856/prefix/current/tools","pid":147814}
+{"time":"2026-10-24T18:50:49.853416931+08:00","level":"WARN","msg":"管理员仍使用初始密码，请登录后立即修改","service":"pcl-dsh-go","version":"1.0.0","initialPasswordFile":"***"}
+{"time":"2026-10-24T18:50:50.362057601+08:00","level":"INFO","msg":"内置 Node/pnpm 工具链已就绪","service":"pcl-dsh-go","version":"1.0.0","node":"24.22.1","pnpm":"11.28.5","toolRoot":"/tmp/pcl-dsh-go-test/m5/m5-scenario-20261024-184856/prefix/current/tools"}
+{"time":"2026-10-24T18:50:50.406904192+08:00","level":"INFO","msg":"HTTP 服务已就绪","service":"pcl-dsh-go","version":"1.0.0","address":"127.0.0.1:18085","health":"/api/health","startupMs":553}
+{"time":"2026-10-24T18:50:50.502250825+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"1.0.0","traceId":"b5348284e070","method":"GET","path":"/api/health","status":200,"durationMs":0}
+{"time":"2026-10-24T18:50:50.573713379+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"1.0.0","traceId":"22935b9c5ebc","method":"POST","path":"/api/auth/login","status":204,"durationMs":48}
+{"time":"2026-10-24T18:50:55.657683116+08:00","level":"INFO","msg":"收到退出信号，开始优雅停机","service":"pcl-dsh-go","version":"1.0.0","httpTimeout":"5s"}
+{"time":"2026-10-24T18:50:55.657901212+08:00","level":"INFO","msg":"pcl-dsh-go 已停止","service":"pcl-dsh-go","version":"1.0.0"}
+{"time":"2026-10-24T18:50:57.063638601+08:00","level":"INFO","msg":"pcl-dsh-go 正在启动","service":"pcl-dsh-go","version":"1.0.0","address":"127.0.0.1","port":18085,"dataRoot":"/tmp/pcl-dsh-go-test/m5/m5-scenario-20261024-184856/install-data","toolRoot":"/tmp/pcl-dsh-go-test/m5/m5-scenario-20261024-184856/prefix/current/tools","pid":147975}
+{"time":"2026-10-24T18:50:57.06399236+08:00","level":"WARN","msg":"管理员仍使用初始密码，请登录后立即修改","service":"pcl-dsh-go","version":"1.0.0","initialPasswordFile":"***"}
+{"time":"2026-10-24T18:50:57.705504462+08:00","level":"INFO","msg":"内置 Node/pnpm 工具链已就绪","service":"pcl-dsh-go","version":"1.0.0","node":"24.22.1","pnpm":"11.28.5","toolRoot":"/tmp/pcl-dsh-go-test/m5/m5-scenario-20261024-184856/prefix/current/tools"}
+{"time":"2026-10-24T18:50:57.750971843+08:00","level":"INFO","msg":"HTTP 服务已就绪","service":"pcl-dsh-go","version":"1.0.0","address":"127.0.0.1:18085","health":"/api/health","startupMs":687}
+{"time":"2026-10-24T18:50:58.025368898+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"1.0.0","traceId":"81e307b42ca7","method":"GET","path":"/api/health","status":200,"durationMs":0}
+{"time":"2026-10-24T18:50:58.091783793+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"1.0.0","traceId":"c26947a3ccfb","method":"POST","path":"/api/auth/login","status":204,"durationMs":48}
+{"time":"2026-10-24T18:51:03.140343078+08:00","level":"INFO","msg":"收到退出信号，开始优雅停机","service":"pcl-dsh-go","version":"1.0.0","httpTimeout":"5s"}
+{"time":"2026-10-24T18:51:03.140558519+08:00","level":"INFO","msg":"pcl-dsh-go 已停止","service":"pcl-dsh-go","version":"1.0.0"}

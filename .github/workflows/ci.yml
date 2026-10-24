@@ -1,0 +1,211 @@
+name: CI
+
+# PCL-DSH-Go CI（M5-D）
+# - backend：gofmt / go vet / go test / GOOS=linux GOARCH=amd64 build，上传 manager 二进制
+# - frontend：Node 24 npm ci / vue-tsc type-check / vite build，校验 dist 并上传产物
+# - release-smoke：用后端+前端产物跑 scripts/build-release.sh（CI 用假 tools 只验证布局/校验和，不下载 200MB Node/pnpm）
+# 说明：真实 DSH / Playwright E2E 需要 WSL + Edge + 内置工具链，不在 GitHub Hosted Runner 上跑（见 docs/M5_DEPLOY.md 第 14 节）。
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (Go)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: go.sum
+
+      - name: gofmt check
+        run: |
+          set -euo pipefail
+          files="$(gofmt -l .)"
+          if [ -n "$files" ]; then
+            echo "::error::gofmt 需要重新格式化（见下列文件）："
+            echo "$files"
+            exit 1
+          fi
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: go test
+        run: go test ./... -count=1
+
+      - name: go build (linux/amd64)
+        env:
+          GOOS: linux
+          GOARCH: amd64
+          CGO_ENABLED: "0"
+        run: go build -trimpath -ldflags "-s -w -X main.version=1.0.0-ci" -o bin/pcl-dsh-go ./cmd/pcl-dsh-go
+
+      - name: verify binary
+        run: |
+          set -euo pipefail
+          test -x bin/pcl-dsh-go
+          file bin/pcl-dsh-go
+          file bin/pcl-dsh-go | grep -q 'ELF 64-bit.*x86-64'
+
+      - name: Upload manager binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: pcl-dsh-go-linux-amd64
+          path: bin/pcl-dsh-go
+          if-no-files-found: error
+          retention-days: 7
+
+  frontend:
+    name: Frontend (Vue/Vite)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: npm ci
+        working-directory: web
+        run: npm ci --no-audit --no-fund
+
+      - name: npm run type-check
+        working-directory: web
+        run: npm run type-check
+
+      - name: npm run build
+        working-directory: web
+        run: npm run build
+
+      - name: verify dist
+        working-directory: web
+        run: |
+          set -euo pipefail
+          test -f dist/index.html
+          test -f dist/favicon.webp
+          test -f dist/licenses/GPL-3.0.txt
+          test -f dist/licenses/HMCL-ADDITIONAL-TERMS.md
+          test -d dist/assets
+          js_count="$(find dist/assets -maxdepth 1 -name '*.js' | wc -l)"
+          css_count="$(find dist/assets -maxdepth 1 -name '*.css' | wc -l)"
+          test "$js_count" -ge 1
+          test "$css_count" -ge 1
+          grep -q '/assets/' dist/index.html
+          echo "dist files=$(find dist -type f | wc -l) js=$js_count css=$css_count size=$(du -sh dist | cut -f1)"
+
+      - name: Upload web dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: web/dist
+          if-no-files-found: error
+          retention-days: 7
+
+  release-smoke:
+    name: Release package smoke
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download manager binary
+        uses: actions/download-artifact@v4
+        with:
+          name: pcl-dsh-go-linux-amd64
+          path: bin
+
+      - name: Download web dist
+        uses: actions/download-artifact@v4
+        with:
+          name: web-dist
+          path: web/dist
+
+      - name: release layout smoke (fake tools)
+        run: |
+          set -euo pipefail
+          chmod +x bin/pcl-dsh-go
+
+          if [ ! -f scripts/build-release.sh ]; then
+            echo "::warning::scripts/build-release.sh 尚未落地（M5-A），跳过 release 打包 smoke"
+            exit 0
+          fi
+
+          bash -n scripts/build-release.sh
+          for script in packaging/install.sh packaging/uninstall.sh packaging/reset.sh; do
+            if [ -f "$script" ]; then bash -n "$script"; fi
+          done
+
+          FAKE_TOOLS="$RUNNER_TEMP/fake-tools"
+          mkdir -p "$FAKE_TOOLS/node/bin" "$FAKE_TOOLS/pnpm"
+          printf '#!/bin/sh\necho fake-node\n' > "$FAKE_TOOLS/node/bin/node"
+          chmod +x "$FAKE_TOOLS/node/bin/node"
+          printf '# fake pnpm (CI layout smoke only)\n' > "$FAKE_TOOLS/pnpm/README"
+
+          OUT="$RUNNER_TEMP/release"
+          bash scripts/build-release.sh --version 1.0.0 --tools "$FAKE_TOOLS" --out "$OUT"
+
+          PKG="$OUT/pcl-dsh-go-1.0.0-linux-amd64"
+          # 发行包必须包含安装器运行所需的全部文件（install.sh 会读取 systemd/nginx 模板）。
+          for item in \
+            VERSION BUILD_INFO \
+            bin/pcl-dsh-go \
+            static/index.html \
+            packaging/install.sh packaging/uninstall.sh packaging/reset.sh \
+            packaging/systemd/pcl-dsh-go.service \
+            packaging/nginx/pcl-dsh-go-site.conf \
+            docs/M5_DEPLOY.md \
+            README.md LICENSE THIRD_PARTY_NOTICES.md SHA256SUMS; do
+            test -e "$PKG/$item" || { echo "::error::release 缺少 $item"; exit 1; }
+          done
+          test -x "$PKG/bin/pcl-dsh-go"
+
+          # 安装/卸载/重置脚本可在非 root 下显示帮助（参数需与文档一致）。
+          ( cd "$PKG" && bash packaging/install.sh --help | grep -q -- '--no-service' )
+          ( cd "$PKG" && bash packaging/install.sh --help | grep -q -- '--listen-port' )
+          ( cd "$PKG" && bash packaging/uninstall.sh --help | grep -q -- '--purge-data' )
+          ( cd "$PKG" && bash packaging/reset.sh --help | grep -q -- '--yes' )
+          file "$PKG/bin/pcl-dsh-go" | grep -q 'ELF 64-bit.*x86-64'
+          ( cd "$PKG" && sha256sum -c SHA256SUMS >/dev/null )
+
+          TAR="$OUT/pcl-dsh-go-1.0.0-linux-amd64.tar.gz"
+          test -f "$TAR"
+          ( cd "$OUT" && sha256sum -c "pcl-dsh-go-1.0.0-linux-amd64.tar.gz.sha256" >/dev/null )
+          tar -tzf "$TAR" >/dev/null
+          echo "release layout smoke OK"
+          find "$PKG" -maxdepth 1 -mindepth 1 -printf '%f\n' | sort
+
+      - name: Upload release tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-tarball
+          path: |
+            ${{ runner.temp }}/release/pcl-dsh-go-*-linux-amd64.tar.gz
+            ${{ runner.temp }}/release/pcl-dsh-go-*-linux-amd64.tar.gz.sha256
+          if-no-files-found: warn
+          retention-days: 7

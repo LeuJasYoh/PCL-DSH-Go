@@ -33,3 +33,5 @@ reports/
 # Python (M3 sample generator)
 __pycache__/
 *.pyc
+# M5 release build outputs
+/release/

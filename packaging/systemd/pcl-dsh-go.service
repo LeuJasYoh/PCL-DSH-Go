@@ -1,0 +1,32 @@
+# PCL-DSH-Go manager systemd unit (rendered by packaging/install.sh)
+# SPDX-License-Identifier: GPL-3.0-or-later
+[Unit]
+Description=PCL-DSH-Go Manager (DeepSeek Harness)
+Documentation=file:/opt/pcl-dsh-go/current/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pcl-dsh
+Group=pcl-dsh
+WorkingDirectory=@PREFIX@/current
+Environment=HOME=@DATA_DIR@
+ExecStart=@PREFIX@/current/bin/pcl-dsh-go \
+  --server.address=127.0.0.1 \
+  --server.port=@PORT@ \
+  --pcl.data-root=@DATA_DIR@ \
+  --pcl.tool-root=@PREFIX@/current/tools \
+  --server.static-dir=@PREFIX@/current/static
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=45
+LimitNOFILE=65536
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=@DATA_DIR@
+
+[Install]
+WantedBy=multi-user.target

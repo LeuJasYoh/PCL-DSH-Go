@@ -2,7 +2,7 @@
 
 PCL-DSH-Go 是 [PCL-DSH-Linux](https://github.com/LeuJasYoh/pcl-dsh-linux) 的 Go 重写版：在 Linux 服务器上以 WebUI 管理 DeepSeek Harness（DSH）实例的管理器。
 
-> 状态：**M0 垂直切片 + M1 后端核心 + M2 反代硬化/Nginx + M3 整合包与插件 + M4 WebUI 已完成**（2026-10-24，真实 DSH `0.2.1-rc.3` 在 WSL 验收通过；WebUI Playwright E2E 18/18）；M5（发布/部署）等待实现。本仓库包含计划、实现规格、DSH 集成契约、前端迁移指南、验收标准、任务拆解与实现提示词。
+> 状态：**M0–M5 全部完成**（2026-10-24）：骨架/后端 API/反代/Nginx、整合包与插件、WebUI（Playwright 18/18）、发行打包与 WSL 实际部署（`release 1.0.0`，systemd + Nginx `:80`，`m5-acceptance --full` 71/71）。当前可在 Windows 浏览器访问 **http://localhost/** 使用。本仓库包含计划、实现规格、DSH 集成契约、前端迁移指南、部署指南、验收标准、任务拆解与实现提示词。
 
 ## 目标
 
@@ -11,6 +11,17 @@ PCL-DSH-Go 是 [PCL-DSH-Linux](https://github.com/LeuJasYoh/pcl-dsh-linux) 的 G
 - 任务与日志、整合包导入导出、已装插件管理、直连登录（SSH 隧道 + 一次性 token URL，SSH 用户可配置）；
 - 保留 WebUI；不含账户系统、社区插件目录、背景图管理、旧数据兼容；
 - 内置 Node 24.22.1 + pnpm 11.28.5，服务器无需系统 Node/npm/JDK。
+
+## M5 状态（2026-10-24）
+
+M5 发布/部署已完成：**release 1.0.0**（Go 二进制 + `web/dist` + 内置 Node 24.22.1/pnpm 11.28.5 + systemd/Nginx/install 脚本 + 许可），`SHA256SUMS` 校验；`scripts/wsl/m5-acceptance.sh --full` **71/71 PASS**（QA 与 Lead 独立复跑）。
+
+- **WSL 实际部署**：`/opt/pcl-dsh-go/current -> releases/1.0.0`，数据 `/var/lib/pcl-dsh-go`（0700），systemd `pcl-dsh-go.service`（沙箱/NoNewPrivileges），Nginx 监听 `:80`（API/工作台反代、SSE/WS、2G body、access_log off）；Windows 浏览器访问 **http://localhost/**（备用 `http://127.0.0.1/`）。
+- **首次登录**：初始密码在 `/var/lib/pcl-dsh-go/initial-password`（0600），登录后强制改密；随后在「下载」页安装 DSH `0.2.1-rc.3`、创建并启动实例、「打开 Web 界面」进入工作台。
+- **运维**：安装/升级/回滚/卸载/重置/排障见 [docs/M5_DEPLOY.md](docs/M5_DEPLOY.md)；服务 `systemctl {status,restart,stop} pcl-dsh-go`；Nginx site `/etc/nginx/sites-available/pcl-dsh-go.conf`。
+- **构建发布包**：Windows 构建前端（`scripts/frontend-build.ps1`）+ linux/amd64 二进制后，在 WSL 运行 `bash scripts/build-release.sh` → `release/pcl-dsh-go-1.0.0-linux-amd64.tar.gz` + SHA256（`release/` 已 gitignore）。
+
+已知限制：本里程碑未覆盖 TLS（由运维在 Nginx 终止）、高并发/压测、跨版本 schema 升级；live 验收为只读（Lead 已做一次 systemd 重启持久化验证）。
 
 ## M4 状态（2026-10-24）
 
@@ -121,6 +132,9 @@ M0 调试 API（仅 `--pcl.dev-mode` 启用并绑定 127.0.0.1；M1 由正式认
 
 ## 文档
 
+- [M5 验收报告（发行/部署 G9/G10）](docs/M5_RESULTS.md)
+- [M5 部署与运维指南](docs/M5_DEPLOY.md)
+- [M5 冻结决策](docs/M5_INTERFACES.md)
 - [M4 验收报告（WebUI / G8）](docs/M4_RESULTS.md)
 - [M4 构建与运行指南](docs/M4_BUILD.md)
 - [M4 冻结决策](docs/M4_INTERFACES.md)

@@ -1,0 +1,85 @@
+=== M5 acceptance selfcheck 20261024-184856 ===
+PASS  bash -n m5-acceptance.sh  
+PASS  input exists: docs/M5_INTERFACES.md  
+PASS  input exists: docs/IMPLEMENTATION_SPEC.md  
+PASS  input exists: docs/ACCEPTANCE.md  
+PASS  input exists: packaging/nginx/pcl-dsh-go.conf  
+PASS  tool available: curl  
+PASS  tool available: sha256sum  
+PASS  tool available: tar  
+PASS  tool available: ss  
+PASS  tool available: nginx  
+PASS  tool available: python3  
+PASS  tool available: systemctl  
+PASS  bash -n scripts/build-release.sh  
+PASS  nginx -t packaging template (adapted to isolated ports/root)  nginx: configuration file /tmp/pcl-dsh-go-test/m5/m5-scenario-20261024-184856/nginx/conf/nginx.conf test is successful
+INFO  release candidate detected: /mnt/d/Projects/DSHL/PCL-DSH-Go/release/pcl-dsh-go-1.0.0-linux-amd64 (isolated mode can validate it)
+INFO  live deployment looks present at http://127.0.0.1 (run --live for read-only checks)
+
+selfcheck: pass=14 fail=0 info=2
+SELFCHECK=OK
+=== M5 isolated clean-install smoke 20261024-184856 ===
+release input: /mnt/d/Projects/DSHL/PCL-DSH-Go/release/pcl-dsh-go-1.0.0-linux-amd64
+PASS  release has bin/pcl-dsh-go  
+PASS  release has static/index.html  
+PASS  release has tools/node/bin/node  
+PASS  release has embedded pnpm  
+PASS  release has VERSION  value=1.0.0
+PASS  packaging script present: install.sh  
+PASS  packaging script present: uninstall.sh  
+PASS  packaging script present: reset.sh  
+PASS  packaging script present: pcl-dsh-go.service  
+PASS  sha256sum -c release/SHA256SUMS  ./tools/pnpm/package.json: OK
+PASS  release payload contains no runtime data/secrets  found=
+PASS  isolated install.sh --no-service rc=0  version=1.0.0
+PASS  isolated prefix current -> releases/1.0.0  current=/tmp/pcl-dsh-go-test/m5/m5-scenario-20261024-184856/prefix/releases/1.0.0
+PASS  isolated install tree bin/static/tools present  
+PASS  isolated data dir 0700  mode=700
+PASS  isolated release manager /api/health 200  
+PASS  health version=1.0.0  value=1.0.0
+PASS  release static GET / 200 + title PCL-DSH-Go  status=200
+PASS  SPA fallback /instances 200 index  status=200
+PASS  static path traversal -> 400/404  status=400
+PASS  unauthenticated /api/state 401  status=401
+PASS  initial-password exists with mode 0600  mode=600
+PASS  release node runs  value=v24.22.1
+PASS  login with isolated initial password 204 (no change)  status=204
+PASS  isolated manager port released  
+PASS  upgrade: same-version reinstall rc=0  
+PASS  upgrade: current -> releases/1.0.0 after reinstall  
+PASS  upgrade: manager healthy after reinstall/restart  
+PASS  upgrade: login still works with existing data  status=204
+PASS  rollback: current switched to 1.0.0-prev  
+PASS  rollback: previous release starts with same data  
+PASS  rollback: login still works with same data  status=204
+PASS  upgrade/rollback: data files preserved (admin/initial-password/instances)  admin=same init=same instances=0/0
+PASS  isolated manager logs ERROR count 0  errors=0
+PASS  isolated evidence/logs no raw token/cookie  matches=0
+=== M5 live WSL deployment read-only checks 20261024-184856 ===
+PASS  live :80 GET / 200  status=200
+PASS  live page title PCL-DSH-Go  
+PASS  live SPA fallback /instances 200  status=200
+PASS  live /api/health via Nginx 200  status=200
+PASS  live health version=1.0.0  value=1.0.0
+PASS  live /api/state unauthenticated 401  status=401
+PASS  live removed /api/accounts -> 404 (or 401 fail-closed when anonymous)  status=401 (anonymous 401 = auth-before-routing; authenticated 404 covered by M1/M4 tests)
+PASS  live /workbench unauthenticated 401  status=401
+PASS  live Nginx server_tokens off  value=Server: nginx
+PASS  systemd unit pcl-dsh-go active  state=active
+PASS  systemd unit sandbox: NoNewPrivileges/PrivateTmp  
+PASS  live nginx -t  nginx: configuration file /etc/nginx/nginx.conf test is successful
+PASS  port :80 listening  
+PASS  manager 127.0.0.1:8080 listening (behind Nginx)  
+PASS  live prefix current -> releases/1.0.0  current=1.0.0
+PASS  live data dir mode 0700  mode=700
+PASS  live initial-password present mode 0600 (content not printed)  mode=600
+PASS  Nginx site config present  path=/etc/nginx/sites-available/pcl-dsh-go.conf
+PASS  Nginx access_log off on /api and /workbench  
+PASS  Nginx config proxy_buffering off for SSE  
+PASS  live manager logs no raw token/cookie  matches=0
+PASS  live manager logs ERROR count 0  errors=0
+
+=== RESULT ===
+checks_passed=71 checks_failed=0 info=2 scenario=/tmp/pcl-dsh-go-test/m5/m5-scenario-20261024-184856
+RESULT=PASS
+EXIT_CODE=0 scenario=/tmp/pcl-dsh-go-test/m5/m5-scenario-20261024-184856
