@@ -1,0 +1,14 @@
+### anonymous root
+status=401
+cache-control: no-store
+content-type: text/plain; charset=utf-8
+vary: Accept-Encoding
+body_head="dsh web authentication required; reopen the URL printed by dsh web. "
+### invalid token
+status=401
+body_head="dsh web authentication required; reopen the URL printed by dsh web. "
+### bootstrap token request
+status=303
+location=./
+set-cookie: ***
+body_bytes=0

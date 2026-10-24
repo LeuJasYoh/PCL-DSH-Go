@@ -1,0 +1,32 @@
+registry=https://registry.npmjs.org
+fetched_at=2026-10-24T05:36:45.118Z
+fetch_ms=1457
+body_bytes=267842
+dist_tags={"alpha":"0.2.1-alpha.5","next":"0.2.1-rc.3","latest":"0.2.1-rc.2"}
+total_versions=37
+target=0.2.1-rc.3
+target_available=true
+target_published_at=2026-10-23T07:54:30.267Z
+latest_versions_desc=0.2.1-rc.3,0.2.1-rc.2,0.2.1-rc.1,0.2.1-alpha.5,0.2.1-alpha.4,0.2.1-alpha.3,0.2.1-alpha.2,0.2.1-alpha.1,0.2.0-rc.2,0.2.0-rc.1,0.1.7-rc.2,0.1.7-rc.1
+recent_publish_times=
+  0.2.1-alpha.1 2026-10-03T04:53:22.343Z
+  0.2.1-alpha.2 2026-10-09T08:18:00.501Z
+  0.2.1-alpha.3 2026-10-14T12:35:33.988Z
+  0.2.1-alpha.4 2026-10-15T13:08:08.555Z
+  0.2.1-alpha.5 2026-10-16T12:31:49.659Z
+  0.2.1-rc.1 2026-10-17T03:17:24.154Z
+  0.2.1-rc.2 2026-10-17T08:36:31.655Z
+  0.2.1-rc.3 2026-10-23T07:54:30.267Z
+manifest_name=@deepseek-ai/dsh
+manifest_version=0.2.1-rc.3
+engines={}
+package_manager=n/a
+bin={"dsh":"lib/bin.js"}
+dependencies=86
+optional_dependencies=0
+peer_dependencies=0
+dist_tarball=https://registry.npmjs.org/@deepseek-ai/dsh/-/dsh-0.2.1-rc.3.tgz
+dist_integrity=sha512-H+E9HLnHf7fJqzen84Z9Bq8ggb5xbrcbyhZjXTJLE9NabHr3zteGvTRvdvGkxPl4ov80is4WLglFmSo+/olJjg==
+dist_shasum=ccc527065b9f736ea299a1f78150a21143d961aa
+unpacked_size=75972
+RESULT=target_available

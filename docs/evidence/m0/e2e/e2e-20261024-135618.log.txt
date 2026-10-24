@@ -1,0 +1,104 @@
+=== PCL-DSH-Go M0 acceptance 20261024-135618 ===
+repo=/mnt/d/Projects/DSHL/PCL-DSH-Go root=/tmp/pcl-dsh-go-test tools=/opt/pcl-dsh-go/tools version=0.2.1-rc.3 manager_port=18080 dsh_port=3080
+PASS  prebuilt manager binary present  path=bin/pcl-dsh-go
+windows-dsh program hash before=d21dbbc5855f4bfdf5e2c6542c872930e3546a239e15b699cde37d1eb0d12351
+windows-dsh user-home hash before=dc139b626739a312339efb87bc37306960bafb470b670b57f83fd72b154a3672
+manager start pid=2501 data-root=/tmp/pcl-dsh-go-test/e2e-data port=18080
+health: {"status":"UP","uptimeSeconds":0,"version":"dev"}
+PASS  manager /api/health  
+runtime install response: {"code":"INTERNAL","message":"安装运行时 0.2.1-rc.3失败：安装失败：命令退出码 254：h-tool-skill@0.2.1-rc.3\n  @deepseek-ai/dsh-tool-str-replace-editor@0.2.1-rc.3\n  @deepseek-ai/dsh-tool-subagent-control@0.2.1-rc.3\n  @deepseek-ai/dsh-tool-subagent@0.2.1-rc.3\n  @deepseek-ai/dsh-tool-terminal@0.2.1-rc.3\n  @deepseek-ai/dsh-tool-todo@0.2.1-rc.3\n  @deepseek-ai/dsh-tool-web@0.2.1-rc.3\n  @deepseek-ai/dsh-tool-workflow@0.2.1-rc.3\n  @deepseek-ai/dsh-tool-working-directory@0.2.1-rc.3\n  @deepseek-ai/dsh-tool-workspace-dependencies@0.2.1-rc.3\n  @deepseek-ai/dsh-tools@0.2.1-rc.3\n  @deepseek-ai/dsh-typert-loader@0.2.1-rc.3\n  @deepseek-ai/dsh-typert-protocol@0.2.1-rc.3\n  @deepseek-ai/dsh-typert-registry@0.2.1-rc.3\n  @deepseek-ai/dsh-user-approval@0.2.1-rc.3\n  @deepseek-ai/dsh-user-questions@0.2.1-rc.3\n  @deepseek-ai/dsh-util-code-language@0.2.1-rc.3\n  @deepseek-ai/dsh-util-crypto@0.2.1-rc.3\n  @deepseek-ai/dsh-util-time@0.2.1-rc.3\n  @deepseek-ai/dsh-util-values@0.2.1-rc.3\n  @deepseek-ai/dsh-util-workspace-path@0.2.1-rc.3\n  @deepseek-ai/dsh-web-app@0.2.1-rc.3\n  @deepseek-ai/dsh-web-deepseek-api@0.2.1-rc.3\n  @deepseek-ai/dsh-web-fetch-http@0.2.1-rc.3\n  @deepseek-ai/dsh-web-frontend@0.2.1-rc.3\n  @deepseek-ai/dsh-web-search-deepseek@0.2.1-rc.3\n  @deepseek-ai/dsh-web@0.2.1-rc.3\n  @deepseek-ai/dsh-win32-process@0.2.1-rc.3\n  @deepseek-ai/dsh-workflow-ptc@0.2.1-rc.3\n  @deepseek-ai/dsh-workflow@0.2.1-rc.3\n  @deepseek-ai/dsh-working-directory@0.2.1-rc.3\n  @deepseek-ai/dsh-workspace-changes@0.2.1-rc.3\n  @deepseek-ai/dsh-workspace@0.2.1-rc.3\n  @deepseek-ai/dsh@0.2.1-rc.3\nProgress: resolved 630, reused 0, downloaded 0, added 0\nPackages: +567\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\nPackages are hard linked from the content-addressable store to the virtual store.\n  Content-addressable store is at: /tmp/pcl-dsh-go-test/e2e-data/cache/pnpm-store/v11\n  Virtual store is at:             node_modules/.pnpm\nProgress: resolved 630, reused 0, downloaded 137, added 134\n[WARN] Tarball download average speed 13 KiB/s (size 13 KiB) is below 50 KiB/s: https://registry.npmjs.org/@deepseek-ai/dsh-sandbox-policy/-/dsh-sandbox-policy-0.2.1-rc.3.tgz (GET)\nProgress: resolved 630, reused 0, downloaded 252, added 253\n[WARN] Tarball download average speed 24 KiB/s (size 25 KiB) is below 50 KiB/s: https://registry.npmjs.org/@deepseek-ai/dsh-session-log-export/-/dsh-session-log-export-0.2.1-rc.3.tgz (GET)\n[WARN] Tarball download average speed 46 KiB/s (size 117 KiB) is below 50 KiB/s: https://registry.npmjs.org/@deepseek-ai/dsh-plugin-manager/-/dsh-plugin-manager-0.2.1-rc.3.tgz (GET)\nProgress: resolved 630, reused 0, downloaded 371, added 375\n[WARN] Tarball download average speed 4 KiB/s (size 4 KiB) is below 50 KiB/s: https://registry.npmjs.org/p-limit/-/p-limit-7.3.3.tgz (GET)\nProgress: resolved 630, reused 0, downloaded 476, added 480\n[WARN] Tarball download average speed 47 KiB/s (size 73 KiB) is below 50 KiB/s: https://registry.npmjs.org/@deepseek-ai/dsh-llm-deepseek/-/dsh-llm-deepseek-0.2.1-rc.3.tgz (GET)\n[WARN] Tarball download average speed 21 KiB/s (size 35 KiB) is below 50 KiB/s: https://registry.npmjs.org/@deepseek-ai/dsh-experimental-client-ui-voice-input/-/dsh-experimental-client-ui-voice-input-0.2.1-rc.3.tgz (GET)\nProgress: resolved 630, reused 0, downloaded 547, added 554\nProgress: resolved 630, reused 0, downloaded 552, added 559\nProgress: resolved 630, reused 0, downloaded 553, added 560\nProgress: resolved 630, reused 0, downloaded 557, added 565\nProgress: resolved 630, reused 0, downloaded 558, added 566\nProgress: resolved 630, reused 0, downloaded 559, added 566\nProgress: resolved 630, reused 0, downloaded 559, added 567, done\nnode_modules/koffi install$ node ./cnoke.cjs -P . -D src/koffi --prebuild --release\nnode_modules/node-pty install$ node scripts/prebuild.js || node-gyp rebuild\nnode_modules/protobufjs postinstall$ node scripts/postinstall\nnode_modules/node-pty install: Failed\nnode_modules/koffi install: Failed\nnode_modules/protobufjs postinstall: Failed\n[ELIFECYCLE] Command failed with exit code -2.\n（诊断目录 /tmp/pcl-dsh-go-test/e2e-data/runtimes/.install-0.2.1-rc.3-46901ce13da83bb2）"} install_ms=57789
+FAIL  API runtime install completed  elapsed_ms=57789 reused=
+FAIL  runtime entry path reported  entryPath=
+FAIL  runtime entry file exists  expected=/tmp/pcl-dsh-go-test/e2e-data/runtimes/0.2.1-rc.3/...
+FAIL  entryPath matches data-root layout  entryPath=
+FAIL  second install reuses runtime  reused= elapsed_ms=4754
+create instance status=201 body={"id":"i-420a7c77cc08","name":"m0-e2e","version":"0.2.1-rc.3","profile":"web","port":3080,"createdAt":1792821451498,"updatedAt":1792821451498,"path":"/tmp/pcl-dsh-go-test/e2e-data/instances/i-420a7c77cc08"}
+PASS  debug API create instance (201)  id=i-420a7c77cc08 status=201
+launch status=409 body={"code":"INSTANCE_NOT_READY","message":"Harness 0.2.1-rc.3 尚未安装，请先安装运行时。"} launch_ms=22
+FAIL  debug API launch instance  status=409 launch_ms=22 state=
+FAIL  launch reports running  state=
+FAIL  launch returns /workbench webUrl  webUrl=
+FAIL  proxy no-cookie -> 302  status=409 location=
+FAIL  bootstrap location contains token  location=
+bootstrap headers: status=200 location= set-cookie=
+FAIL  DSH 303 through proxy  status=200
+FAIL  DSH Location ./ preserved  location=
+FAIL  Set-Cookie Path rewritten  
+FAIL  Set-Cookie keeps SameSite=Strict  
+PASS  Set-Cookie strips Domain/Secure  
+FAIL  cookie captured in memory  name=dsh-auth-***
+FAIL  workbench page 200  status=409
+FAIL  page title DeepSeek Harness  
+FAIL  page base href=./  
+FAIL  index js asset referenced  
+FAIL  plugins/?? bundle referenced  
+FAIL  at least two static assets 200  index= plugins=
+sse (curl -N, first lines):
+0.0ms {"code":"INSTANCE_NOT_READY","message":"实例未运行，请先启动实例。"}
+FAIL  SSE first chunk is ': connected'  first_ms=0.0
+FAIL  SSE data graph chunk received  data_ms=
+PASS  SSE first chunk arrives quickly (<2000ms)  first_ms=0.0
+FAIL  SSE streams multiple lines  lines=1
+ws-e2e rc=2:
+status=409 upgraded=false subprotocol=(none) cookie_sent=false
+close_code=null close_reason="" error="handshake status 409"
+FAIL  WS via proxy upgraded 101  status=409
+FAIL  WS application frame received (ready/item)  frames=0
+FAIL  WS close code 1000  close=close_code=null close_reason="" error="handshake status 409"
+FAIL  WS client exit 0  rc=2
+stop API status=200 body={"instanceId":"i-420a7c77cc08","status":"已停止"}
+PASS  debug API stop instance  status=200 state=已停止
+PASS  port 3080 released after stop  
+PASS  no DSH node process left  count=0
+PASS  stopped instance maps to 4xx through proxy  status=409
+second launch status=409 body={"code":"INSTANCE_NOT_READY","message":"Harness 0.2.1-rc.3 尚未安装，请先安装运行时。"} launch_ms=23
+FAIL  second launch succeeds  status=409 launch_ms=23
+FAIL  second launch proxy 302 again  status=409
+PASS  second stop succeeds  status=200
+PASS  port released after second stop  
+PASS  manager port 18080 released  
+PASS  data-root mode 0700  mode=700
+PASS  config json files 0600  files=2 non_600=0
+PASS  logs/evidence contain no real token/cookie  matches=0
+FAIL  reference repo git status clean  status= M docs/TODO.md ?? docs/GO_DEVELOPMENT_PLAN.md ?? docs/GO_PORTING_ANALYSIS.md ?? docs/GO_REWRITE_FEASIBILITY.md
+windows-dsh program hash before=d21dbbc5855f4bfdf5e2c6542c872930e3546a239e15b699cde37d1eb0d12351 after=d21dbbc5855f4bfdf5e2c6542c872930e3546a239e15b699cde37d1eb0d12351
+windows-dsh user-home hash before=dc139b626739a312339efb87bc37306960bafb470b670b57f83fd72b154a3672 after=423314a74322dbb844a02e7b965a2d50070b50901fb060edcfff7d7a77241264
+PASS  Windows DSH program tree unchanged (name|size|mtime hash)  before=d21dbbc5855f4bfd... after=d21dbbc5855f4bfd...
+INFO Windows .dsh hash differs: the already-running Windows DSH itself may write sessions/logs/caches; this acceptance never opens it for writing (read-only find only).
+PASS  Windows user .dsh read-only (ambient DSH writes noted)  before=dc139b626739a312... after=423314a74322dbb8...
+
+=== RESULT ===
+checks_passed=17 checks_failed=31 scenario=/tmp/pcl-dsh-go-test/e2e-scenario-20261024-135618
+
+FAIL  API runtime install completed  elapsed_ms=57789 reused=
+FAIL  runtime entry path reported  entryPath=
+FAIL  runtime entry file exists  expected=/tmp/pcl-dsh-go-test/e2e-data/runtimes/0.2.1-rc.3/...
+FAIL  entryPath matches data-root layout  entryPath=
+FAIL  second install reuses runtime  reused= elapsed_ms=4754
+FAIL  debug API launch instance  status=409 launch_ms=22 state=
+FAIL  launch reports running  state=
+FAIL  launch returns /workbench webUrl  webUrl=
+FAIL  proxy no-cookie -> 302  status=409 location=
+FAIL  bootstrap location contains token  location=
+FAIL  DSH 303 through proxy  status=200
+FAIL  DSH Location ./ preserved  location=
+FAIL  Set-Cookie Path rewritten  
+FAIL  Set-Cookie keeps SameSite=Strict  
+FAIL  cookie captured in memory  name=dsh-auth-***
+FAIL  workbench page 200  status=409
+FAIL  page title DeepSeek Harness  
+FAIL  page base href=./  
+FAIL  index js asset referenced  
+FAIL  plugins/?? bundle referenced  
+FAIL  at least two static assets 200  index= plugins=
+FAIL  SSE first chunk is ': connected'  first_ms=0.0
+FAIL  SSE data graph chunk received  data_ms=
+FAIL  SSE streams multiple lines  lines=1
+FAIL  WS via proxy upgraded 101  status=409
+FAIL  WS application frame received (ready/item)  frames=0
+FAIL  WS close code 1000  close=close_code=null close_reason="" error="handshake status 409"
+FAIL  WS client exit 0  rc=2
+FAIL  second launch succeeds  status=409 launch_ms=23
+FAIL  second launch proxy 302 again  status=409
+FAIL  reference repo git status clean  status= M docs/TODO.md ?? docs/GO_DEVELOPMENT_PLAN.md ?? docs/GO_PORTING_ANALYSIS.md ?? docs/GO_REWRITE_FEASIBILITY.md
+RESULT=FAIL

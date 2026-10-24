@@ -1,0 +1,51 @@
+### head-root
+request=HEAD /
+status=200
+content-type: text/html; charset=utf-8
+vary: Accept-Encoding
+body_bytes=0
+body_head=""
+### token-replay
+request=GET /?token=***
+status=303
+cache-control: no-store
+location: ./
+referrer-policy: no-referrer
+set-cookie(masked): dsh-auth-***=***; Max-Age=2592000; Path=/; Expires=Mon, 23 Nov 2026 05:49:53 GMT; HttpOnly; SameSite=Strict
+body_bytes=0
+body_head=""
+### token-on-non-root
+request=GET /index.html?token=***
+status=401
+cache-control: no-store
+content-type: text/plain; charset=utf-8
+vary: Accept-Encoding
+body_bytes=68
+body_head="dsh web authentication required; reopen the URL printed by dsh web. "
+### anonymous-static
+request=GET /assets/index-BXV-oxvX.js
+status=200
+content-type: text/javascript; charset=utf-8
+vary: Accept-Encoding
+body_bytes=941436
+body_head="const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=[\"./langs/ruby-CO7l6YCm.js\",\"./langs/html-fwsONPVS.js\",\"./langs/javascript-DI5JR1nB.js\",\"./langs/css-CLj"
+### cookie-static
+request=GET /assets/index-BXV-oxvX.js
+status=200
+content-type: text/javascript; charset=utf-8
+vary: Accept-Encoding
+body_bytes=941436
+body_head="const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=[\"./langs/ruby-CO7l6YCm.js\",\"./langs/html-fwsONPVS.js\",\"./langs/javascript-DI5JR1nB.js\",\"./langs/css-CLj"
+### anonymous-api
+request=GET /api/recon-unknown
+status=401
+
+body_bytes=12
+body_head="unauthorized"
+### cookie-api
+request=GET /api/recon-unknown
+status=404
+content-type: text/plain;charset=UTF-8
+vary: Accept-Encoding
+body_bytes=9
+body_head="not found"

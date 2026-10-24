@@ -1,0 +1,421 @@
+{"time":"2026-10-24T14:08:18.136582684+08:00","level":"INFO","msg":"pcl-dsh-go 正在启动","service":"pcl-dsh-go","version":"0.1.0-m0","address":"127.0.0.1","port":18080,"dataRoot":"/tmp/pcl-dsh-go-test/e2e-data","toolRoot":"/opt/pcl-dsh-go/tools","devMode":true,"pid":7282}
+{"time":"2026-10-24T14:08:18.622307412+08:00","level":"INFO","msg":"内置 Node/pnpm 工具链已就绪","service":"pcl-dsh-go","version":"0.1.0-m0","node":"24.22.1","pnpm":"11.28.5","toolRoot":"/opt/pcl-dsh-go/tools"}
+{"time":"2026-10-24T14:08:18.67141615+08:00","level":"INFO","msg":"HTTP 服务已就绪","service":"pcl-dsh-go","version":"0.1.0-m0","address":"127.0.0.1:18080","health":"/api/health","startupMs":538}
+{"time":"2026-10-24T14:08:18.851145562+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"0.1.0-m0","traceId":"f3b3aa4ab216","method":"GET","path":"/api/health","status":200,"durationMs":0}
+{"time":"2026-10-24T14:08:18.906660364+08:00","level":"INFO","msg":"[安装进度] 核对发行依赖：正在读取 0.2.1-rc.3 的公开清单","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:08:20.021319552+08:00","level":"INFO","msg":"[安装进度] 核对发行依赖：已核对 0 项，当前待核对 78 项","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:08:26.133949943+08:00","level":"INFO","msg":"[安装进度] 核对发行依赖：已核对 78 项，当前待核对 193 项","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:08:40.832919838+08:00","level":"INFO","msg":"[安装进度] 核对发行依赖：已核对 271 项，当前待核对 21 项","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:08:42.58498169+08:00","level":"INFO","msg":"[安装进度] 核对发行依赖：已核对 292 项，当前待核对 3 项","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:08:43.095111419+08:00","level":"INFO","msg":"[安装进度] 核对发行依赖：已核对 295 项，当前待核对 0 项","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:08:43.095768362+08:00","level":"INFO","msg":"已固定 295 个同批次组件；其他依赖继续遵循上游声明。","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:08:43.095779051+08:00","level":"INFO","msg":"使用 pnpm 安装官方 npm 包 @deepseek-ai/dsh@0.2.1-rc.3，完整解析 peer 依赖。安装脚本正常执行，已有版本不受影响。","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:08:43.097033897+08:00","level":"INFO","msg":"[安装进度] 下载并安装依赖：pnpm 会复用之前已下载的缓存","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:08:43.504293229+08:00","level":"INFO","msg":"[WARN] The \"pnpm\" field in package.json is no longer read by pnpm. The following keys were ignored: \"pnpm.overrides\". See https://pnpm.io/settings for the new home of each setting.","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:08:43.901387907+08:00","level":"INFO","msg":"Progress: resolved 1, reused 0, downloaded 0, added 0","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:08:44.211642739+08:00","level":"INFO","msg":"Update available! 11.28.5 → 12.15.0.","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:08:44.211671703+08:00","level":"INFO","msg":"Changelog: https://pnpm.io/v/12.15.0","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:08:44.211677674+08:00","level":"INFO","msg":"To update, run: pnpm self-update","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:08:44.90245316+08:00","level":"INFO","msg":"Progress: resolved 70, reused 0, downloaded 0, added 0","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:08:45.903192929+08:00","level":"INFO","msg":"Progress: resolved 81, reused 0, downloaded 0, added 0","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:08:46.906078702+08:00","level":"INFO","msg":"Progress: resolved 129, reused 0, downloaded 0, added 0","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:08:47.906592996+08:00","level":"INFO","msg":"Progress: resolved 293, reused 0, downloaded 0, added 0","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:08:48.907372541+08:00","level":"INFO","msg":"Progress: resolved 373, reused 0, downloaded 0, added 0","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:08:49.907278452+08:00","level":"INFO","msg":"Progress: resolved 405, reused 0, downloaded 0, added 0","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:08:51.005674862+08:00","level":"INFO","msg":"Progress: resolved 406, reused 0, downloaded 0, added 0","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:08:52.006368711+08:00","level":"INFO","msg":"Progress: resolved 505, reused 0, downloaded 0, added 0","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:08:53.006919926+08:00","level":"INFO","msg":"Progress: resolved 544, reused 0, downloaded 0, added 0","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:08:54.007490143+08:00","level":"INFO","msg":"Progress: resolved 547, reused 0, downloaded 0, added 0","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:08:56.742100368+08:00","level":"INFO","msg":"Progress: resolved 548, reused 0, downloaded 0, added 0","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:08:57.742787017+08:00","level":"INFO","msg":"Progress: resolved 586, reused 0, downloaded 0, added 0","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:08:58.743861158+08:00","level":"INFO","msg":"Progress: resolved 587, reused 0, downloaded 0, added 0","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:08:59.86919361+08:00","level":"INFO","msg":"Progress: resolved 588, reused 0, downloaded 0, added 0","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:00.869025979+08:00","level":"INFO","msg":"Progress: resolved 596, reused 0, downloaded 0, added 0","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:02.058471494+08:00","level":"INFO","msg":"Progress: resolved 597, reused 0, downloaded 0, added 0","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:03.077271804+08:00","level":"INFO","msg":"Progress: resolved 606, reused 0, downloaded 0, added 0","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.230156873+08:00","level":"INFO","msg":"[WARN] 1 deprecated subdependencies found: node-domexception@1.0.0","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.283224284+08:00","level":"INFO","msg":"Progress: resolved 630, reused 0, downloaded 0, added 0","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312831747+08:00","level":"INFO","msg":"Added 296 entries to minimumReleaseAgeExclude in pnpm-workspace.yaml (set minimumReleaseAgeStrict to true to gate these updates with a prompt):","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312853587+08:00","level":"INFO","msg":"@deepseek-ai/dsh-acp-app@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312866391+08:00","level":"INFO","msg":"@deepseek-ai/dsh-acp@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312870349+08:00","level":"INFO","msg":"@deepseek-ai/dsh-agent-default-model@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312872963+08:00","level":"INFO","msg":"@deepseek-ai/dsh-agent-instructions@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312875528+08:00","level":"INFO","msg":"@deepseek-ai/dsh-agent-loop@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312878043+08:00","level":"INFO","msg":"@deepseek-ai/dsh-agent-preset-registry@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312880548+08:00","level":"INFO","msg":"@deepseek-ai/dsh-agent-preset@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312883172+08:00","level":"INFO","msg":"@deepseek-ai/dsh-agent-tool-presentation@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312896668+08:00","level":"INFO","msg":"@deepseek-ai/dsh-agent@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312901326+08:00","level":"INFO","msg":"@deepseek-ai/dsh-anonymous-user-id@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312904171+08:00","level":"INFO","msg":"@deepseek-ai/dsh-api-account-controller@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312906796+08:00","level":"INFO","msg":"@deepseek-ai/dsh-api-gateway@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312909331+08:00","level":"INFO","msg":"@deepseek-ai/dsh-api-job-controller@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312911796+08:00","level":"INFO","msg":"@deepseek-ai/dsh-api-remote-access@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.31291431+08:00","level":"INFO","msg":"@deepseek-ai/dsh-api-remotes@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312918198+08:00","level":"INFO","msg":"@deepseek-ai/dsh-api-session-controller@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312922035+08:00","level":"INFO","msg":"@deepseek-ai/dsh-api-settings-controller@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312926243+08:00","level":"INFO","msg":"@deepseek-ai/dsh-api-terminal-controller@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312933917+08:00","level":"INFO","msg":"@deepseek-ai/dsh-api-workspace-controller@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312937744+08:00","level":"INFO","msg":"@deepseek-ai/dsh-api-workspace-files@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312941551+08:00","level":"INFO","msg":"@deepseek-ai/dsh-app-boot@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312945759+08:00","level":"INFO","msg":"@deepseek-ai/dsh-atomic-write@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312949566+08:00","level":"INFO","msg":"@deepseek-ai/dsh-attachment-local@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312960556+08:00","level":"INFO","msg":"@deepseek-ai/dsh-attachment@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312964684+08:00","level":"INFO","msg":"@deepseek-ai/dsh-authorization@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312968511+08:00","level":"INFO","msg":"@deepseek-ai/dsh-base@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312972388+08:00","level":"INFO","msg":"@deepseek-ai/dsh-bash-local@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312976196+08:00","level":"INFO","msg":"@deepseek-ai/dsh-bash-sandbox@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312979973+08:00","level":"INFO","msg":"@deepseek-ai/dsh-brand@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.31298373+08:00","level":"INFO","msg":"@deepseek-ai/dsh-chunked-list@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312987577+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-connection@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312991404+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-file-upload@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312995211+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-hmr@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.312999008+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-locale@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313002805+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-modules@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313006622+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-product-analytics@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313010489+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-resources@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313014226+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-shortcuts@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313018013+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-agent-preset@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.31302174+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-approval@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313025537+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-attachment@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313029435+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-brand-official@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313033212+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-chat@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313036939+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-commands@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313045695+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-conversation@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313049783+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-cordis@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.31305399+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-deepseek-model-label-1017@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313057908+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-deliverables@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313061835+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-directory-picker-browse@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313065842+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-directory-picker-native@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.31306982+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-entry-customization@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313073747+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-goal@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313077634+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-input-trigger@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313081612+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-jobs@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313085459+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-layout@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313089286+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-message-feedback@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313093133+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-model-selection@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.31309689+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-open-in-app@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313100667+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-permission-presets@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313104524+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-plan@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313108342+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-plugin-manager@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313112119+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-plugin-market@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313115835+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-reference@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313119562+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-renderer@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.31312349+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-schedule@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313131895+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-secret-mask@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313135883+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-session@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.31313969+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-settings-account@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313143497+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-settings-agent-loop@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313147334+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-settings-general@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313151121+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-settings-models@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313154888+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-settings-plugin-inventory@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313158735+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-settings-plugins@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313162502+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-settings-session-log@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313166229+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-settings-shell@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313169966+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-settings-subagent@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313173633+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-settings-web-search@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.31317747+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-settings@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313181177+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-shortcuts@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313184974+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-sidebar-browser@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313188841+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-sidebar-documentpreview@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313194492+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-sidebar-files@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313198409+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-sidebar-right@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313202346+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-sidebar-terminal@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313206174+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-sidebar@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313210021+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-skill@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313288717+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-subagent@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313295991+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-theme@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313300088+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-tool@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313304006+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-trajectory@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313307743+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-user-questions@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.31331166+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-workflow-run@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313315697+08:00","level":"INFO","msg":"@deepseek-ai/dsh-client-ui-workspace@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313319505+08:00","level":"INFO","msg":"@deepseek-ai/dsh-cmdline@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313323262+08:00","level":"INFO","msg":"@deepseek-ai/dsh-command-compact@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313326998+08:00","level":"INFO","msg":"@deepseek-ai/dsh-command-feedback@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313330776+08:00","level":"INFO","msg":"@deepseek-ai/dsh-command-goal@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313334583+08:00","level":"INFO","msg":"@deepseek-ai/dsh-commands@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.31333843+08:00","level":"INFO","msg":"@deepseek-ai/dsh-compaction-basic@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313342227+08:00","level":"INFO","msg":"@deepseek-ai/dsh-compaction-image-offload@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313346074+08:00","level":"INFO","msg":"@deepseek-ai/dsh-compaction-tool-result-pruner@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313349981+08:00","level":"INFO","msg":"@deepseek-ai/dsh-compaction@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313353728+08:00","level":"INFO","msg":"@deepseek-ai/dsh-config-editor@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313357726+08:00","level":"INFO","msg":"@deepseek-ai/dsh-cordis-client-runner@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313361503+08:00","level":"INFO","msg":"@deepseek-ai/dsh-cordis-host-runner@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.31336524+08:00","level":"INFO","msg":"@deepseek-ai/dsh-credentials-local@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313368987+08:00","level":"INFO","msg":"@deepseek-ai/dsh-credentials@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313372794+08:00","level":"INFO","msg":"@deepseek-ai/dsh-deepseek-account-platform@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313381971+08:00","level":"INFO","msg":"@deepseek-ai/dsh-deepseek-account@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313385928+08:00","level":"INFO","msg":"@deepseek-ai/dsh-deepseek-llm-api-extensions@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313389765+08:00","level":"INFO","msg":"@deepseek-ai/dsh-deque@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313393522+08:00","level":"INFO","msg":"@deepseek-ai/dsh-experimental-agent-team-profile@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313397259+08:00","level":"INFO","msg":"@deepseek-ai/dsh-experimental-agent-team@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313400966+08:00","level":"INFO","msg":"@deepseek-ai/dsh-experimental-api-speech-to-text@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313404743+08:00","level":"INFO","msg":"@deepseek-ai/dsh-experimental-auto-review@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.31340838+08:00","level":"INFO","msg":"@deepseek-ai/dsh-experimental-badge-skill-bundle@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313412117+08:00","level":"INFO","msg":"@deepseek-ai/dsh-experimental-client-ui-agent-team@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313416014+08:00","level":"INFO","msg":"@deepseek-ai/dsh-experimental-client-ui-cot-translation@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313419901+08:00","level":"INFO","msg":"@deepseek-ai/dsh-experimental-client-ui-voice-input@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313423859+08:00","level":"INFO","msg":"@deepseek-ai/dsh-experimental-cot-translation-bundle@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313427666+08:00","level":"INFO","msg":"@deepseek-ai/dsh-experimental-inspector-profile@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313431523+08:00","level":"INFO","msg":"@deepseek-ai/dsh-experimental-inspector@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.31343536+08:00","level":"INFO","msg":"@deepseek-ai/dsh-experimental-plugin-market-bundle@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313439267+08:00","level":"INFO","msg":"@deepseek-ai/dsh-experimental-ralph-bundle@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313443325+08:00","level":"INFO","msg":"@deepseek-ai/dsh-experimental-session-inspector@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313447162+08:00","level":"INFO","msg":"@deepseek-ai/dsh-experimental-session-search@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313450969+08:00","level":"INFO","msg":"@deepseek-ai/dsh-experimental-session-titles-bundle@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313454786+08:00","level":"INFO","msg":"@deepseek-ai/dsh-experimental-speech-to-text-sensevoice@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313463232+08:00","level":"INFO","msg":"@deepseek-ai/dsh-experimental-speech-to-text@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.31346727+08:00","level":"INFO","msg":"@deepseek-ai/dsh-experimental-terminal-bundle@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313471097+08:00","level":"INFO","msg":"@deepseek-ai/dsh-experimental-tool-agent-team@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313474964+08:00","level":"INFO","msg":"@deepseek-ai/dsh-experimental-tool-worktree@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313478751+08:00","level":"INFO","msg":"@deepseek-ai/dsh-experimental-translator@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313482558+08:00","level":"INFO","msg":"@deepseek-ai/dsh-experimental-voice-input-bundle@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313486395+08:00","level":"INFO","msg":"@deepseek-ai/dsh-experimental-worktree@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313490172+08:00","level":"INFO","msg":"@deepseek-ai/dsh-file-reference-local@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313493909+08:00","level":"INFO","msg":"@deepseek-ai/dsh-file-reference@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313497616+08:00","level":"INFO","msg":"@deepseek-ai/dsh-fs-local@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313501313+08:00","level":"INFO","msg":"@deepseek-ai/dsh-fs-observation-policy@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.31350523+08:00","level":"INFO","msg":"@deepseek-ai/dsh-fs-sandbox@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313509809+08:00","level":"INFO","msg":"@deepseek-ai/dsh-fs@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313513566+08:00","level":"INFO","msg":"@deepseek-ai/dsh-goal-round-driver@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313517373+08:00","level":"INFO","msg":"@deepseek-ai/dsh-goal@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.31352114+08:00","level":"INFO","msg":"@deepseek-ai/dsh-harness-dev-context@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313524967+08:00","level":"INFO","msg":"@deepseek-ai/dsh-headless@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313529004+08:00","level":"INFO","msg":"@deepseek-ai/dsh-hmr@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313532822+08:00","level":"INFO","msg":"@deepseek-ai/dsh-home-paths@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313536639+08:00","level":"INFO","msg":"@deepseek-ai/dsh-host-directory-picker-auto@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313540456+08:00","level":"INFO","msg":"@deepseek-ai/dsh-host-directory-picker-browse@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313544263+08:00","level":"INFO","msg":"@deepseek-ai/dsh-host-directory-picker-native@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313552468+08:00","level":"INFO","msg":"@deepseek-ai/dsh-host-directory-picker@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313556476+08:00","level":"INFO","msg":"@deepseek-ai/dsh-host-frontend-static@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313560263+08:00","level":"INFO","msg":"@deepseek-ai/dsh-host-open-in-app@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.31356405+08:00","level":"INFO","msg":"@deepseek-ai/dsh-host-plugin-inventory@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313567867+08:00","level":"INFO","msg":"@deepseek-ai/dsh-host-product-telemetry-otel@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313571624+08:00","level":"INFO","msg":"@deepseek-ai/dsh-host-webserver@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313575471+08:00","level":"INFO","msg":"@deepseek-ai/dsh-http-proxy@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313579288+08:00","level":"INFO","msg":"@deepseek-ai/dsh-jobs-local@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313583075+08:00","level":"INFO","msg":"@deepseek-ai/dsh-jobs@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313586812+08:00","level":"INFO","msg":"@deepseek-ai/dsh-launch-environment@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313590669+08:00","level":"INFO","msg":"@deepseek-ai/dsh-lazy-require@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313594446+08:00","level":"INFO","msg":"@deepseek-ai/dsh-llm-deepseek-account@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313598243+08:00","level":"INFO","msg":"@deepseek-ai/dsh-llm-deepseek-api-key@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313602121+08:00","level":"INFO","msg":"@deepseek-ai/dsh-llm-deepseek@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313605918+08:00","level":"INFO","msg":"@deepseek-ai/dsh-llm-pi-ai@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313609745+08:00","level":"INFO","msg":"@deepseek-ai/dsh-llm-retry@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313613482+08:00","level":"INFO","msg":"@deepseek-ai/dsh-llm@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313617149+08:00","level":"INFO","msg":"@deepseek-ai/dsh-mcp-client@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313620886+08:00","level":"INFO","msg":"@deepseek-ai/dsh-mcp-resources@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313624612+08:00","level":"INFO","msg":"@deepseek-ai/dsh-message-feedback@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313628369+08:00","level":"INFO","msg":"@deepseek-ai/dsh-native-command@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313636795+08:00","level":"INFO","msg":"@deepseek-ai/dsh-office-to-pdf@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313640843+08:00","level":"INFO","msg":"@deepseek-ai/dsh-otel@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.31364462+08:00","level":"INFO","msg":"@deepseek-ai/dsh-output-retention@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313648477+08:00","level":"INFO","msg":"@deepseek-ai/dsh-package-manifest@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313652274+08:00","level":"INFO","msg":"@deepseek-ai/dsh-permission-presets@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313656031+08:00","level":"INFO","msg":"@deepseek-ai/dsh-persona@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313659718+08:00","level":"INFO","msg":"@deepseek-ai/dsh-plan-mode@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313663445+08:00","level":"INFO","msg":"@deepseek-ai/dsh-plugin-manager@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313667222+08:00","level":"INFO","msg":"@deepseek-ai/dsh-plugin-market-index@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313670969+08:00","level":"INFO","msg":"@deepseek-ai/dsh-plugin-market@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313674796+08:00","level":"INFO","msg":"@deepseek-ai/dsh-plugin-package-inventory-deepseek@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313678643+08:00","level":"INFO","msg":"@deepseek-ai/dsh-ptc-runtime-node@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.31368239+08:00","level":"INFO","msg":"@deepseek-ai/dsh-ptc-runtime@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313686147+08:00","level":"INFO","msg":"@deepseek-ai/dsh-pwsh-local@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313689854+08:00","level":"INFO","msg":"@deepseek-ai/dsh-pwsh-sandbox@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313693721+08:00","level":"INFO","msg":"@deepseek-ai/dsh-repeat-tool-reminder@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313697478+08:00","level":"INFO","msg":"@deepseek-ai/dsh-sandbox-local@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313701245+08:00","level":"INFO","msg":"@deepseek-ai/dsh-sandbox-policy@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313705112+08:00","level":"INFO","msg":"@deepseek-ai/dsh-sandbox-windows-acl@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313708859+08:00","level":"INFO","msg":"@deepseek-ai/dsh-sandbox@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313712606+08:00","level":"INFO","msg":"@deepseek-ai/dsh-schedule@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313716363+08:00","level":"INFO","msg":"@deepseek-ai/dsh-scope@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313724689+08:00","level":"INFO","msg":"@deepseek-ai/dsh-sdk-app@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313728646+08:00","level":"INFO","msg":"@deepseek-ai/dsh-sdk-jsonrpc-server@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313732413+08:00","level":"INFO","msg":"@deepseek-ai/dsh-sdk-minimal@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.31373618+08:00","level":"INFO","msg":"@deepseek-ai/dsh-sdk-protocol@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313739947+08:00","level":"INFO","msg":"@deepseek-ai/dsh-session-checkpoint-policy@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313743754+08:00","level":"INFO","msg":"@deepseek-ai/dsh-session-format-catalog@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313747581+08:00","level":"INFO","msg":"@deepseek-ai/dsh-session-format-v0-to-v1@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313751398+08:00","level":"INFO","msg":"@deepseek-ai/dsh-session-format-v1-to-v2@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313755236+08:00","level":"INFO","msg":"@deepseek-ai/dsh-session-format-v2-to-v3@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313759003+08:00","level":"INFO","msg":"@deepseek-ai/dsh-session-format-v3-to-v4@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.31376276+08:00","level":"INFO","msg":"@deepseek-ai/dsh-session-format@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313766607+08:00","level":"INFO","msg":"@deepseek-ai/dsh-session-log-deepseek@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313770384+08:00","level":"INFO","msg":"@deepseek-ai/dsh-session-log-export@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313774181+08:00","level":"INFO","msg":"@deepseek-ai/dsh-session-persistence-jsonl@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313777908+08:00","level":"INFO","msg":"@deepseek-ai/dsh-session-persistence@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313781685+08:00","level":"INFO","msg":"@deepseek-ai/dsh-session-projection-cache@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313785562+08:00","level":"INFO","msg":"@deepseek-ai/dsh-session-projection@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313789379+08:00","level":"INFO","msg":"@deepseek-ai/dsh-session-query-sqlite@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313793226+08:00","level":"INFO","msg":"@deepseek-ai/dsh-session-query@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313797063+08:00","level":"INFO","msg":"@deepseek-ai/dsh-session-reference@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.31380083+08:00","level":"INFO","msg":"@deepseek-ai/dsh-session-stats@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313804607+08:00","level":"INFO","msg":"@deepseek-ai/dsh-session-telemetry-otel@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313812973+08:00","level":"INFO","msg":"@deepseek-ai/dsh-session-telemetry@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.31381696+08:00","level":"INFO","msg":"@deepseek-ai/dsh-session-title-all-prompts-llm@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313820888+08:00","level":"INFO","msg":"@deepseek-ai/dsh-session-title-first-prompt-llm@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313824745+08:00","level":"INFO","msg":"@deepseek-ai/dsh-session-title-llm@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313828512+08:00","level":"INFO","msg":"@deepseek-ai/dsh-session-title@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313832279+08:00","level":"INFO","msg":"@deepseek-ai/dsh-session-turn-outline@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313836056+08:00","level":"INFO","msg":"@deepseek-ai/dsh-session@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313839843+08:00","level":"INFO","msg":"@deepseek-ai/dsh-settings@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.31384353+08:00","level":"INFO","msg":"@deepseek-ai/dsh-shell-env@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313847317+08:00","level":"INFO","msg":"@deepseek-ai/dsh-shell@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313851014+08:00","level":"INFO","msg":"@deepseek-ai/dsh-skill-badge@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313854761+08:00","level":"INFO","msg":"@deepseek-ai/dsh-skill-filesystem@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313858548+08:00","level":"INFO","msg":"@deepseek-ai/dsh-skill-office@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313862335+08:00","level":"INFO","msg":"@deepseek-ai/dsh-skill@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313866112+08:00","level":"INFO","msg":"@deepseek-ai/dsh-spill-local@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313869789+08:00","level":"INFO","msg":"@deepseek-ai/dsh-spill-policy@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313873556+08:00","level":"INFO","msg":"@deepseek-ai/dsh-spill@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313877273+08:00","level":"INFO","msg":"@deepseek-ai/dsh-storage-domain@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.31388104+08:00","level":"INFO","msg":"@deepseek-ai/dsh-storage-json@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313884797+08:00","level":"INFO","msg":"@deepseek-ai/dsh-storage@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313888564+08:00","level":"INFO","msg":"@deepseek-ai/dsh-subagent-fork-in-process@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313892371+08:00","level":"INFO","msg":"@deepseek-ai/dsh-subagent-spawn-in-process@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313900636+08:00","level":"INFO","msg":"@deepseek-ai/dsh-subagent@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313904533+08:00","level":"INFO","msg":"@deepseek-ai/dsh-subprocess-local@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313908331+08:00","level":"INFO","msg":"@deepseek-ai/dsh-subprocess@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313912067+08:00","level":"INFO","msg":"@deepseek-ai/dsh-system-prompt@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313915804+08:00","level":"INFO","msg":"@deepseek-ai/dsh-terminal-bash@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313919551+08:00","level":"INFO","msg":"@deepseek-ai/dsh-terminal@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313923288+08:00","level":"INFO","msg":"@deepseek-ai/dsh-time-context@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313926955+08:00","level":"INFO","msg":"@deepseek-ai/dsh-timeout@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313930702+08:00","level":"INFO","msg":"@deepseek-ai/dsh-tmux-context@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313934439+08:00","level":"INFO","msg":"@deepseek-ai/dsh-token-meter@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313938407+08:00","level":"INFO","msg":"@deepseek-ai/dsh-tool-ask-user@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313942274+08:00","level":"INFO","msg":"@deepseek-ai/dsh-tool-bash-persistent@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313946071+08:00","level":"INFO","msg":"@deepseek-ai/dsh-tool-bash@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313949848+08:00","level":"INFO","msg":"@deepseek-ai/dsh-tool-call-timeout-policy@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313953685+08:00","level":"INFO","msg":"@deepseek-ai/dsh-tool-cordis@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313957352+08:00","level":"INFO","msg":"@deepseek-ai/dsh-tool-fs-search@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313961209+08:00","level":"INFO","msg":"@deepseek-ai/dsh-tool-fs@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313965016+08:00","level":"INFO","msg":"@deepseek-ai/dsh-tool-goal@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313968783+08:00","level":"INFO","msg":"@deepseek-ai/dsh-tool-jobs@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.31397254+08:00","level":"INFO","msg":"@deepseek-ai/dsh-tool-present@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313976287+08:00","level":"INFO","msg":"@deepseek-ai/dsh-tool-pwsh-persistent@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.313980034+08:00","level":"INFO","msg":"@deepseek-ai/dsh-tool-pwsh@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314040456+08:00","level":"INFO","msg":"@deepseek-ai/dsh-tool-ralph@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.31404766+08:00","level":"INFO","msg":"@deepseek-ai/dsh-tool-schedule@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314053631+08:00","level":"INFO","msg":"@deepseek-ai/dsh-tool-session-query@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314057648+08:00","level":"INFO","msg":"@deepseek-ai/dsh-tool-skill@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314061596+08:00","level":"INFO","msg":"@deepseek-ai/dsh-tool-str-replace-editor@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314065403+08:00","level":"INFO","msg":"@deepseek-ai/dsh-tool-subagent-control@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.31406932+08:00","level":"INFO","msg":"@deepseek-ai/dsh-tool-subagent@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314073117+08:00","level":"INFO","msg":"@deepseek-ai/dsh-tool-terminal@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314076934+08:00","level":"INFO","msg":"@deepseek-ai/dsh-tool-todo@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314080631+08:00","level":"INFO","msg":"@deepseek-ai/dsh-tool-web@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314084318+08:00","level":"INFO","msg":"@deepseek-ai/dsh-tool-workflow@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314088075+08:00","level":"INFO","msg":"@deepseek-ai/dsh-tool-working-directory@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314091882+08:00","level":"INFO","msg":"@deepseek-ai/dsh-tool-workspace-dependencies@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314095699+08:00","level":"INFO","msg":"@deepseek-ai/dsh-tools@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314099476+08:00","level":"INFO","msg":"@deepseek-ai/dsh-typert-loader@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314103303+08:00","level":"INFO","msg":"@deepseek-ai/dsh-typert-protocol@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314107101+08:00","level":"INFO","msg":"@deepseek-ai/dsh-typert-registry@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314110847+08:00","level":"INFO","msg":"@deepseek-ai/dsh-user-approval@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314113873+08:00","level":"INFO","msg":"@deepseek-ai/dsh-user-questions@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314116348+08:00","level":"INFO","msg":"@deepseek-ai/dsh-util-code-language@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314118912+08:00","level":"INFO","msg":"@deepseek-ai/dsh-util-crypto@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314121427+08:00","level":"INFO","msg":"@deepseek-ai/dsh-util-time@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314127719+08:00","level":"INFO","msg":"@deepseek-ai/dsh-util-values@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314130424+08:00","level":"INFO","msg":"@deepseek-ai/dsh-util-workspace-path@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314132959+08:00","level":"INFO","msg":"@deepseek-ai/dsh-web-app@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314135473+08:00","level":"INFO","msg":"@deepseek-ai/dsh-web-deepseek-api@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314137998+08:00","level":"INFO","msg":"@deepseek-ai/dsh-web-fetch-http@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314140473+08:00","level":"INFO","msg":"@deepseek-ai/dsh-web-frontend@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314142947+08:00","level":"INFO","msg":"@deepseek-ai/dsh-web-search-deepseek@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314145392+08:00","level":"INFO","msg":"@deepseek-ai/dsh-web@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314147866+08:00","level":"INFO","msg":"@deepseek-ai/dsh-win32-process@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314150351+08:00","level":"INFO","msg":"@deepseek-ai/dsh-workflow-ptc@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314152876+08:00","level":"INFO","msg":"@deepseek-ai/dsh-workflow@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.31415536+08:00","level":"INFO","msg":"@deepseek-ai/dsh-working-directory@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314157835+08:00","level":"INFO","msg":"@deepseek-ai/dsh-workspace-changes@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.31416032+08:00","level":"INFO","msg":"@deepseek-ai/dsh-workspace@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.314162924+08:00","level":"INFO","msg":"@deepseek-ai/dsh@0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.470610577+08:00","level":"INFO","msg":"Packages: +567","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.470635955+08:00","level":"INFO","msg":"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.729388989+08:00","level":"INFO","msg":"Packages are hard linked from the content-addressable store to the virtual store.","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.72941655+08:00","level":"INFO","msg":"Content-addressable store is at: /tmp/pcl-dsh-go-test/e2e-data/cache/pnpm-store/v11","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:04.729423052+08:00","level":"INFO","msg":"Virtual store is at:             node_modules/.pnpm","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:05.283271148+08:00","level":"INFO","msg":"Progress: resolved 630, reused 0, downloaded 109, added 109","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:06.285078297+08:00","level":"INFO","msg":"Progress: resolved 630, reused 0, downloaded 281, added 282","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:07.293587461+08:00","level":"INFO","msg":"Progress: resolved 630, reused 0, downloaded 442, added 445","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:08.294209954+08:00","level":"INFO","msg":"Progress: resolved 630, reused 0, downloaded 541, added 549","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:08.410954978+08:00","level":"INFO","msg":"[WARN] Tarball download average speed 13 KiB/s (size 19 KiB) is below 50 KiB/s: https://registry.npmjs.org/@deepseek-ai/dsh-client-ui-settings-subagent/-/dsh-client-ui-settings-subagent-0.2.1-rc.3.tgz (GET)","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:08.486955067+08:00","level":"INFO","msg":"[WARN] Tarball download average speed 26 KiB/s (size 29 KiB) is below 50 KiB/s: https://registry.npmjs.org/undici-types/-/undici-types-8.9.0.tgz (GET)","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:09.294142553+08:00","level":"INFO","msg":"Progress: resolved 630, reused 0, downloaded 551, added 559","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:10.294948939+08:00","level":"INFO","msg":"Progress: resolved 630, reused 0, downloaded 552, added 560","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:11.085443936+08:00","level":"INFO","msg":"[WARN] Tarball download average speed 23 KiB/s (size 71 KiB) is below 50 KiB/s: https://registry.npmjs.org/@deepseek-ai/dsh-sandbox-windows-acl/-/dsh-sandbox-windows-acl-0.2.1-rc.3.tgz (GET)","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:11.295798328+08:00","level":"INFO","msg":"Progress: resolved 630, reused 0, downloaded 555, added 563","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:12.54316496+08:00","level":"INFO","msg":"Progress: resolved 630, reused 0, downloaded 556, added 563","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:13.214718692+08:00","level":"INFO","msg":"[WARN] Tarball download average speed 5 KiB/s (size 26 KiB) is below 50 KiB/s: https://registry.npmjs.org/long/-/long-5.3.2.tgz (GET)","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:13.543265164+08:00","level":"INFO","msg":"Progress: resolved 630, reused 0, downloaded 557, added 565","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:17.512810982+08:00","level":"INFO","msg":"Progress: resolved 630, reused 0, downloaded 558, added 565","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:18.513969134+08:00","level":"INFO","msg":"Progress: resolved 630, reused 0, downloaded 558, added 566","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:35.566175693+08:00","level":"INFO","msg":"Progress: resolved 630, reused 0, downloaded 559, added 566","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:35.771285544+08:00","level":"INFO","msg":"Progress: resolved 630, reused 0, downloaded 559, added 567, done","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:35.788723905+08:00","level":"INFO","msg":"node_modules/koffi install$ node ./cnoke.cjs -P . -D src/koffi --prebuild --release","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:35.790700003+08:00","level":"INFO","msg":"node_modules/protobufjs postinstall$ node scripts/postinstall","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:35.791527553+08:00","level":"INFO","msg":"node_modules/node-pty install$ node scripts/prebuild.js || node-gyp rebuild","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:35.969689142+08:00","level":"INFO","msg":"node_modules/koffi install: Done","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:35.972399534+08:00","level":"INFO","msg":"node_modules/protobufjs postinstall: Done","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:36.002144758+08:00","level":"INFO","msg":"node_modules/@google/genai preinstall$ echo 'preinstall: no-op'","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:36.039512675+08:00","level":"INFO","msg":"node_modules/node-pty install: \u001b[32m> Checking prebuilds...\u001b[0m","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:36.040043944+08:00","level":"INFO","msg":"node_modules/@google/genai preinstall: preinstall: no-op","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:36.040775685+08:00","level":"INFO","msg":"node_modules/@google/genai preinstall: Done","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:36.040985667+08:00","level":"INFO","msg":"node_modules/node-pty install: Done","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:36.042488084+08:00","level":"INFO","msg":"node_modules/node-pty postinstall$ node scripts/post-install.js","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:36.108902801+08:00","level":"INFO","msg":"node_modules/node-pty postinstall: \u001b[32m> Cleaning release folder...\u001b[0m","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:36.109043363+08:00","level":"INFO","msg":"node_modules/node-pty postinstall: \u001b[32m> Moving conpty.dll...\u001b[0m","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:36.109196588+08:00","level":"INFO","msg":"node_modules/node-pty postinstall:   SKIPPED (not Windows)","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:36.11108281+08:00","level":"INFO","msg":"node_modules/node-pty postinstall: Done","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:36.247528066+08:00","level":"INFO","msg":".../@deepseek-ai/dsh-subprocess-local postinstall$ node scripts/ensure-spawn-helper.mjs","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:36.323890631+08:00","level":"INFO","msg":".../@deepseek-ai/dsh-subprocess-local postinstall: Done","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:36.621934936+08:00","level":"INFO","msg":"dependencies:","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:36.621963359+08:00","level":"INFO","msg":"+ @deepseek-ai/dsh 0.2.1-rc.3","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:36.62196905+08:00","level":"INFO","msg":"devDependencies: skipped","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:36.851179314+08:00","level":"INFO","msg":"Done in 53.7s using pnpm v11.28.5","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:36.989968132+08:00","level":"INFO","msg":"[安装进度] 依赖安装完成，正在检查运行时入口并保存","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:36.990560786+08:00","level":"INFO","msg":"Harness 0.2.1-rc.3 安装完成；依赖版本已记录在 pnpm-lock.yaml。","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:36.99058482+08:00","level":"INFO","msg":"[安装进度] Harness 0.2.1-rc.3 安装完成","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:36.990593517+08:00","level":"INFO","msg":"运行时安装完成","service":"pcl-dsh-go","version":"0.1.0-m0","version":"0.2.1-rc.3","entry":"/tmp/pcl-dsh-go-test/e2e-data/runtimes/0.2.1-rc.3/node_modules/@deepseek-ai/dsh/lib/bin.js","reused":false}
+{"time":"2026-10-24T14:09:36.990627109+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"0.1.0-m0","traceId":"d1857b003c41","method":"POST","path":"/api/m0/runtimes/install","status":200,"durationMs":78087}
+{"time":"2026-10-24T14:09:37.529148751+08:00","level":"INFO","msg":"已安装 Harness 0.2.1-rc.3，保留现有运行时。","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-install"}
+{"time":"2026-10-24T14:09:37.529206829+08:00","level":"INFO","msg":"运行时安装完成","service":"pcl-dsh-go","version":"0.1.0-m0","version":"0.2.1-rc.3","entry":"/tmp/pcl-dsh-go-test/e2e-data/runtimes/0.2.1-rc.3/node_modules/@deepseek-ai/dsh/lib/bin.js","reused":true}
+{"time":"2026-10-24T14:09:37.529224853+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"0.1.0-m0","traceId":"49f0f85a3774","method":"POST","path":"/api/m0/runtimes/install","status":200,"durationMs":0}
+{"time":"2026-10-24T14:09:37.574702356+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"0.1.0-m0","traceId":"14cbb13dcb1b","method":"POST","path":"/api/m0/instances","status":201,"durationMs":0}
+{"time":"2026-10-24T14:09:38.767732885+08:00","level":"INFO","msg":"Harness 0.2.1-rc.3 · profile 启动 · 原生插件管理 · 可设端口","service":"pcl-dsh-go","version":"0.1.0-m0","component":"runtime-probe","version":"0.2.1-rc.3"}
+{"time":"2026-10-24T14:09:38.768673796+08:00","level":"INFO","msg":"正在启动实例","service":"pcl-dsh-go","version":"0.1.0-m0","instance":"i-23caa5197f32","version":"0.2.1-rc.3","profile":"web","port":3080,"log":"/tmp/pcl-dsh-go-test/e2e-data/logs/instance-i-23caa5197f32.log"}
+{"time":"2026-10-24T14:09:38.769933431+08:00","level":"INFO","msg":"DSH 实例进程已启动","service":"pcl-dsh-go","version":"0.1.0-m0","instanceId":"i-23caa5197f32","pid":7575,"port":3080}
+{"time":"2026-10-24T14:09:40.784330444+08:00","level":"INFO","msg":"DSH 实例服务就绪","service":"pcl-dsh-go","version":"0.1.0-m0","instanceId":"i-23caa5197f32","pid":7575,"port":3080}
+{"time":"2026-10-24T14:09:40.784421804+08:00","level":"INFO","msg":"实例已就绪","service":"pcl-dsh-go","version":"0.1.0-m0","instance":"i-23caa5197f32","port":3080}
+{"time":"2026-10-24T14:09:40.784577754+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"0.1.0-m0","traceId":"b5636cfc2dc0","method":"POST","path":"/api/m0/instances/i-23caa5197f32/launch","status":200,"durationMs":3165}
+{"time":"2026-10-24T14:09:40.854446381+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"0.1.0-m0","traceId":"6ad7a367fc60","method":"GET","path":"/workbench/i-23caa5197f32/","status":302,"durationMs":0}
+{"time":"2026-10-24T14:09:40.895187299+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"0.1.0-m0","traceId":"7524930e0918","method":"GET","path":"/workbench/i-23caa5197f32/","status":303,"durationMs":3}
+{"time":"2026-10-24T14:09:41.001394278+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"0.1.0-m0","traceId":"35cd94e16887","method":"GET","path":"/workbench/i-23caa5197f32/","status":200,"durationMs":4}
+{"time":"2026-10-24T14:09:41.088332619+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"0.1.0-m0","traceId":"b39a82f5f237","method":"GET","path":"/workbench/i-23caa5197f32/assets/index-BXV-oxvX.js","status":200,"durationMs":26}
+{"time":"2026-10-24T14:09:41.128070298+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"0.1.0-m0","traceId":"1ccdce5d2c77","method":"GET","path":"/workbench/i-23caa5197f32/assets/index-BXV-oxvX.js","status":200,"durationMs":19}
+{"time":"2026-10-24T14:09:41.434907381+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"0.1.0-m0","traceId":"1a8592b8401d","method":"GET","path":"/workbench/i-23caa5197f32/plugins/","status":200,"durationMs":272}
+{"time":"2026-10-24T14:09:41.64475423+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"0.1.0-m0","traceId":"7a0e6868611d","method":"GET","path":"/workbench/i-23caa5197f32/plugins/","status":200,"durationMs":188}
+{"time":"2026-10-24T14:09:41.689219962+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"0.1.0-m0","traceId":"d507058da50c","method":"GET","path":"/workbench/i-000000000000/","status":404,"durationMs":0}
+{"time":"2026-10-24T14:09:47.506247455+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"0.1.0-m0","traceId":"7f9ce4aa60fc","method":"GET","path":"/workbench/i-23caa5197f32/api/remote.mux","status":200,"durationMs":1654}
+{"time":"2026-10-24T14:09:47.686162283+08:00","level":"INFO","msg":"正在停止 DSH 实例进程树","service":"pcl-dsh-go","version":"0.1.0-m0","instanceId":"i-23caa5197f32","pid":7575}
+{"time":"2026-10-24T14:09:47.804806043+08:00","level":"INFO","msg":"DSH 实例进程已退出","service":"pcl-dsh-go","version":"0.1.0-m0","instanceId":"i-23caa5197f32","pid":7575,"exitCode":0}
+{"time":"2026-10-24T14:09:47.805961334+08:00","level":"INFO","msg":"已停止 DSH 实例进程树","service":"pcl-dsh-go","version":"0.1.0-m0","instanceId":"i-23caa5197f32","pid":7575,"port":3080}
+{"time":"2026-10-24T14:09:47.80599162+08:00","level":"INFO","msg":"实例已停止","service":"pcl-dsh-go","version":"0.1.0-m0","instance":"i-23caa5197f32"}
+{"time":"2026-10-24T14:09:47.806045611+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"0.1.0-m0","traceId":"b21ed19167bc","method":"POST","path":"/api/m0/instances/i-23caa5197f32/stop","status":200,"durationMs":119}
+{"time":"2026-10-24T14:09:47.893426134+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"0.1.0-m0","traceId":"567ad14c3d80","method":"GET","path":"/workbench/i-23caa5197f32/","status":409,"durationMs":0}
+{"time":"2026-10-24T14:09:47.922214462+08:00","level":"INFO","msg":"正在启动实例","service":"pcl-dsh-go","version":"0.1.0-m0","instance":"i-23caa5197f32","version":"0.2.1-rc.3","profile":"web","port":3080,"log":"/tmp/pcl-dsh-go-test/e2e-data/logs/instance-i-23caa5197f32.log"}
+{"time":"2026-10-24T14:09:47.923381525+08:00","level":"INFO","msg":"DSH 实例进程已启动","service":"pcl-dsh-go","version":"0.1.0-m0","instanceId":"i-23caa5197f32","pid":7857,"port":3080}
+{"time":"2026-10-24T14:09:49.763073774+08:00","level":"INFO","msg":"DSH 实例服务就绪","service":"pcl-dsh-go","version":"0.1.0-m0","instanceId":"i-23caa5197f32","pid":7857,"port":3080}
+{"time":"2026-10-24T14:09:49.763119499+08:00","level":"INFO","msg":"实例已就绪","service":"pcl-dsh-go","version":"0.1.0-m0","instance":"i-23caa5197f32","port":3080}
+{"time":"2026-10-24T14:09:49.763163861+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"0.1.0-m0","traceId":"1c22232c9311","method":"POST","path":"/api/m0/instances/i-23caa5197f32/launch","status":200,"durationMs":1842}
+{"time":"2026-10-24T14:09:49.799352545+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"0.1.0-m0","traceId":"2cfd113581ea","method":"GET","path":"/workbench/i-23caa5197f32/","status":302,"durationMs":0}
+{"time":"2026-10-24T14:09:49.821009518+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"0.1.0-m0","traceId":"13c7816bf9be","method":"GET","path":"/api/m0/state","status":200,"durationMs":0}
+{"time":"2026-10-24T14:09:49.832232635+08:00","level":"INFO","msg":"正在停止 DSH 实例进程树","service":"pcl-dsh-go","version":"0.1.0-m0","instanceId":"i-23caa5197f32","pid":7857}
+{"time":"2026-10-24T14:09:49.935652271+08:00","level":"INFO","msg":"DSH 实例进程已退出","service":"pcl-dsh-go","version":"0.1.0-m0","instanceId":"i-23caa5197f32","pid":7857,"exitCode":0}
+{"time":"2026-10-24T14:09:49.936346423+08:00","level":"INFO","msg":"已停止 DSH 实例进程树","service":"pcl-dsh-go","version":"0.1.0-m0","instanceId":"i-23caa5197f32","pid":7857,"port":3080}
+{"time":"2026-10-24T14:09:49.936363385+08:00","level":"INFO","msg":"实例已停止","service":"pcl-dsh-go","version":"0.1.0-m0","instance":"i-23caa5197f32"}
+{"time":"2026-10-24T14:09:49.93639317+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"0.1.0-m0","traceId":"e2aa5a9b52e5","method":"POST","path":"/api/m0/instances/i-23caa5197f32/stop","status":200,"durationMs":104}
+{"time":"2026-10-24T14:09:49.970958741+08:00","level":"INFO","msg":"收到退出信号，开始优雅停机","service":"pcl-dsh-go","version":"0.1.0-m0","httpTimeout":"5s"}
+{"time":"2026-10-24T14:09:49.971087781+08:00","level":"INFO","msg":"pcl-dsh-go 已停止","service":"pcl-dsh-go","version":"0.1.0-m0"}

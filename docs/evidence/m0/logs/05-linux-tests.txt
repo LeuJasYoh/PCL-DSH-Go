@@ -1,0 +1,1135 @@
+go=/mnt/d/DevelopSoftware/Go/bin/go.exe
+go_version=go version go1.27.3 windows/amd64
+repo=/mnt/d/Projects/DSHL/PCL-DSH-Go
+out=/mnt/d/Projects/DSHL/PCL-DSH-Go/bin/tests
+=== build github.com/LeuJasYoh/PCL-DSH-Go/internal/app -> bin/tests/app.test
+?   	github.com/LeuJasYoh/PCL-DSH-Go/internal/app	[no test files]
+  (no test files)
+=== build github.com/LeuJasYoh/PCL-DSH-Go/internal/config -> bin/tests/config.test
+=== build github.com/LeuJasYoh/PCL-DSH-Go/internal/logging -> bin/tests/logging.test
+=== build github.com/LeuJasYoh/PCL-DSH-Go/internal/process -> bin/tests/process.test
+=== build github.com/LeuJasYoh/PCL-DSH-Go/internal/runtime -> bin/tests/runtime.test
+=== build github.com/LeuJasYoh/PCL-DSH-Go/internal/server -> bin/tests/server.test
+=== build github.com/LeuJasYoh/PCL-DSH-Go/internal/server/proxy -> bin/tests/server_proxy.test
+=== build github.com/LeuJasYoh/PCL-DSH-Go/internal/store -> bin/tests/store.test
+=== build github.com/LeuJasYoh/PCL-DSH-Go/internal/tools -> bin/tests/tools.test
+
+=== run github.com/LeuJasYoh/PCL-DSH-Go/internal/config
+=== RUN   TestLoadDefaults
+--- PASS: TestLoadDefaults (0.00s)
+=== RUN   TestLoadEnvDataRootFallback
+--- PASS: TestLoadEnvDataRootFallback (0.00s)
+=== RUN   TestLoadBlankEnvFallsBackToDefault
+--- PASS: TestLoadBlankEnvFallsBackToDefault (0.00s)
+=== RUN   TestLoadFlagsOverrideEnv
+--- PASS: TestLoadFlagsOverrideEnv (0.00s)
+=== RUN   TestLoadInvalidArguments
+=== RUN   TestLoadInvalidArguments/端口为_0
+=== RUN   TestLoadInvalidArguments/端口过大
+=== RUN   TestLoadInvalidArguments/端口非数字
+=== RUN   TestLoadInvalidArguments/地址为空
+=== RUN   TestLoadInvalidArguments/地址含空白
+=== RUN   TestLoadInvalidArguments/data-root_显式空
+=== RUN   TestLoadInvalidArguments/未知参数
+=== RUN   TestLoadInvalidArguments/位置参数
+--- PASS: TestLoadInvalidArguments (0.00s)
+    --- PASS: TestLoadInvalidArguments/端口为_0 (0.00s)
+    --- PASS: TestLoadInvalidArguments/端口过大 (0.00s)
+    --- PASS: TestLoadInvalidArguments/端口非数字 (0.00s)
+    --- PASS: TestLoadInvalidArguments/地址为空 (0.00s)
+    --- PASS: TestLoadInvalidArguments/地址含空白 (0.00s)
+    --- PASS: TestLoadInvalidArguments/data-root_显式空 (0.00s)
+    --- PASS: TestLoadInvalidArguments/未知参数 (0.00s)
+    --- PASS: TestLoadInvalidArguments/位置参数 (0.00s)
+=== RUN   TestLoadHelp
+--- PASS: TestLoadHelp (0.00s)
+=== RUN   TestLoadNilGetenv
+--- PASS: TestLoadNilGetenv (0.00s)
+=== RUN   TestUsageTextContainsFlags
+--- PASS: TestUsageTextContainsFlags (0.00s)
+=== RUN   TestInitDataRootPermissions
+--- PASS: TestInitDataRootPermissions (0.00s)
+=== RUN   TestInitDataRootCreatesLayout
+--- PASS: TestInitDataRootCreatesLayout (0.00s)
+=== RUN   TestInitDataRootIdempotent
+--- PASS: TestInitDataRootIdempotent (0.00s)
+=== RUN   TestInitDataRootFileConflict
+--- PASS: TestInitDataRootFileConflict (0.00s)
+=== RUN   TestInitDataRootEmpty
+--- PASS: TestInitDataRootEmpty (0.00s)
+=== RUN   TestAcquireLockExclusive
+--- PASS: TestAcquireLockExclusive (0.00s)
+=== RUN   TestAcquireLockFileMode
+--- PASS: TestAcquireLockFileMode (0.00s)
+=== RUN   TestAcquireLockCreatesFileAndReleases
+--- PASS: TestAcquireLockCreatesFileAndReleases (0.00s)
+=== RUN   TestAcquireLockEmptyDataRoot
+--- PASS: TestAcquireLockEmptyDataRoot (0.00s)
+PASS
+--- PASS github.com/LeuJasYoh/PCL-DSH-Go/internal/config
+
+=== run github.com/LeuJasYoh/PCL-DSH-Go/internal/logging
+=== RUN   TestAuditEventWritesSingleLineJSON
+--- PASS: TestAuditEventWritesSingleLineJSON (0.00s)
+=== RUN   TestAuditMultipleEvents
+--- PASS: TestAuditMultipleEvents (0.00s)
+=== RUN   TestAuditConcurrentEvents
+--- PASS: TestAuditConcurrentEvents (0.00s)
+=== RUN   TestAuditEmptyDir
+--- PASS: TestAuditEmptyDir (0.00s)
+=== RUN   TestSensitiveKey
+--- PASS: TestSensitiveKey (0.00s)
+=== RUN   TestSetupWritesJSONToFile
+{"time":"2026-10-24T13:51:51.746699402+08:00","level":"INFO","msg":"hello","service":"pcl-dsh-go","version":"0.0.0-test","k":"v"}
+--- PASS: TestSetupWritesJSONToFile (0.00s)
+=== RUN   TestSetupLevelFromEnv
+{"time":"2026-10-24T13:51:51.747046438+08:00","level":"WARN","msg":"warn-line","service":"pcl-dsh-go","version":"v"}
+--- PASS: TestSetupLevelFromEnv (0.00s)
+=== RUN   TestSetupInvalidLevelFallsBackToInfo
+{"time":"2026-10-24T13:51:51.747539867+08:00","level":"INFO","msg":"info-line","service":"pcl-dsh-go","version":"v"}
+--- PASS: TestSetupInvalidLevelFallsBackToInfo (0.00s)
+=== RUN   TestSetupRejectsEmptyDir
+--- PASS: TestSetupRejectsEmptyDir (0.00s)
+=== RUN   TestSetupRejectsFileAsDir
+--- PASS: TestSetupRejectsFileAsDir (0.00s)
+=== RUN   TestRedact
+=== RUN   TestRedact/空字符串
+=== RUN   TestRedact/普通文本不变
+=== RUN   TestRedact/token_键值
+=== RUN   TestRedact/查询串_token
+=== RUN   TestRedact/查询串_access_token
+=== RUN   TestRedact/password_键值
+=== RUN   TestRedact/JSON_api_key
+=== RUN   TestRedact/JSON_带空格_token
+=== RUN   TestRedact/Authorization_Bearer
+=== RUN   TestRedact/Authorization_Basic
+=== RUN   TestRedact/Cookie_头
+=== RUN   TestRedact/set-cookie_头
+=== RUN   TestRedact/URL_编码等号
+=== RUN   TestRedact/URL_双编码查询串
+=== RUN   TestRedact/裸_Bearer
+=== RUN   TestRedact/api_key_键值
+=== RUN   TestRedact/x-api-key_头
+=== RUN   TestRedact/sk-_API_Key_形态
+=== RUN   TestRedact/空值不处理
+=== RUN   TestRedact/一行多个敏感值
+=== RUN   TestRedact/SSE_心跳不变
+=== RUN   TestRedact/完整_URL_查询串
+=== RUN   TestRedact/URL_编码值
+=== RUN   TestRedact/authorization_无_scheme
+--- PASS: TestRedact (0.00s)
+    --- PASS: TestRedact/空字符串 (0.00s)
+    --- PASS: TestRedact/普通文本不变 (0.00s)
+    --- PASS: TestRedact/token_键值 (0.00s)
+    --- PASS: TestRedact/查询串_token (0.00s)
+    --- PASS: TestRedact/查询串_access_token (0.00s)
+    --- PASS: TestRedact/password_键值 (0.00s)
+    --- PASS: TestRedact/JSON_api_key (0.00s)
+    --- PASS: TestRedact/JSON_带空格_token (0.00s)
+    --- PASS: TestRedact/Authorization_Bearer (0.00s)
+    --- PASS: TestRedact/Authorization_Basic (0.00s)
+    --- PASS: TestRedact/Cookie_头 (0.00s)
+    --- PASS: TestRedact/set-cookie_头 (0.00s)
+    --- PASS: TestRedact/URL_编码等号 (0.00s)
+    --- PASS: TestRedact/URL_双编码查询串 (0.00s)
+    --- PASS: TestRedact/裸_Bearer (0.00s)
+    --- PASS: TestRedact/api_key_键值 (0.00s)
+    --- PASS: TestRedact/x-api-key_头 (0.00s)
+    --- PASS: TestRedact/sk-_API_Key_形态 (0.00s)
+    --- PASS: TestRedact/空值不处理 (0.00s)
+    --- PASS: TestRedact/一行多个敏感值 (0.00s)
+    --- PASS: TestRedact/SSE_心跳不变 (0.00s)
+    --- PASS: TestRedact/完整_URL_查询串 (0.00s)
+    --- PASS: TestRedact/URL_编码值 (0.00s)
+    --- PASS: TestRedact/authorization_无_scheme (0.00s)
+=== RUN   TestRedactIdempotentForMixedText
+--- PASS: TestRedactIdempotentForMixedText (0.00s)
+=== RUN   TestDailyFileRotatesByDate
+--- PASS: TestDailyFileRotatesByDate (0.00s)
+=== RUN   TestDailyFileConcurrentWrites
+--- PASS: TestDailyFileConcurrentWrites (0.00s)
+PASS
+--- PASS github.com/LeuJasYoh/PCL-DSH-Go/internal/logging
+
+=== run github.com/LeuJasYoh/PCL-DSH-Go/internal/process
+=== RUN   TestHelperProcess
+--- PASS: TestHelperProcess (0.00s)
+=== RUN   TestParseProcStatLinux
+--- PASS: TestParseProcStatLinux (0.00s)
+=== RUN   TestLinuxLaunchReadyAndStop
+--- PASS: TestLinuxLaunchReadyAndStop (0.29s)
+=== RUN   TestLinuxReadinessAccepts401WithBootstrap
+--- PASS: TestLinuxReadinessAccepts401WithBootstrap (0.21s)
+=== RUN   TestLinuxReadinessRetries404
+--- PASS: TestLinuxReadinessRetries404 (0.43s)
+=== RUN   TestLinuxRejectsNonLoopbackToken
+--- PASS: TestLinuxRejectsNonLoopbackToken (1.23s)
+=== RUN   TestLinuxExitedBeforeReady
+--- PASS: TestLinuxExitedBeforeReady (0.02s)
+=== RUN   TestLinuxPortBusy
+--- PASS: TestLinuxPortBusy (0.02s)
+=== RUN   TestLinuxAlreadyRunning
+--- PASS: TestLinuxAlreadyRunning (0.22s)
+=== RUN   TestLinuxStopKillsDescendantsButNotOthers
+--- PASS: TestLinuxStopKillsDescendantsButNotOthers (0.22s)
+=== RUN   TestLinuxStopEscalatesToSIGKILL
+--- PASS: TestLinuxStopEscalatesToSIGKILL (3.22s)
+=== RUN   TestLinuxSelfExitState
+--- PASS: TestLinuxSelfExitState (0.93s)
+=== RUN   TestLinuxExitedProcessWithLiveDescendant
+--- PASS: TestLinuxExitedProcessWithLiveDescendant (0.52s)
+=== RUN   TestLinuxStopAll
+--- PASS: TestLinuxStopAll (0.44s)
+=== RUN   TestStripANSI
+--- PASS: TestStripANSI (0.00s)
+=== RUN   TestParseBootstrapURI
+--- PASS: TestParseBootstrapURI (0.00s)
+=== RUN   TestRedactor
+--- PASS: TestRedactor (0.00s)
+=== RUN   TestRedactorAddsBootstrapToken
+--- PASS: TestRedactorAddsBootstrapToken (0.00s)
+=== RUN   TestReadyFromStatus
+--- PASS: TestReadyFromStatus (0.00s)
+=== RUN   TestStatusMessages
+--- PASS: TestStatusMessages (0.00s)
+=== RUN   TestHandleAccessors
+--- PASS: TestHandleAccessors (0.00s)
+=== RUN   TestManagerEmpty
+--- PASS: TestManagerEmpty (0.00s)
+=== RUN   TestValidateLaunchSpec
+--- PASS: TestValidateLaunchSpec (0.00s)
+=== RUN   TestPortFree
+--- PASS: TestPortFree (0.00s)
+PASS
+--- PASS github.com/LeuJasYoh/PCL-DSH-Go/internal/process
+
+=== run github.com/LeuJasYoh/PCL-DSH-Go/internal/runtime
+=== RUN   TestCohortDependencies
+=== PAUSE TestCohortDependencies
+=== RUN   TestReleaseCohortSuccessAndCacheReuse
+=== PAUSE TestReleaseCohortSuccessAndCacheReuse
+=== RUN   TestReleaseCohortExpiredCacheIsRebuilt
+=== PAUSE TestReleaseCohortExpiredCacheIsRebuilt
+=== RUN   TestReleaseCohortCorruptOrTamperedCacheIsRebuilt
+=== PAUSE TestReleaseCohortCorruptOrTamperedCacheIsRebuilt
+=== RUN   TestCohortCacheMatchesRealRC3Fixture
+=== PAUSE TestCohortCacheMatchesRealRC3Fixture
+=== RUN   TestCohortCacheAcceptsISOTimestamp
+=== PAUSE TestCohortCacheAcceptsISOTimestamp
+=== RUN   TestReleaseCohortCacheSaveFailureIsNonFatal
+=== PAUSE TestReleaseCohortCacheSaveFailureIsNonFatal
+=== RUN   TestReleaseCohortRegistryFailure
+=== PAUSE TestReleaseCohortRegistryFailure
+=== RUN   TestReleaseCohortManifestMismatch
+=== PAUSE TestReleaseCohortManifestMismatch
+=== RUN   TestReleaseCohortInputValidation
+=== PAUSE TestReleaseCohortInputValidation
+=== RUN   TestCollectCohortLimit
+=== PAUSE TestCollectCohortLimit
+=== RUN   TestCollectCohortDeterministicError
+=== PAUSE TestCollectCohortDeterministicError
+=== RUN   TestCohortDigest
+=== PAUSE TestCohortDigest
+=== RUN   TestCohortCachePathUsesRegistryHash
+=== PAUSE TestCohortCachePathUsesRegistryHash
+=== RUN   TestInstallSuccess
+=== PAUSE TestInstallSuccess
+=== RUN   TestInstallPnpmFailureKeepsStaging
+=== PAUSE TestInstallPnpmFailureKeepsStaging
+=== RUN   TestInstallValidationFailures
+=== PAUSE TestInstallValidationFailures
+=== RUN   TestInstallRejectsExistingUnvalidatedTarget
+=== PAUSE TestInstallRejectsExistingUnvalidatedTarget
+=== RUN   TestInstallInvalidInputs
+=== PAUSE TestInstallInvalidInputs
+=== RUN   TestInstallEarlyFailureCleansStaging
+=== PAUSE TestInstallEarlyFailureCleansStaging
+=== RUN   TestAssembleLaunchCommandProfileAndAppOptions
+=== PAUSE TestAssembleLaunchCommandProfileAndAppOptions
+=== RUN   TestAssembleLaunchCommandWebAlias
+=== PAUSE TestAssembleLaunchCommandWebAlias
+=== RUN   TestAssembleLaunchCommandFailClosedWithoutPort
+=== PAUSE TestAssembleLaunchCommandFailClosedWithoutPort
+=== RUN   TestAssembleLaunchCommandNoLaunchEntry
+=== PAUSE TestAssembleLaunchCommandNoLaunchEntry
+=== RUN   TestAssembleLaunchCommandValidation
+=== PAUSE TestAssembleLaunchCommandValidation
+=== RUN   TestAssembleLaunchCommandCustomProfileOrder
+=== PAUSE TestAssembleLaunchCommandCustomProfileOrder
+=== RUN   TestBuildLaunchEnvironmentWhitelist
+=== PAUSE TestBuildLaunchEnvironmentWhitelist
+=== RUN   TestBuildLaunchEnvironmentProxyAndInstallHome
+=== PAUSE TestBuildLaunchEnvironmentProxyAndInstallHome
+=== RUN   TestBuildLaunchEnvironmentValidation
+=== PAUSE TestBuildLaunchEnvironmentValidation
+=== RUN   TestDerivePnpmHome
+=== PAUSE TestDerivePnpmHome
+=== RUN   TestValidateProxy
+=== PAUSE TestValidateProxy
+=== RUN   TestProbeCapabilitiesSuccess
+=== PAUSE TestProbeCapabilitiesSuccess
+=== RUN   TestProbeCapabilitiesMinimalHelp
+=== PAUSE TestProbeCapabilitiesMinimalHelp
+=== RUN   TestProbeCapabilitiesAppHelpFailureIsTolerated
+=== PAUSE TestProbeCapabilitiesAppHelpFailureIsTolerated
+=== RUN   TestProbeCapabilitiesAppHelpWithoutUsageIsUnverified
+=== PAUSE TestProbeCapabilitiesAppHelpWithoutUsageIsUnverified
+=== RUN   TestProbeCapabilitiesLauncherFailureIsFailClosed
+=== PAUSE TestProbeCapabilitiesLauncherFailureIsFailClosed
+=== RUN   TestProbeCapabilitiesTimeout
+=== PAUSE TestProbeCapabilitiesTimeout
+=== RUN   TestProbeCapabilitiesCompatibilityOverrides
+=== PAUSE TestProbeCapabilitiesCompatibilityOverrides
+=== RUN   TestProbeCapabilitiesInvalidCompatibilityOption
+=== PAUSE TestProbeCapabilitiesInvalidCompatibilityOption
+=== RUN   TestProbeCapabilitiesMalformedCompatibility
+=== PAUSE TestProbeCapabilitiesMalformedCompatibility
+=== RUN   TestProbeCapabilitiesCustomProfileDeclaredOptions
+=== PAUSE TestProbeCapabilitiesCustomProfileDeclaredOptions
+=== RUN   TestProbeCapabilitiesCustomProfileWithoutDeclarationFailsClosed
+=== PAUSE TestProbeCapabilitiesCustomProfileWithoutDeclarationFailsClosed
+=== RUN   TestProbeCapabilitiesInputValidation
+=== PAUSE TestProbeCapabilitiesInputValidation
+=== RUN   TestOptionsFromHelp
+=== PAUSE TestOptionsFromHelp
+=== RUN   TestLooksLikeAppHelp
+=== PAUSE TestLooksLikeAppHelp
+=== RUN   TestProbeEnvironmentIsBlankBase
+=== PAUSE TestProbeEnvironmentIsBlankBase
+=== RUN   TestAvailableVersionsSuccess
+=== PAUSE TestAvailableVersionsSuccess
+=== RUN   TestAvailableVersionsUpstreamHTTPErrors
+=== PAUSE TestAvailableVersionsUpstreamHTTPErrors
+=== RUN   TestAvailableVersionsInvalidJSON
+=== PAUSE TestAvailableVersionsInvalidJSON
+=== RUN   TestAvailableVersionsNoVersions
+=== PAUSE TestAvailableVersionsNoVersions
+=== RUN   TestRegistryResponseBodyLimit
+=== PAUSE TestRegistryResponseBodyLimit
+=== RUN   TestAvailableVersionsTimeout
+=== PAUSE TestAvailableVersionsTimeout
+=== RUN   TestAvailableVersionsConnectionError
+=== PAUSE TestAvailableVersionsConnectionError
+=== RUN   TestRegistryRedirectsAreNotFollowed
+=== PAUSE TestRegistryRedirectsAreNotFollowed
+=== RUN   TestAvailableVersionsCancellation
+=== PAUSE TestAvailableVersionsCancellation
+=== RUN   TestNormalizeRegistry
+=== PAUSE TestNormalizeRegistry
+=== RUN   TestEscapedPackagePathAndPackageNames
+=== PAUSE TestEscapedPackagePathAndPackageNames
+=== RUN   TestFetchPackageManifest
+=== PAUSE TestFetchPackageManifest
+=== RUN   TestFetchPackageManifestMismatch
+=== PAUSE TestFetchPackageManifestMismatch
+=== RUN   TestFetchPackageManifestValidation
+=== PAUSE TestFetchPackageManifestValidation
+=== RUN   TestParseVersion
+=== PAUSE TestParseVersion
+=== RUN   TestVersionCompareSemVerPriorityChain
+=== PAUSE TestVersionCompareSemVerPriorityChain
+=== RUN   TestVersionCompareReleaseCandidates
+=== PAUSE TestVersionCompareReleaseCandidates
+=== RUN   TestBuildMetadataIgnoredForPrecedence
+=== PAUSE TestBuildMetadataIgnoredForPrecedence
+=== RUN   TestSortVersionsDescending
+=== PAUSE TestSortVersionsDescending
+=== RUN   TestCompareNumericIdentifier
+=== PAUSE TestCompareNumericIdentifier
+=== CONT  TestCohortDependencies
+=== CONT  TestProbeCapabilitiesAppHelpFailureIsTolerated
+=== CONT  TestInstallRejectsExistingUnvalidatedTarget
+=== CONT  TestReleaseCohortInputValidation
+--- PASS: TestCohortDependencies (0.00s)
+=== CONT  TestReleaseCohortManifestMismatch
+=== CONT  TestAssembleLaunchCommandCustomProfileOrder
+=== CONT  TestDerivePnpmHome
+--- PASS: TestAssembleLaunchCommandCustomProfileOrder (0.00s)
+=== CONT  TestBuildLaunchEnvironmentValidation
+--- PASS: TestDerivePnpmHome (0.00s)
+=== CONT  TestValidateProxy
+=== RUN   TestBuildLaunchEnvironmentValidation/data_root
+=== PAUSE TestBuildLaunchEnvironmentValidation/data_root
+=== CONT  TestProbeCapabilitiesSuccess
+=== RUN   TestBuildLaunchEnvironmentValidation/node_path
+=== PAUSE TestBuildLaunchEnvironmentValidation/node_path
+=== CONT  TestBuildLaunchEnvironmentProxyAndInstallHome
+=== CONT  TestBuildLaunchEnvironmentWhitelist
+=== CONT  TestCohortCachePathUsesRegistryHash
+--- PASS: TestInstallRejectsExistingUnvalidatedTarget (0.00s)
+=== CONT  TestCohortCacheMatchesRealRC3Fixture
+--- PASS: TestCohortCachePathUsesRegistryHash (0.00s)
+--- PASS: TestBuildLaunchEnvironmentProxyAndInstallHome (0.00s)
+=== CONT  TestReleaseCohortRegistryFailure
+=== CONT  TestAssembleLaunchCommandFailClosedWithoutPort
+--- PASS: TestBuildLaunchEnvironmentWhitelist (0.00s)
+=== CONT  TestReleaseCohortCacheSaveFailureIsNonFatal
+=== CONT  TestInstallValidationFailures
+--- PASS: TestAssembleLaunchCommandFailClosedWithoutPort (0.00s)
+=== CONT  TestCohortCacheAcceptsISOTimestamp
+=== RUN   TestInstallValidationFailures/version_mismatch
+=== CONT  TestInstallPnpmFailureKeepsStaging
+--- PASS: TestReleaseCohortInputValidation (0.00s)
+=== PAUSE TestInstallValidationFailures/version_mismatch
+=== RUN   TestInstallValidationFailures/bin_escapes_package
+=== PAUSE TestInstallValidationFailures/bin_escapes_package
+=== CONT  TestAssembleLaunchCommandValidation
+=== CONT  TestAssembleLaunchCommandNoLaunchEntry
+=== RUN   TestAssembleLaunchCommandValidation/node_empty
+=== PAUSE TestAssembleLaunchCommandValidation/node_empty
+=== RUN   TestAssembleLaunchCommandValidation/node_relative
+=== PAUSE TestAssembleLaunchCommandValidation/node_relative
+=== RUN   TestAssembleLaunchCommandValidation/entry_empty
+=== PAUSE TestAssembleLaunchCommandValidation/entry_empty
+=== RUN   TestAssembleLaunchCommandValidation/profile
+=== PAUSE TestAssembleLaunchCommandValidation/profile
+--- PASS: TestAssembleLaunchCommandNoLaunchEntry (0.00s)
+=== RUN   TestAssembleLaunchCommandValidation/port_zero
+=== CONT  TestCohortDigest
+=== PAUSE TestAssembleLaunchCommandValidation/port_zero
+=== RUN   TestAssembleLaunchCommandValidation/port_high
+--- PASS: TestCohortDigest (0.00s)
+=== CONT  TestCollectCohortLimit
+=== CONT  TestProbeCapabilitiesMinimalHelp
+=== CONT  TestCollectCohortDeterministicError
+=== CONT  TestInstallSuccess
+=== PAUSE TestAssembleLaunchCommandValidation/port_high
+=== RUN   TestBuildLaunchEnvironmentValidation/dsh_home
+--- PASS: TestValidateProxy (0.00s)
+=== CONT  TestRegistryResponseBodyLimit
+=== CONT  TestAssembleLaunchCommandWebAlias
+=== PAUSE TestBuildLaunchEnvironmentValidation/dsh_home
+=== RUN   TestBuildLaunchEnvironmentValidation/agents_home
+=== CONT  TestAssembleLaunchCommandProfileAndAppOptions
+=== CONT  TestSortVersionsDescending
+=== RUN   TestSortVersionsDescending/release_candidates
+--- PASS: TestCollectCohortDeterministicError (0.00s)
+--- PASS: TestCollectCohortLimit (0.00s)
+=== CONT  TestCompareNumericIdentifier
+=== CONT  TestVersionCompareReleaseCandidates
+=== PAUSE TestBuildLaunchEnvironmentValidation/agents_home
+--- PASS: TestAssembleLaunchCommandProfileAndAppOptions (0.00s)
+=== CONT  TestVersionCompareSemVerPriorityChain
+--- PASS: TestCompareNumericIdentifier (0.00s)
+--- PASS: TestVersionCompareReleaseCandidates (0.00s)
+=== RUN   TestBuildLaunchEnvironmentValidation/registry
+=== PAUSE TestBuildLaunchEnvironmentValidation/registry
+=== RUN   TestBuildLaunchEnvironmentValidation/proxy
+=== PAUSE TestBuildLaunchEnvironmentValidation/proxy
+=== RUN   TestBuildLaunchEnvironmentValidation/proxy_userinfo
+=== PAUSE TestBuildLaunchEnvironmentValidation/proxy_userinfo
+=== CONT  TestBuildMetadataIgnoredForPrecedence
+--- PASS: TestVersionCompareSemVerPriorityChain (0.00s)
+=== CONT  TestFetchPackageManifestValidation
+=== CONT  TestParseVersion
+--- PASS: TestBuildMetadataIgnoredForPrecedence (0.00s)
+=== RUN   TestParseVersion/0.2.1-rc.3
+--- PASS: TestFetchPackageManifestValidation (0.00s)
+=== PAUSE TestSortVersionsDescending/release_candidates
+=== PAUSE TestParseVersion/0.2.1-rc.3
+=== RUN   TestSortVersionsDescending/build_metadata_tie
+=== RUN   TestParseVersion/0.2.1-rc.10
+=== CONT  TestFetchPackageManifestMismatch
+=== PAUSE TestParseVersion/0.2.1-rc.10
+=== RUN   TestParseVersion/0.2.1
+=== PAUSE TestParseVersion/0.2.1
+=== CONT  TestFetchPackageManifest
+=== RUN   TestParseVersion/1.0.0-alpha.beta.1
+=== PAUSE TestParseVersion/1.0.0-alpha.beta.1
+=== RUN   TestParseVersion/10.20.30+build.5
+=== PAUSE TestSortVersionsDescending/build_metadata_tie
+=== RUN   TestSortVersionsDescending/empty
+=== PAUSE TestSortVersionsDescending/empty
+=== RUN   TestSortVersionsDescending/all_invalid
+=== PAUSE TestSortVersionsDescending/all_invalid
+=== PAUSE TestParseVersion/10.20.30+build.5
+--- PASS: TestAssembleLaunchCommandWebAlias (0.01s)
+=== RUN   TestParseVersion/0.2.1-rc.3+sha.abc123
+=== PAUSE TestParseVersion/0.2.1-rc.3+sha.abc123
+=== RUN   TestParseVersion/invalid_
+=== CONT  TestNormalizeRegistry
+--- PASS: TestNormalizeRegistry (0.00s)
+=== CONT  TestAvailableVersionsCancellation
+=== PAUSE TestParseVersion/invalid_
+=== RUN   TestParseVersion/invalid_1
+=== PAUSE TestParseVersion/invalid_1
+=== RUN   TestParseVersion/invalid_1.2
+=== PAUSE TestParseVersion/invalid_1.2
+=== RUN   TestParseVersion/invalid_1.2.3.4
+=== PAUSE TestParseVersion/invalid_1.2.3.4
+=== RUN   TestParseVersion/invalid_v1.2.3
+=== PAUSE TestParseVersion/invalid_v1.2.3
+=== RUN   TestParseVersion/invalid_V1.2.3
+=== PAUSE TestParseVersion/invalid_V1.2.3
+=== RUN   TestParseVersion/invalid_01.2.3
+=== PAUSE TestParseVersion/invalid_01.2.3
+=== RUN   TestParseVersion/invalid_1.02.3
+=== PAUSE TestParseVersion/invalid_1.02.3
+=== RUN   TestParseVersion/invalid_1.2.03
+=== PAUSE TestParseVersion/invalid_1.2.03
+=== RUN   TestParseVersion/invalid_1.2.3-
+=== PAUSE TestParseVersion/invalid_1.2.3-
+=== RUN   TestParseVersion/invalid_1.2.3+
+=== PAUSE TestParseVersion/invalid_1.2.3+
+=== RUN   TestParseVersion/invalid_1.2.3-01
+=== PAUSE TestParseVersion/invalid_1.2.3-01
+=== RUN   TestParseVersion/invalid_1.2.3-alpha.01
+=== PAUSE TestParseVersion/invalid_1.2.3-alpha.01
+=== RUN   TestParseVersion/invalid_1.2.3-..
+=== PAUSE TestParseVersion/invalid_1.2.3-..
+=== RUN   TestParseVersion/invalid_1.2.3+build..1
+=== PAUSE TestParseVersion/invalid_1.2.3+build..1
+=== RUN   TestParseVersion/invalid_latest
+=== PAUSE TestParseVersion/invalid_latest
+=== RUN   TestParseVersion/invalid_1.2.3_
+=== PAUSE TestParseVersion/invalid_1.2.3_
+=== RUN   TestParseVersion/invalid__1.2.3
+=== PAUSE TestParseVersion/invalid__1.2.3
+=== RUN   TestParseVersion/invalid_18446744073709551616.0.0
+=== PAUSE TestParseVersion/invalid_18446744073709551616.0.0
+=== CONT  TestEscapedPackagePathAndPackageNames
+--- PASS: TestEscapedPackagePathAndPackageNames (0.00s)
+=== CONT  TestAvailableVersionsConnectionError
+=== CONT  TestRegistryRedirectsAreNotFollowed
+--- PASS: TestAvailableVersionsCancellation (0.00s)
+=== CONT  TestAvailableVersionsTimeout
+--- PASS: TestCohortCacheMatchesRealRC3Fixture (0.01s)
+=== CONT  TestProbeCapabilitiesInputValidation
+=== RUN   TestProbeCapabilitiesInputValidation/version
+=== PAUSE TestProbeCapabilitiesInputValidation/version
+=== RUN   TestProbeCapabilitiesInputValidation/profile
+=== PAUSE TestProbeCapabilitiesInputValidation/profile
+=== RUN   TestProbeCapabilitiesInputValidation/data_root
+=== PAUSE TestProbeCapabilitiesInputValidation/data_root
+=== RUN   TestProbeCapabilitiesInputValidation/node_path
+=== PAUSE TestProbeCapabilitiesInputValidation/node_path
+=== RUN   TestProbeCapabilitiesInputValidation/entry_path
+=== PAUSE TestProbeCapabilitiesInputValidation/entry_path
+=== RUN   TestProbeCapabilitiesInputValidation/relative_node
+=== PAUSE TestProbeCapabilitiesInputValidation/relative_node
+--- PASS: TestProbeCapabilitiesMinimalHelp (0.01s)
+=== CONT  TestAvailableVersionsInvalidJSON
+=== CONT  TestAvailableVersionsNoVersions
+--- PASS: TestInstallSuccess (0.02s)
+=== CONT  TestAvailableVersionsUpstreamHTTPErrors
+=== RUN   TestAvailableVersionsUpstreamHTTPErrors/404
+=== PAUSE TestAvailableVersionsUpstreamHTTPErrors/404
+=== RUN   TestAvailableVersionsUpstreamHTTPErrors/500
+=== PAUSE TestAvailableVersionsUpstreamHTTPErrors/500
+=== RUN   TestAvailableVersionsUpstreamHTTPErrors/502
+=== PAUSE TestAvailableVersionsUpstreamHTTPErrors/502
+=== CONT  TestAvailableVersionsSuccess
+--- PASS: TestProbeCapabilitiesAppHelpFailureIsTolerated (0.03s)
+=== CONT  TestProbeEnvironmentIsBlankBase
+--- PASS: TestProbeCapabilitiesSuccess (0.02s)
+=== CONT  TestOptionsFromHelp
+--- PASS: TestProbeEnvironmentIsBlankBase (0.00s)
+--- PASS: TestOptionsFromHelp (0.00s)
+=== CONT  TestProbeCapabilitiesInvalidCompatibilityOption
+=== CONT  TestLooksLikeAppHelp
+--- PASS: TestLooksLikeAppHelp (0.00s)
+=== CONT  TestProbeCapabilitiesCustomProfileWithoutDeclarationFailsClosed
+--- PASS: TestCohortCacheAcceptsISOTimestamp (0.02s)
+=== CONT  TestProbeCapabilitiesCustomProfileDeclaredOptions
+--- PASS: TestFetchPackageManifest (0.02s)
+=== CONT  TestProbeCapabilitiesMalformedCompatibility
+--- PASS: TestProbeCapabilitiesInvalidCompatibilityOption (0.01s)
+=== CONT  TestReleaseCohortExpiredCacheIsRebuilt
+--- PASS: TestProbeCapabilitiesCustomProfileDeclaredOptions (0.01s)
+=== CONT  TestReleaseCohortCorruptOrTamperedCacheIsRebuilt
+--- PASS: TestProbeCapabilitiesCustomProfileWithoutDeclarationFailsClosed (0.01s)
+=== CONT  TestInstallInvalidInputs
+--- PASS: TestInstallInvalidInputs (0.00s)
+=== CONT  TestReleaseCohortSuccessAndCacheReuse
+--- PASS: TestProbeCapabilitiesMalformedCompatibility (0.01s)
+=== CONT  TestProbeCapabilitiesTimeout
+--- PASS: TestAvailableVersionsConnectionError (0.04s)
+=== CONT  TestProbeCapabilitiesCompatibilityOverrides
+--- PASS: TestProbeCapabilitiesCompatibilityOverrides (0.01s)
+=== CONT  TestProbeCapabilitiesLauncherFailureIsFailClosed
+--- PASS: TestRegistryResponseBodyLimit (0.06s)
+=== CONT  TestProbeCapabilitiesAppHelpWithoutUsageIsUnverified
+--- PASS: TestProbeCapabilitiesLauncherFailureIsFailClosed (0.01s)
+=== CONT  TestInstallEarlyFailureCleansStaging
+--- PASS: TestRegistryRedirectsAreNotFollowed (0.06s)
+=== CONT  TestInstallValidationFailures/version_mismatch
+--- PASS: TestProbeCapabilitiesAppHelpWithoutUsageIsUnverified (0.01s)
+=== CONT  TestInstallValidationFailures/bin_escapes_package
+--- PASS: TestReleaseCohortManifestMismatch (0.08s)
+=== CONT  TestAssembleLaunchCommandValidation/node_empty
+=== CONT  TestAssembleLaunchCommandValidation/port_zero
+=== CONT  TestAssembleLaunchCommandValidation/entry_empty
+=== CONT  TestAssembleLaunchCommandValidation/profile
+=== CONT  TestAssembleLaunchCommandValidation/node_relative
+=== CONT  TestAssembleLaunchCommandValidation/port_high
+=== CONT  TestBuildLaunchEnvironmentValidation/data_root
+=== CONT  TestBuildLaunchEnvironmentValidation/proxy_userinfo
+--- PASS: TestAssembleLaunchCommandValidation (0.00s)
+    --- PASS: TestAssembleLaunchCommandValidation/node_empty (0.00s)
+    --- PASS: TestAssembleLaunchCommandValidation/port_zero (0.00s)
+    --- PASS: TestAssembleLaunchCommandValidation/entry_empty (0.00s)
+    --- PASS: TestAssembleLaunchCommandValidation/profile (0.00s)
+    --- PASS: TestAssembleLaunchCommandValidation/node_relative (0.00s)
+    --- PASS: TestAssembleLaunchCommandValidation/port_high (0.00s)
+=== CONT  TestBuildLaunchEnvironmentValidation/proxy
+=== CONT  TestBuildLaunchEnvironmentValidation/registry
+=== CONT  TestBuildLaunchEnvironmentValidation/agents_home
+=== CONT  TestBuildLaunchEnvironmentValidation/dsh_home
+=== CONT  TestBuildLaunchEnvironmentValidation/node_path
+--- PASS: TestBuildLaunchEnvironmentValidation (0.00s)
+    --- PASS: TestBuildLaunchEnvironmentValidation/data_root (0.00s)
+    --- PASS: TestBuildLaunchEnvironmentValidation/proxy_userinfo (0.00s)
+    --- PASS: TestBuildLaunchEnvironmentValidation/proxy (0.00s)
+    --- PASS: TestBuildLaunchEnvironmentValidation/registry (0.00s)
+    --- PASS: TestBuildLaunchEnvironmentValidation/agents_home (0.00s)
+    --- PASS: TestBuildLaunchEnvironmentValidation/dsh_home (0.00s)
+    --- PASS: TestBuildLaunchEnvironmentValidation/node_path (0.00s)
+=== CONT  TestSortVersionsDescending/release_candidates
+=== CONT  TestSortVersionsDescending/all_invalid
+=== CONT  TestSortVersionsDescending/empty
+=== CONT  TestSortVersionsDescending/build_metadata_tie
+--- PASS: TestSortVersionsDescending (0.01s)
+    --- PASS: TestSortVersionsDescending/release_candidates (0.00s)
+    --- PASS: TestSortVersionsDescending/all_invalid (0.00s)
+    --- PASS: TestSortVersionsDescending/empty (0.00s)
+    --- PASS: TestSortVersionsDescending/build_metadata_tie (0.00s)
+=== CONT  TestParseVersion/0.2.1-rc.3
+=== CONT  TestParseVersion/invalid_1.02.3
+=== CONT  TestParseVersion/10.20.30+build.5
+=== CONT  TestParseVersion/invalid_
+=== CONT  TestParseVersion/0.2.1-rc.3+sha.abc123
+=== CONT  TestParseVersion/invalid_v1.2.3
+=== CONT  TestParseVersion/invalid_01.2.3
+=== CONT  TestParseVersion/invalid_V1.2.3
+=== CONT  TestParseVersion/invalid_1.2.3.4
+=== CONT  TestParseVersion/invalid_1.2.3-..
+=== CONT  TestParseVersion/invalid_18446744073709551616.0.0
+=== CONT  TestParseVersion/invalid__1.2.3
+=== CONT  TestParseVersion/invalid_1.2.3_
+=== CONT  TestParseVersion/invalid_latest
+=== CONT  TestParseVersion/invalid_1.2.3+build..1
+=== CONT  TestParseVersion/invalid_1.2
+=== CONT  TestParseVersion/0.2.1
+=== CONT  TestParseVersion/1.0.0-alpha.beta.1
+=== CONT  TestParseVersion/0.2.1-rc.10
+=== CONT  TestParseVersion/invalid_1.2.3+
+=== CONT  TestParseVersion/invalid_1.2.3-alpha.01
+=== CONT  TestParseVersion/invalid_1.2.3-01
+=== CONT  TestParseVersion/invalid_1.2.3-
+=== CONT  TestParseVersion/invalid_1.2.03
+=== CONT  TestParseVersion/invalid_1
+--- PASS: TestParseVersion (0.01s)
+    --- PASS: TestParseVersion/0.2.1-rc.3 (0.00s)
+    --- PASS: TestParseVersion/invalid_1.02.3 (0.00s)
+    --- PASS: TestParseVersion/10.20.30+build.5 (0.00s)
+    --- PASS: TestParseVersion/invalid_ (0.00s)
+    --- PASS: TestParseVersion/0.2.1-rc.3+sha.abc123 (0.00s)
+    --- PASS: TestParseVersion/invalid_v1.2.3 (0.00s)
+    --- PASS: TestParseVersion/invalid_01.2.3 (0.00s)
+    --- PASS: TestParseVersion/invalid_V1.2.3 (0.00s)
+    --- PASS: TestParseVersion/invalid_1.2.3.4 (0.00s)
+    --- PASS: TestParseVersion/invalid_1.2.3-.. (0.00s)
+    --- PASS: TestParseVersion/invalid_18446744073709551616.0.0 (0.00s)
+    --- PASS: TestParseVersion/invalid__1.2.3 (0.00s)
+    --- PASS: TestParseVersion/invalid_1.2.3_ (0.00s)
+    --- PASS: TestParseVersion/invalid_latest (0.00s)
+    --- PASS: TestParseVersion/invalid_1.2.3+build..1 (0.00s)
+    --- PASS: TestParseVersion/invalid_1.2 (0.00s)
+    --- PASS: TestParseVersion/0.2.1 (0.00s)
+    --- PASS: TestParseVersion/1.0.0-alpha.beta.1 (0.00s)
+    --- PASS: TestParseVersion/0.2.1-rc.10 (0.00s)
+    --- PASS: TestParseVersion/invalid_1.2.3+ (0.00s)
+    --- PASS: TestParseVersion/invalid_1.2.3-alpha.01 (0.00s)
+    --- PASS: TestParseVersion/invalid_1.2.3-01 (0.00s)
+    --- PASS: TestParseVersion/invalid_1.2.3- (0.00s)
+    --- PASS: TestParseVersion/invalid_1.2.03 (0.00s)
+    --- PASS: TestParseVersion/invalid_1 (0.00s)
+=== CONT  TestProbeCapabilitiesInputValidation/version
+=== CONT  TestProbeCapabilitiesInputValidation/relative_node
+=== CONT  TestProbeCapabilitiesInputValidation/entry_path
+=== CONT  TestProbeCapabilitiesInputValidation/node_path
+=== CONT  TestProbeCapabilitiesInputValidation/data_root
+=== CONT  TestProbeCapabilitiesInputValidation/profile
+=== CONT  TestAvailableVersionsUpstreamHTTPErrors/404
+--- PASS: TestProbeCapabilitiesInputValidation (0.00s)
+    --- PASS: TestProbeCapabilitiesInputValidation/version (0.00s)
+    --- PASS: TestProbeCapabilitiesInputValidation/relative_node (0.00s)
+    --- PASS: TestProbeCapabilitiesInputValidation/entry_path (0.00s)
+    --- PASS: TestProbeCapabilitiesInputValidation/node_path (0.00s)
+    --- PASS: TestProbeCapabilitiesInputValidation/data_root (0.00s)
+    --- PASS: TestProbeCapabilitiesInputValidation/profile (0.00s)
+--- PASS: TestReleaseCohortCacheSaveFailureIsNonFatal (0.09s)
+=== CONT  TestAvailableVersionsUpstreamHTTPErrors/502
+--- PASS: TestFetchPackageManifestMismatch (0.09s)
+=== CONT  TestAvailableVersionsUpstreamHTTPErrors/500
+--- PASS: TestReleaseCohortRegistryFailure (0.11s)
+--- PASS: TestAvailableVersionsInvalidJSON (0.12s)
+--- PASS: TestAvailableVersionsNoVersions (0.13s)
+--- PASS: TestAvailableVersionsSuccess (0.13s)
+--- PASS: TestReleaseCohortExpiredCacheIsRebuilt (0.14s)
+=== RUN   TestReleaseCohortCorruptOrTamperedCacheIsRebuilt/garbage
+=== RUN   TestReleaseCohortCorruptOrTamperedCacheIsRebuilt/digest
+=== RUN   TestReleaseCohortCorruptOrTamperedCacheIsRebuilt/future_timestamp
+--- PASS: TestReleaseCohortCorruptOrTamperedCacheIsRebuilt (0.16s)
+    --- PASS: TestReleaseCohortCorruptOrTamperedCacheIsRebuilt/garbage (0.00s)
+    --- PASS: TestReleaseCohortCorruptOrTamperedCacheIsRebuilt/digest (0.00s)
+    --- PASS: TestReleaseCohortCorruptOrTamperedCacheIsRebuilt/future_timestamp (0.00s)
+--- PASS: TestProbeCapabilitiesTimeout (0.15s)
+--- PASS: TestReleaseCohortSuccessAndCacheReuse (0.16s)
+--- PASS: TestInstallEarlyFailureCleansStaging (0.13s)
+--- PASS: TestAvailableVersionsTimeout (0.21s)
+--- PASS: TestAvailableVersionsUpstreamHTTPErrors (0.00s)
+    --- PASS: TestAvailableVersionsUpstreamHTTPErrors/404 (0.13s)
+    --- PASS: TestAvailableVersionsUpstreamHTTPErrors/502 (0.13s)
+    --- PASS: TestAvailableVersionsUpstreamHTTPErrors/500 (0.13s)
+=== NAME  TestInstallPnpmFailureKeepsStaging
+    install_test.go:218: Install returned after 21.596474629s
+--- PASS: TestInstallPnpmFailureKeepsStaging (21.60s)
+--- PASS: TestInstallValidationFailures (0.00s)
+    --- PASS: TestInstallValidationFailures/version_mismatch (21.62s)
+    --- PASS: TestInstallValidationFailures/bin_escapes_package (23.21s)
+PASS
+--- PASS github.com/LeuJasYoh/PCL-DSH-Go/internal/runtime
+
+=== run github.com/LeuJasYoh/PCL-DSH-Go/internal/server
+=== RUN   TestHealthIsAnonymous
+--- PASS: TestHealthIsAnonymous (0.01s)
+=== RUN   TestRootPlaceholder
+--- PASS: TestRootPlaceholder (0.00s)
+=== RUN   TestDevAPIRequiresDevMode
+--- PASS: TestDevAPIRequiresDevMode (0.00s)
+=== RUN   TestCreateListState
+--- PASS: TestCreateListState (0.00s)
+=== RUN   TestCreateInstanceValidation
+=== RUN   TestCreateInstanceValidation/bad_json
+=== RUN   TestCreateInstanceValidation/empty_body
+=== RUN   TestCreateInstanceValidation/bad_port
+=== RUN   TestCreateInstanceValidation/bad_version
+=== RUN   TestCreateInstanceValidation/unknown_field
+--- PASS: TestCreateInstanceValidation (0.00s)
+    --- PASS: TestCreateInstanceValidation/bad_json (0.00s)
+    --- PASS: TestCreateInstanceValidation/empty_body (0.00s)
+    --- PASS: TestCreateInstanceValidation/bad_port (0.00s)
+    --- PASS: TestCreateInstanceValidation/bad_version (0.00s)
+    --- PASS: TestCreateInstanceValidation/unknown_field (0.00s)
+=== RUN   TestLaunchMapsResultsAndErrors
+--- PASS: TestLaunchMapsResultsAndErrors (0.00s)
+=== RUN   TestStopAndInstall
+--- PASS: TestStopAndInstall (0.00s)
+=== RUN   TestWorkbenchDevModeMapsResolverErrors
+--- PASS: TestWorkbenchDevModeMapsResolverErrors (0.00s)
+PASS
+--- PASS github.com/LeuJasYoh/PCL-DSH-Go/internal/server
+
+=== run github.com/LeuJasYoh/PCL-DSH-Go/internal/server/proxy
+=== RUN   TestTrailingSlashRedirect
+--- PASS: TestTrailingSlashRedirect (0.06s)
+=== RUN   TestAuthorizationRunsBeforeTrailingSlashRedirect
+--- PASS: TestAuthorizationRunsBeforeTrailingSlashRedirect (0.02s)
+=== RUN   TestBootstrapRedirect
+--- PASS: TestBootstrapRedirect (0.00s)
+=== RUN   TestBootstrapSkipped
+=== RUN   TestBootstrapSkipped/dsh_auth_cookie_present
+=== RUN   TestBootstrapSkipped/token_in_query
+=== RUN   TestBootstrapSkipped/cookie_and_token
+=== RUN   TestBootstrapSkipped/no_bootstrap_query_avoids_redirect_loop
+--- PASS: TestBootstrapSkipped (0.11s)
+    --- PASS: TestBootstrapSkipped/dsh_auth_cookie_present (0.02s)
+    --- PASS: TestBootstrapSkipped/token_in_query (0.02s)
+    --- PASS: TestBootstrapSkipped/cookie_and_token (0.03s)
+    --- PASS: TestBootstrapSkipped/no_bootstrap_query_avoids_redirect_loop (0.03s)
+=== RUN   TestAuthorizerMapping
+=== RUN   TestAuthorizerMapping/allowed
+=== RUN   TestAuthorizerMapping/unauthorized
+=== RUN   TestAuthorizerMapping/forbidden
+=== RUN   TestAuthorizerMapping/wrapped_forbidden
+=== RUN   TestAuthorizerMapping/nil_authorizer_allows
+--- PASS: TestAuthorizerMapping (0.10s)
+    --- PASS: TestAuthorizerMapping/allowed (0.02s)
+    --- PASS: TestAuthorizerMapping/unauthorized (0.02s)
+    --- PASS: TestAuthorizerMapping/forbidden (0.02s)
+    --- PASS: TestAuthorizerMapping/wrapped_forbidden (0.02s)
+    --- PASS: TestAuthorizerMapping/nil_authorizer_allows (0.02s)
+=== RUN   TestResolveErrorMapping
+=== RUN   TestResolveErrorMapping/not_found
+=== RUN   TestResolveErrorMapping/wrapped_not_found
+=== RUN   TestResolveErrorMapping/not_running
+=== RUN   TestResolveErrorMapping/not_ready
+=== RUN   TestResolveErrorMapping/unknown_error
+--- PASS: TestResolveErrorMapping (0.07s)
+    --- PASS: TestResolveErrorMapping/not_found (0.01s)
+    --- PASS: TestResolveErrorMapping/wrapped_not_found (0.02s)
+    --- PASS: TestResolveErrorMapping/not_running (0.01s)
+    --- PASS: TestResolveErrorMapping/not_ready (0.02s)
+    --- PASS: TestResolveErrorMapping/unknown_error (0.01s)
+=== RUN   TestPathValidation
+=== RUN   TestPathValidation//workbench/../etc/passwd
+=== RUN   TestPathValidation//workbench/%2e%2e/etc/passwd
+=== RUN   TestPathValidation//workbench/i-test/../secret
+=== RUN   TestPathValidation//workbench/i-test/a%2F..%2F..%2Fetc
+=== RUN   TestPathValidation//workbench/i-test/a%00b
+=== RUN   TestPathValidation//workbench//assets
+=== RUN   TestPathValidation//workbench/%20/assets
+=== RUN   TestPathValidation//workbench/i-test/%2e%2e%2fsecret
+--- PASS: TestPathValidation (0.05s)
+    --- PASS: TestPathValidation//workbench/../etc/passwd (0.00s)
+    --- PASS: TestPathValidation//workbench/%2e%2e/etc/passwd (0.00s)
+    --- PASS: TestPathValidation//workbench/i-test/../secret (0.00s)
+    --- PASS: TestPathValidation//workbench/i-test/a%2F..%2F..%2Fetc (0.00s)
+    --- PASS: TestPathValidation//workbench/i-test/a%00b (0.00s)
+    --- PASS: TestPathValidation//workbench//assets (0.00s)
+    --- PASS: TestPathValidation//workbench/%20/assets (0.00s)
+    --- PASS: TestPathValidation//workbench/i-test/%2e%2e%2fsecret (0.00s)
+=== RUN   TestMethodNotAllowed
+--- PASS: TestMethodNotAllowed (0.02s)
+=== RUN   TestNotFoundOutsideWorkbench
+--- PASS: TestNotFoundOutsideWorkbench (0.01s)
+=== RUN   TestHTTPForwarding
+--- PASS: TestHTTPForwarding (0.02s)
+=== RUN   TestResponseHeaderRewrites
+--- PASS: TestResponseHeaderRewrites (0.02s)
+=== RUN   TestLocationRewrites
+--- PASS: TestLocationRewrites (0.03s)
+=== RUN   TestDefaultTimeoutConfiguration
+--- PASS: TestDefaultTimeoutConfiguration (0.00s)
+=== RUN   TestResponseHopByHopHeadersStripped
+--- PASS: TestResponseHopByHopHeadersStripped (0.03s)
+=== RUN   TestSSEStreaming
+--- PASS: TestSSEStreaming (0.03s)
+=== RUN   TestUpstreamConnectFailure502
+--- PASS: TestUpstreamConnectFailure502 (0.02s)
+=== RUN   TestUpstreamTimeout504
+--- PASS: TestUpstreamTimeout504 (0.32s)
+=== RUN   TestHEADNoBody
+--- PASS: TestHEADNoBody (0.01s)
+=== RUN   TestGETBodyDropped
+--- PASS: TestGETBodyDropped (0.02s)
+=== RUN   TestBootstrapPathJoining
+=== RUN   TestBootstrapPathJoining/empty_base_defaults_to_root
+=== RUN   TestBootstrapPathJoining/root_base
+=== RUN   TestBootstrapPathJoining/base_with_trailing_slash
+=== RUN   TestBootstrapPathJoining/base_without_trailing_slash
+=== RUN   TestBootstrapPathJoining/root_request_with_base
+--- PASS: TestBootstrapPathJoining (0.15s)
+    --- PASS: TestBootstrapPathJoining/empty_base_defaults_to_root (0.03s)
+    --- PASS: TestBootstrapPathJoining/root_base (0.04s)
+    --- PASS: TestBootstrapPathJoining/base_with_trailing_slash (0.02s)
+    --- PASS: TestBootstrapPathJoining/base_without_trailing_slash (0.02s)
+    --- PASS: TestBootstrapPathJoining/root_request_with_base (0.03s)
+=== RUN   TestInvalidTargetPortRejected
+=== RUN   TestInvalidTargetPortRejected/port_0
+=== RUN   TestInvalidTargetPortRejected/port_-1
+=== RUN   TestInvalidTargetPortRejected/port_65536
+--- PASS: TestInvalidTargetPortRejected (0.05s)
+    --- PASS: TestInvalidTargetPortRejected/port_0 (0.02s)
+    --- PASS: TestInvalidTargetPortRejected/port_-1 (0.02s)
+    --- PASS: TestInvalidTargetPortRejected/port_65536 (0.01s)
+=== RUN   TestRealDSHHTTPFlow
+--- PASS: TestRealDSHHTTPFlow (0.03s)
+=== RUN   TestLogsDoNotContainSecrets
+--- PASS: TestLogsDoNotContainSecrets (0.02s)
+=== RUN   TestParseWorkbenchPath
+=== RUN   TestParseWorkbenchPath/root_with_trailing_slash
+=== RUN   TestParseWorkbenchPath/root_without_trailing_slash
+=== RUN   TestParseWorkbenchPath/nested
+=== RUN   TestParseWorkbenchPath/empty_id
+=== RUN   TestParseWorkbenchPath/prefix_only
+=== RUN   TestParseWorkbenchPath/api_path
+=== RUN   TestParseWorkbenchPath/root
+--- PASS: TestParseWorkbenchPath (0.00s)
+    --- PASS: TestParseWorkbenchPath/root_with_trailing_slash (0.00s)
+    --- PASS: TestParseWorkbenchPath/root_without_trailing_slash (0.00s)
+    --- PASS: TestParseWorkbenchPath/nested (0.00s)
+    --- PASS: TestParseWorkbenchPath/empty_id (0.00s)
+    --- PASS: TestParseWorkbenchPath/prefix_only (0.00s)
+    --- PASS: TestParseWorkbenchPath/api_path (0.00s)
+    --- PASS: TestParseWorkbenchPath/root (0.00s)
+=== RUN   TestValidInstanceID
+--- PASS: TestValidInstanceID (0.00s)
+=== RUN   TestUnsafeProxyPath
+--- PASS: TestUnsafeProxyPath (0.00s)
+=== RUN   TestJoinUpstreamPath
+--- PASS: TestJoinUpstreamPath (0.00s)
+=== RUN   TestHasTokenQuery
+--- PASS: TestHasTokenQuery (0.00s)
+=== RUN   TestHasDshAuthCookie
+=== RUN   TestHasDshAuthCookie/none
+=== RUN   TestHasDshAuthCookie/console_only
+=== RUN   TestHasDshAuthCookie/dsh_cookie
+=== RUN   TestHasDshAuthCookie/dsh_cookie_second_header
+=== RUN   TestHasDshAuthCookie/prefix_requires_dash
+--- PASS: TestHasDshAuthCookie (0.00s)
+    --- PASS: TestHasDshAuthCookie/none (0.00s)
+    --- PASS: TestHasDshAuthCookie/console_only (0.00s)
+    --- PASS: TestHasDshAuthCookie/dsh_cookie (0.00s)
+    --- PASS: TestHasDshAuthCookie/dsh_cookie_second_header (0.00s)
+    --- PASS: TestHasDshAuthCookie/prefix_requires_dash (0.00s)
+=== RUN   TestDshCookieHeader
+=== RUN   TestDshCookieHeader/empty
+=== RUN   TestDshCookieHeader/console_cookies_dropped
+=== RUN   TestDshCookieHeader/console_cookie_lowercase_dropped
+=== RUN   TestDshCookieHeader/dsh_and_other_cookies_kept
+=== RUN   TestDshCookieHeader/multiple_header_lines
+=== RUN   TestDshCookieHeader/value_with_equals_kept
+=== RUN   TestDshCookieHeader/spaces_trimmed
+--- PASS: TestDshCookieHeader (0.00s)
+    --- PASS: TestDshCookieHeader/empty (0.00s)
+    --- PASS: TestDshCookieHeader/console_cookies_dropped (0.00s)
+    --- PASS: TestDshCookieHeader/console_cookie_lowercase_dropped (0.00s)
+    --- PASS: TestDshCookieHeader/dsh_and_other_cookies_kept (0.00s)
+    --- PASS: TestDshCookieHeader/multiple_header_lines (0.00s)
+    --- PASS: TestDshCookieHeader/value_with_equals_kept (0.00s)
+    --- PASS: TestDshCookieHeader/spaces_trimmed (0.00s)
+=== RUN   TestRewriteSetCookie
+=== RUN   TestRewriteSetCookie/real_dsh_cookie_keeps_strict_and_max-age
+=== RUN   TestRewriteSetCookie/domain_and_secure_dropped
+=== RUN   TestRewriteSetCookie/same_site_none_downgraded
+=== RUN   TestRewriteSetCookie/name_value_only
+=== RUN   TestRewriteSetCookie/leading_separators_skipped
+=== RUN   TestRewriteSetCookie/secure_flag_without_value_dropped
+=== RUN   TestRewriteSetCookie/empty_header_unchanged
+--- PASS: TestRewriteSetCookie (0.00s)
+    --- PASS: TestRewriteSetCookie/real_dsh_cookie_keeps_strict_and_max-age (0.00s)
+    --- PASS: TestRewriteSetCookie/domain_and_secure_dropped (0.00s)
+    --- PASS: TestRewriteSetCookie/same_site_none_downgraded (0.00s)
+    --- PASS: TestRewriteSetCookie/name_value_only (0.00s)
+    --- PASS: TestRewriteSetCookie/leading_separators_skipped (0.00s)
+    --- PASS: TestRewriteSetCookie/secure_flag_without_value_dropped (0.00s)
+    --- PASS: TestRewriteSetCookie/empty_header_unchanged (0.00s)
+=== RUN   TestRewriteLocation
+=== RUN   TestRewriteLocation/relative_dot_slash_unchanged
+=== RUN   TestRewriteLocation/relative_parent_unchanged
+=== RUN   TestRewriteLocation/relative_path_unchanged
+=== RUN   TestRewriteLocation/empty_unchanged
+=== RUN   TestRewriteLocation/absolute_path_prefixed
+=== RUN   TestRewriteLocation/absolute_path_with_query_prefixed
+=== RUN   TestRewriteLocation/escaped_absolute_path_preserved
+=== RUN   TestRewriteLocation/loopback_absolute_url_prefixed
+=== RUN   TestRewriteLocation/localhost_absolute_url_prefixed
+=== RUN   TestRewriteLocation/loopback_url_without_path
+=== RUN   TestRewriteLocation/loopback_wrong_port_unchanged
+=== RUN   TestRewriteLocation/loopback_no_port_unchanged
+=== RUN   TestRewriteLocation/external_absolute_unchanged
+=== RUN   TestRewriteLocation/protocol_relative_unchanged
+--- PASS: TestRewriteLocation (0.00s)
+    --- PASS: TestRewriteLocation/relative_dot_slash_unchanged (0.00s)
+    --- PASS: TestRewriteLocation/relative_parent_unchanged (0.00s)
+    --- PASS: TestRewriteLocation/relative_path_unchanged (0.00s)
+    --- PASS: TestRewriteLocation/empty_unchanged (0.00s)
+    --- PASS: TestRewriteLocation/absolute_path_prefixed (0.00s)
+    --- PASS: TestRewriteLocation/absolute_path_with_query_prefixed (0.00s)
+    --- PASS: TestRewriteLocation/escaped_absolute_path_preserved (0.00s)
+    --- PASS: TestRewriteLocation/loopback_absolute_url_prefixed (0.00s)
+    --- PASS: TestRewriteLocation/localhost_absolute_url_prefixed (0.00s)
+    --- PASS: TestRewriteLocation/loopback_url_without_path (0.00s)
+    --- PASS: TestRewriteLocation/loopback_wrong_port_unchanged (0.00s)
+    --- PASS: TestRewriteLocation/loopback_no_port_unchanged (0.00s)
+    --- PASS: TestRewriteLocation/external_absolute_unchanged (0.00s)
+    --- PASS: TestRewriteLocation/protocol_relative_unchanged (0.00s)
+=== RUN   TestRewriteResponseHeaders
+--- PASS: TestRewriteResponseHeaders (0.00s)
+=== RUN   TestSameOriginWebSocket
+=== RUN   TestSameOriginWebSocket/same_host_and_port
+=== RUN   TestSameOriginWebSocket/host_without_port_uses_default
+=== RUN   TestSameOriginWebSocket/https_host_without_port_uses_443
+=== RUN   TestSameOriginWebSocket/explicit_matching_port
+=== RUN   TestSameOriginWebSocket/different_host
+=== RUN   TestSameOriginWebSocket/different_port
+=== RUN   TestSameOriginWebSocket/origin_default_port_mismatch
+=== RUN   TestSameOriginWebSocket/ipv6_with_port
+=== RUN   TestSameOriginWebSocket/ipv6_without_port
+=== RUN   TestSameOriginWebSocket/missing_origin_allowed
+=== RUN   TestSameOriginWebSocket/missing_host_rejected
+=== RUN   TestSameOriginWebSocket/null_origin_rejected
+=== RUN   TestSameOriginWebSocket/non_http_scheme_rejected
+=== RUN   TestSameOriginWebSocket/userinfo_rejected
+--- PASS: TestSameOriginWebSocket (0.00s)
+    --- PASS: TestSameOriginWebSocket/same_host_and_port (0.00s)
+    --- PASS: TestSameOriginWebSocket/host_without_port_uses_default (0.00s)
+    --- PASS: TestSameOriginWebSocket/https_host_without_port_uses_443 (0.00s)
+    --- PASS: TestSameOriginWebSocket/explicit_matching_port (0.00s)
+    --- PASS: TestSameOriginWebSocket/different_host (0.00s)
+    --- PASS: TestSameOriginWebSocket/different_port (0.00s)
+    --- PASS: TestSameOriginWebSocket/origin_default_port_mismatch (0.00s)
+    --- PASS: TestSameOriginWebSocket/ipv6_with_port (0.00s)
+    --- PASS: TestSameOriginWebSocket/ipv6_without_port (0.00s)
+    --- PASS: TestSameOriginWebSocket/missing_origin_allowed (0.00s)
+    --- PASS: TestSameOriginWebSocket/missing_host_rejected (0.00s)
+    --- PASS: TestSameOriginWebSocket/null_origin_rejected (0.00s)
+    --- PASS: TestSameOriginWebSocket/non_http_scheme_rejected (0.00s)
+    --- PASS: TestSameOriginWebSocket/userinfo_rejected (0.00s)
+=== RUN   TestNormalizeCloseCode
+--- PASS: TestNormalizeCloseCode (0.00s)
+=== RUN   TestNormalizeCloseText
+--- PASS: TestNormalizeCloseText (0.00s)
+=== RUN   TestFilteredRequestHeaders
+--- PASS: TestFilteredRequestHeaders (0.00s)
+=== RUN   TestIsProxyableMethod
+--- PASS: TestIsProxyableMethod (0.00s)
+=== RUN   TestRequestHasBody
+--- PASS: TestRequestHasBody (0.00s)
+=== RUN   TestValidUpstreamURL
+=== RUN   TestValidUpstreamURL/loopback_http
+=== RUN   TestValidUpstreamURL/loopback_ws
+=== RUN   TestValidUpstreamURL/wrong_host
+=== RUN   TestValidUpstreamURL/wrong_port
+=== RUN   TestValidUpstreamURL/wrong_scheme
+--- PASS: TestValidUpstreamURL (0.00s)
+    --- PASS: TestValidUpstreamURL/loopback_http (0.00s)
+    --- PASS: TestValidUpstreamURL/loopback_ws (0.00s)
+    --- PASS: TestValidUpstreamURL/wrong_host (0.00s)
+    --- PASS: TestValidUpstreamURL/wrong_port (0.00s)
+    --- PASS: TestValidUpstreamURL/wrong_scheme (0.00s)
+=== RUN   TestWebSocketEcho
+--- PASS: TestWebSocketEcho (0.03s)
+=== RUN   TestWebSocketSubprotocol
+--- PASS: TestWebSocketSubprotocol (0.03s)
+=== RUN   TestWebSocketCookieAndOriginRewrite
+--- PASS: TestWebSocketCookieAndOriginRewrite (0.03s)
+=== RUN   TestWebSocketCrossOriginRejected
+--- PASS: TestWebSocketCrossOriginRejected (0.01s)
+=== RUN   TestWebSocketWithoutOriginAllowed
+--- PASS: TestWebSocketWithoutOriginAllowed (0.04s)
+=== RUN   TestWebSocketUpstreamCloseCodeForwarded
+--- PASS: TestWebSocketUpstreamCloseCodeForwarded (0.02s)
+=== RUN   TestWebSocketMessageTooLarge
+--- PASS: TestWebSocketMessageTooLarge (0.03s)
+=== RUN   TestWebSocketClientMessageTooLarge
+--- PASS: TestWebSocketClientMessageTooLarge (0.05s)
+=== RUN   TestWebSocketUpstreamUnavailable
+--- PASS: TestWebSocketUpstreamUnavailable (0.02s)
+=== RUN   TestWebSocketResolverErrorBeforeUpgrade
+--- PASS: TestWebSocketResolverErrorBeforeUpgrade (0.01s)
+=== RUN   TestWebSocketAuthorizerRejected
+--- PASS: TestWebSocketAuthorizerRejected (0.02s)
+=== RUN   TestWebSocketTrailingSlashRedirect
+--- PASS: TestWebSocketTrailingSlashRedirect (0.01s)
+=== RUN   TestWebSocketPingKeepAlive
+--- PASS: TestWebSocketPingKeepAlive (0.08s)
+PASS
+--- PASS github.com/LeuJasYoh/PCL-DSH-Go/internal/server/proxy
+
+=== run github.com/LeuJasYoh/PCL-DSH-Go/internal/store
+=== RUN   TestPermissionsLinux
+--- PASS: TestPermissionsLinux (0.00s)
+=== RUN   TestOpenInitializesDefaults
+--- PASS: TestOpenInitializesDefaults (0.00s)
+=== RUN   TestOpenEmptyDataRoot
+--- PASS: TestOpenEmptyDataRoot (0.00s)
+=== RUN   TestCreateGetListRoundtrip
+--- PASS: TestCreateGetListRoundtrip (0.00s)
+=== RUN   TestPersistenceAcrossReopen
+--- PASS: TestPersistenceAcrossReopen (0.00s)
+=== RUN   TestUpdateInstance
+--- PASS: TestUpdateInstance (0.00s)
+=== RUN   TestDeleteInstance
+--- PASS: TestDeleteInstance (0.00s)
+=== RUN   TestSelectInstance
+--- PASS: TestSelectInstance (0.00s)
+=== RUN   TestSettingsValidation
+--- PASS: TestSettingsValidation (0.00s)
+=== RUN   TestCreateValidationTable
+--- PASS: TestCreateValidationTable (0.00s)
+=== RUN   TestDuplicatePortRejected
+--- PASS: TestDuplicatePortRejected (0.00s)
+=== RUN   TestCorruptFilesRejectedNotOverwritten
+=== RUN   TestCorruptFilesRejectedNotOverwritten/instances_非法_JSON
+=== RUN   TestCorruptFilesRejectedNotOverwritten/instances_schemaVersion_2
+=== RUN   TestCorruptFilesRejectedNotOverwritten/instances_缺_schemaVersion
+=== RUN   TestCorruptFilesRejectedNotOverwritten/instances_字段类型错误
+=== RUN   TestCorruptFilesRejectedNotOverwritten/instances_重复端口
+=== RUN   TestCorruptFilesRejectedNotOverwritten/instances_非法_ID
+=== RUN   TestCorruptFilesRejectedNotOverwritten/manager_非法_JSON
+=== RUN   TestCorruptFilesRejectedNotOverwritten/manager_schemaVersion_2
+=== RUN   TestCorruptFilesRejectedNotOverwritten/manager_registry_非法
+=== RUN   TestCorruptFilesRejectedNotOverwritten/manager_proxy_非法
+--- PASS: TestCorruptFilesRejectedNotOverwritten (0.00s)
+    --- PASS: TestCorruptFilesRejectedNotOverwritten/instances_非法_JSON (0.00s)
+    --- PASS: TestCorruptFilesRejectedNotOverwritten/instances_schemaVersion_2 (0.00s)
+    --- PASS: TestCorruptFilesRejectedNotOverwritten/instances_缺_schemaVersion (0.00s)
+    --- PASS: TestCorruptFilesRejectedNotOverwritten/instances_字段类型错误 (0.00s)
+    --- PASS: TestCorruptFilesRejectedNotOverwritten/instances_重复端口 (0.00s)
+    --- PASS: TestCorruptFilesRejectedNotOverwritten/instances_非法_ID (0.00s)
+    --- PASS: TestCorruptFilesRejectedNotOverwritten/manager_非法_JSON (0.00s)
+    --- PASS: TestCorruptFilesRejectedNotOverwritten/manager_schemaVersion_2 (0.00s)
+    --- PASS: TestCorruptFilesRejectedNotOverwritten/manager_registry_非法 (0.00s)
+    --- PASS: TestCorruptFilesRejectedNotOverwritten/manager_proxy_非法 (0.00s)
+=== RUN   TestDanglingSelectionClearedOnOpen
+--- PASS: TestDanglingSelectionClearedOnOpen (0.00s)
+=== RUN   TestAtomicWriteFailurePreservesOldData
+--- PASS: TestAtomicWriteFailurePreservesOldData (0.00s)
+=== RUN   TestAtomicWriteLeavesNoTempFiles
+--- PASS: TestAtomicWriteLeavesNoTempFiles (0.00s)
+=== RUN   TestListStableOrderAndCopy
+--- PASS: TestListStableOrderAndCopy (0.00s)
+=== RUN   TestIDFormatAndUniqueness
+--- PASS: TestIDFormatAndUniqueness (0.00s)
+=== RUN   TestConcurrentAccess
+--- PASS: TestConcurrentAccess (0.02s)
+PASS
+--- PASS github.com/LeuJasYoh/PCL-DSH-Go/internal/store
+
+=== run github.com/LeuJasYoh/PCL-DSH-Go/internal/tools
+=== RUN   TestEnvSetsPathAndPnpmHome
+--- PASS: TestEnvSetsPathAndPnpmHome (0.00s)
+=== RUN   TestEnvWithoutToolRootUsesPnpmPackageDir
+--- PASS: TestEnvWithoutToolRootUsesPnpmPackageDir (0.00s)
+=== RUN   TestEnvRemovesDuplicatePathEntries
+--- PASS: TestEnvRemovesDuplicatePathEntries (0.00s)
+=== RUN   TestEnvEmptyTools
+--- PASS: TestEnvEmptyTools (0.00s)
+=== RUN   TestLocateFromToolRoot
+--- PASS: TestLocateFromToolRoot (0.00s)
+=== RUN   TestLocateFromDataRoot
+--- PASS: TestLocateFromDataRoot (0.00s)
+=== RUN   TestLocateToolRootPrecedence
+--- PASS: TestLocateToolRootPrecedence (0.00s)
+=== RUN   TestLocateMissingNode
+--- PASS: TestLocateMissingNode (0.00s)
+=== RUN   TestLocateMissingPnpm
+--- PASS: TestLocateMissingPnpm (0.00s)
+=== RUN   TestLocateFromPATHFallback
+--- PASS: TestLocateFromPATHFallback (0.00s)
+=== RUN   TestLocateDerivesPnpmFromPATHNodeLayout
+--- PASS: TestLocateDerivesPnpmFromPATHNodeLayout (0.00s)
+=== RUN   TestLocateSkipsDirectories
+--- PASS: TestLocateSkipsDirectories (0.00s)
+=== RUN   TestNodeCommandAndPnpmCommand
+--- PASS: TestNodeCommandAndPnpmCommand (0.00s)
+=== RUN   TestVerifyWithFakeShellScripts
+--- PASS: TestVerifyWithFakeShellScripts (0.00s)
+=== RUN   TestVerifyRealToolchain
+    verify_linux_test.go:74: 真实工具链：node=24.22.1 path=/opt/pcl-dsh-go/tools/node/bin/node；pnpm=11.28.5 path=/opt/pcl-dsh-go/tools/pnpm/node_modules/pnpm/bin/pnpm.cjs；toolRoot="/opt/pcl-dsh-go/tools"
+--- PASS: TestVerifyRealToolchain (0.83s)
+=== RUN   TestLocatePathFallbackRealEnvironment
+--- PASS: TestLocatePathFallbackRealEnvironment (0.00s)
+=== RUN   TestParseVersion
+=== RUN   TestParseVersion/node_输出
+=== RUN   TestParseVersion/pnpm_输出
+=== RUN   TestParseVersion/无前缀
+=== RUN   TestParseVersion/预发布版本
+=== RUN   TestParseVersion/带构建元数据
+=== RUN   TestParseVersion/多行取首行
+=== RUN   TestParseVersion/空输出
+=== RUN   TestParseVersion/垃圾输出
+=== RUN   TestParseVersion/不完整版本
+--- PASS: TestParseVersion (0.00s)
+    --- PASS: TestParseVersion/node_输出 (0.00s)
+    --- PASS: TestParseVersion/pnpm_输出 (0.00s)
+    --- PASS: TestParseVersion/无前缀 (0.00s)
+    --- PASS: TestParseVersion/预发布版本 (0.00s)
+    --- PASS: TestParseVersion/带构建元数据 (0.00s)
+    --- PASS: TestParseVersion/多行取首行 (0.00s)
+    --- PASS: TestParseVersion/空输出 (0.00s)
+    --- PASS: TestParseVersion/垃圾输出 (0.00s)
+    --- PASS: TestParseVersion/不完整版本 (0.00s)
+=== RUN   TestVerifyMissingExecutable
+--- PASS: TestVerifyMissingExecutable (0.00s)
+=== RUN   TestVerifyIncompleteTools
+--- PASS: TestVerifyIncompleteTools (0.00s)
+PASS
+--- PASS github.com/LeuJasYoh/PCL-DSH-Go/internal/tools
+
+==========================
+built=8 build_failed=0 run_failed=0
+RESULT=PASS

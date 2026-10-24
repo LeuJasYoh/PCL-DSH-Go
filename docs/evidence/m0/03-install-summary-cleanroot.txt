@@ -1,0 +1,29 @@
+# Captured from a clean-root install measurement: PCL_DSH_TEST_ROOT=/tmp/pcl-dsh-go-install-measure
+# Command: bash scripts/wsl/recon-rc3.sh install   (fresh pnpm store, no cached runtime)
+# The WSL /tmp tmpfs was cleared by a WSL restart after this run; the measured values below
+# were read from that run's summary before the reset, and the runtime was reinstalled afterwards
+# in /tmp/pcl-dsh-go-test to preserve the E2E baseline. File-level sha256 of the cohort cache
+# differs per run because it includes checkedAt; the canonical digest inside the JSON is stable.
+runtime_dir=/tmp/pcl-dsh-go-install-measure/runtimes/0.2.1-rc.3
+already_installed=no
+install_total_seconds=104
+cohort_seconds=31
+pnpm_install_seconds=72
+validate_seconds=0
+runtime_size_bytes=511037436
+runtime_size=552M
+dirs=3893 files=35056
+runtime=/tmp/pcl-dsh-go-install-measure/runtimes/0.2.1-rc.3
+package=@deepseek-ai/dsh@0.2.1-rc.3
+entry=/tmp/pcl-dsh-go-install-measure/runtimes/0.2.1-rc.3/node_modules/@deepseek-ai/dsh/lib/bin.js
+entry_bytes=11772
+manifest_dependencies=86
+lockfile=yes
+node_modules_top=507M
+native_modules_total=15
+native_modules_elf=9
+native_modules_sample=node_modules/sherpa-onnx-linux-x64/sherpa-onnx.node node_modules/node-pty/prebuilds/darwin-arm64/pty.node node_modules/node-pty/prebuilds/linux-arm64/pty.node node_modules/node-pty/prebuilds/win32-arm64/conpty.node node_modules/node-pty/prebuilds/win32-arm64/conpty_console_list.node node_modules/node-pty/prebuilds/darwin-x64/pty.node node_modules/node-pty/prebuilds/linux-x64/pty.node node_modules/node-pty/prebuilds/win32-x64/conpty.node
+cohort_cache=/tmp/pcl-dsh-go-install-measure/cache/registry-metadata/036b43b16792c643378e95923ed2f4cc78e800de141b764aeea70d47580396df/cohort-0.2.1-rc.3.json
+cohort_cache_sha256=936989013c4366d35a2535e8846de2933f513a492a32207d6f1cbacb67483a37
+cohort_overrides_count=295
+RESULT=installed

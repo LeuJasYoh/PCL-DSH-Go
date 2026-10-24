@@ -1,0 +1,3 @@
+pid=971 tree=[{"pid":971,"depth":0,"rssKb":320444,"state":"S","ppid":959,"pgrp":971,"starttime":"245297"}]
+=== run1 stop ===
+stop: graceful=true stop_ms=153 port_free=true ss_lines=[]

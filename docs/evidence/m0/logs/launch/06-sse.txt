@@ -1,0 +1,6 @@
+authenticated:
+{"candidate":"/plugins/events","status":200,"contentType":"text/event-stream","cacheControl":"no-cache","chunkCount":1,"chunkTimes":[4],"firstChunk":": connected\n\ndata: {\"type\":\"graph\",\"graph\":{\"rev\":\"861de59411cb\",\"release\":{\"version\":\"0.2.1-rc.3\",\"commit\":\"be72761\"},\"entries\":[{\"id\":\"@deepseek-ai/dsh-api-gateway\",\"url\":\"plugins/??@deepseek-ai/dsh-api-gateway/client.js&rev=1e8a6233dc3a\",\"rev\":\"1e8a6233dc3a\",\"inject\":[\"@deepseek-ai/dsh-typert-reg","ms":1507}
+{"candidate":"/api/events","status":404,"contentType":"text/plain;charset=UTF-8","cacheControl":"","chunkCount":1,"chunkTimes":[6],"firstChunk":"not found","ms":6}
+{"candidate":"/api/remote/events","status":404,"contentType":"text/plain;charset=UTF-8","cacheControl":"","chunkCount":1,"chunkTimes":[6],"firstChunk":"not found","ms":6}
+anonymous:
+{"candidate":"/plugins/events","status":200,"contentType":"text/event-stream","cacheControl":"no-cache","chunkCount":3,"chunkTimes":[3,3,3],"firstChunk":": connected\n\ndata: {\"type\":\"graph\",\"graph\":{\"rev\":\"861de59411cb\",\"release\":{\"version\":\"0.2.1-rc.3\",\"commit\":\"be72761\"},\"entries\":[{\"id\":\"@deepseek-ai/dsh-api-gateway\",\"url\":\"plugins/??@deepseek-ai/dsh-api-gateway/client.js&rev=1e8a6233dc3a\",\"rev\":\"1e8a6233dc3a\",\"inject\":[\"@deepseek-ai/dsh-typert-reg","ms":1504}

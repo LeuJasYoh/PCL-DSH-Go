@@ -1,0 +1,7 @@
+=== run1 start ===
+launch: /opt/pcl-dsh-go/tools/node/bin/node /tmp/pcl-dsh-go-test/runtimes/0.2.1-rc.3/node_modules/@deepseek-ai/dsh/lib/bin.js --profile web --port 3080 --host 127.0.0.1 --no-open
+cwd: /tmp/pcl-dsh-go-test/runs/run1/workspace
+2.98s out | dsh web: http://127.0.0.1:3080/?token=***
+launch: /opt/pcl-dsh-go/tools/node/bin/node /tmp/pcl-dsh-go-test/runtimes/0.2.1-rc.3/node_modules/@deepseek-ai/dsh/lib/bin.js --profile web --port 3080 --host 127.0.0.1 --no-open
+cwd: /tmp/pcl-dsh-go-test/runs/run2/workspace
+1.78s out | dsh web: http://127.0.0.1:3080/?token=***

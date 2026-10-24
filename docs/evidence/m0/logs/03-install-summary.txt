@@ -1,0 +1,23 @@
+runtime_dir=/tmp/pcl-dsh-go-test/runtimes/0.2.1-rc.3
+already_installed=yes
+install_total_seconds=0
+cohort_seconds=0
+pnpm_install_seconds=0
+validate_seconds=0
+runtime_size_bytes=511037400
+runtime_size=552M
+dirs=3893 files=35056
+runtime=/tmp/pcl-dsh-go-test/runtimes/0.2.1-rc.3
+package=@deepseek-ai/dsh@0.2.1-rc.3
+entry=/tmp/pcl-dsh-go-test/runtimes/0.2.1-rc.3/node_modules/@deepseek-ai/dsh/lib/bin.js
+entry_bytes=11772
+manifest_dependencies=86
+lockfile=yes
+node_modules_top=507M
+native_modules_total=15
+native_modules_elf=9
+native_modules_sample=node_modules/@koromix/koffi-linux-x64/linux_x64/koffi.node node_modules/@koromix/koffi-linux-x64/musl_x64/koffi.node node_modules/sherpa-onnx-linux-x64/sherpa-onnx.node node_modules/node-pty/prebuilds/darwin-arm64/pty.node node_modules/node-pty/prebuilds/linux-arm64/pty.node node_modules/node-pty/prebuilds/win32-arm64/conpty.node node_modules/node-pty/prebuilds/win32-arm64/conpty_console_list.node node_modules/node-pty/prebuilds/darwin-x64/pty.node 
+cohort_cache=/tmp/pcl-dsh-go-test/cache/registry-metadata/036b43b16792c643378e95923ed2f4cc78e800de141b764aeea70d47580396df/cohort-0.2.1-rc.3.json
+cohort_cache_sha256=24a1c41c861f7b194b79558f9b3866c673f79681e9ac2f4a0732f50f84808bdd
+cohort_overrides_count=295
+RESULT=installed
