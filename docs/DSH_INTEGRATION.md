@@ -67,7 +67,7 @@ PATH=<node-bin>:<data>/tools/shims:<tools>/pnpm:<原 PATH>
   "pnpm": { "overrides": { "<@deepseek-ai/dsh-* 同批次包>": "<version>" } }
 }
 ```
-- 写入 `pnpm-workspace.yaml`（逐字）：
+- 写入 `pnpm-workspace.yaml`（基础内容逐字；pnpm 11 下 overrides 适配见下）：
 ```yaml
 autoInstallPeers: true
 nodeLinker: hoisted
@@ -75,6 +75,7 @@ resolutionMode: time-based
 strictPeerDependencies: false
 dangerouslyAllowAllBuilds: true
 ```
+  - **pnpm 11 适配（M0 决策，2026-10-24）**：pnpm 11.28.5 **不再读取** `package.json` 的 `pnpm.overrides`（会打印警告并忽略，导致发行批次 pin 不生效）。为让 overrides 真正生效，安装时把同一份 overrides 同时写入 `pnpm-workspace.yaml` 的 `overrides:` 字段（键名 YAML 安全引用、顺序稳定）；`package.json` 的 `pnpm.overrides` 继续保留（兼容 pnpm 10）。安装后 pnpm 可能向该文件追加 `minimumReleaseAgeExclude` 等字段，这是上游行为：**逐字要求仅适用于写入前的基础内容 + overrides 段**，不要断言安装后文件逐字一致。
 - **发行批次 overrides**（参考 `RuntimeService.releaseCohort`）：
   - 请求 registry 上 `@deepseek-ai/dsh` 该版本 manifest；
   - 递归读取 dependencies/peerDependencies/optionalDependencies，仅收集名以 `@deepseek-ai/dsh-` 开头且 spec 恰好是 `<version>`、`^<version>`、`~<version>` 的包；
@@ -86,6 +87,7 @@ dangerouslyAllowAllBuilds: true
 <node> <pnpm.cjs> install --prod --no-frozen-lockfile   --registry=<registry>   --store-dir=<data>/cache/pnpm-store   --reporter=append-only
 ```
 - 工作目录 = staging；环境 = DSH 环境 + HOME 指向 staging 临时 home（避免污染用户目录）。
+  - **PATH 必须包含宿主机原 PATH**（§1.2 的 `<原 PATH>` 后缀）：pnpm 执行 node-pty/koffi/protobufjs 等生命周期脚本时需要 `/usr/bin`、`/bin` 等宿主工具；实测缺失时 pnpm 退出 254、install scripts Failed。DSH 启动环境同样按 §1.2 处理。
 - 超时 20 分钟；日志实时上报 Job。
 - 安装脚本正常运行（`dangerouslyAllowAllBuilds: true`）；保留 pnpm-lock.yaml。
 - 校验 `staging/node_modules/@deepseek-ai/dsh/package.json`：name/version 匹配；读取 `bin`（字符串或 `bin.dsh`）得到入口（如 `lib/bin.js`），必须位于包目录内、存在、realpath 不越界。
