@@ -24,6 +24,7 @@
 ## 3. HTTP 反代硬化（proxy）
 
 1. **Origin 校验（防 CSRF/跨站写）**：对 POST/PUT/PATCH/DELETE，若请求带 `Origin`，则 Origin 的 host:port（默认端口归一化 http→80/https→443）必须与请求 Host 同源，否则 **403 FORBIDDEN JSON**；无 Origin（非浏览器客户端）放行。GET/HEAD 不校验。
+   **原始路径防护**：/workbench 请求在进入 ServeMux **之前**必须拒绝含 `..`（Path 或 EscapedPath，含编码形式解码后）或控制字符的原始路径 → 400 BAD_REQUEST JSON；否则 Go ServeMux 的 cleanPath 会先 307 规范化，违反 G4“路径含 .. → 400”。
 2. **动态 hop-by-hop**：除固定列表外，移除请求头 `Connection` 中列出的 header 名（RFC 7230 §6.1）；响应侧由 httputil.ReverseProxy 处理并补测试。
 3. **错误体统一**：/workbench 代理错误 JSON 改为四字段 `{code,message,details,traceId}`（details 恒 `{}`，traceId 取响应头 X-Trace-Id；无则空字符串）；覆盖 400/401/403/404/409/502/504。
 4. **SSE**：逐块 flush；对 `text/event-stream` 响应设置 `X-Accel-Buffering: no`；客户端断开时取消上游请求；不设整体时长超时（仅 60s 响应头超时）。
@@ -47,8 +48,8 @@
 
 模板：`packaging/nginx/pcl-dsh-go.conf`（可直接被 install.sh 在 M5 安装）。要求：
 - listen 80；静态根 `/opt/pcl-dsh-go/current/release/static`（M4 前目录可空/占位）；
-- `location ^~ /api/`：proxy_pass http://127.0.0.1:8080；HTTP/1.1；`proxy_set_header Host $host`；`X-Real-IP $remote_addr`；`X-Forwarded-For $proxy_add_x_forwarded_for`；`proxy_read_timeout 3600s`；`proxy_buffering off`（SSE）；`client_max_body_size 2048m`；`access_log off`（避免敏感 query 落盘）；
-- `location ^~ /workbench/`：同上 + WebSocket Upgrade 支持（`map $http_upgrade $connection_upgrade`、`proxy_http_version 1.1`、`proxy_set_header Upgrade $http_upgrade`、`proxy_set_header Connection $connection_upgrade`）；`proxy_buffering off`；`proxy_read_timeout/proxy_send_timeout 3600s`；`access_log off`；
+- `location ^~ /api/`：proxy_pass http://127.0.0.1:8080；HTTP/1.1；**Host 必须保留浏览器可见的 authority（含非默认端口）**：`map $http_host $pcl_dsh_host { default $http_host; '' $host; }` + `proxy_set_header Host $pcl_dsh_host`（否则 proxy 的 Origin 同源校验与 direct-access sshHost 在非 80 端口下会错）；`X-Real-IP $remote_addr`；`X-Forwarded-For $proxy_add_x_forwarded_for`；`proxy_read_timeout 3600s`；`proxy_buffering off`（SSE）；`client_max_body_size 2048m`；`access_log off`（避免敏感 query 落盘）；
+- `location ^~ /workbench/`：同上（含 Host 保留）+ WebSocket Upgrade 支持（`map $http_upgrade $connection_upgrade`、`proxy_http_version 1.1`、`proxy_set_header Upgrade $http_upgrade`、`proxy_set_header Connection $connection_upgrade`）；`proxy_buffering off`；`proxy_read_timeout/proxy_send_timeout 3600s`；`access_log off`；
 - 静态：`location /` try_files $uri $uri/ /index.html；不缓存 index.html；
 - 可选安全：来源 IP 白名单注释示例、server_tokens off。
 - 说明文档：`packaging/nginx/README.md`（依赖、安装位置、与 systemd 关系、TLS 由运维在 Nginx 终止的说明）。

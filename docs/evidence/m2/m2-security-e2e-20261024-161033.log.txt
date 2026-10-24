@@ -1,0 +1,75 @@
+=== PCL-DSH-Go M2-F security/error-path E2E 20261024-161033 ===
+PASS  system :80 untouched (isolated Nginx on :8088)  
+manager built from current tree (M2-F): size=8806560 B sha256=73e7ccb368ecc8b079e0e06cf3617e1b753154fc07aed79b548e5ab84bdde749
+PASS  manager linux/amd64 build from current tree  sha256=73e7ccb368ecc8b079e0e06cf3617e1b753154fc07aed79b548e5ab84bdde749
+INFO  reused real DSH runtime via symlink: /tmp/pcl-dsh-go-test/e2e-data/runtimes/0.2.1-rc.3 (no reinstall)
+PASS  manager /api/health  
+PASS  nginx -t (production template adapted)  
+PASS  isolated Nginx :8088 up  
+PASS  login via Nginx 204  
+PASS  change password via Nginx 204  
+PASS  create instance 201  
+PASS  launch 202  
+PASS  launch Job terminal SUCCEEDED  state=SUCCEEDED
+--- auth boundaries ---
+PASS  direct manager unauthenticated /api/state 401 four-field  status=401 code=UNAUTHORIZED details={} trace=beb81ae3cce5
+PASS  direct manager unauthenticated /workbench 401 four-field  status=401 code=UNAUTHORIZED details={} trace=a380e6ab33ac
+PASS  via Nginx unauthenticated /api/state 401 four-field  status=401 code=UNAUTHORIZED details={} trace=0d438545894f
+PASS  via Nginx unauthenticated /workbench 401 four-field  status=401 code=UNAUTHORIZED details={} trace=cb5f37a4ba33
+--- SSRF: Host / forwarded-host / port injection (direct manager + Nginx) ---
+PASS  SSRF: manager Host evil.example still local health 200  status=200
+PASS  SSRF: manager Host with @ injection not 5xx  status=400
+PASS  SSRF: manager IPv6 Host injection not 5xx  status=200
+PASS  SSRF: Nginx Host evil.example upstream still manager health 200  status=200
+PASS  SSRF: Nginx workbench Host evil.example still auth-gated 401  status=401
+PASS  SSRF: X-Forwarded-Host ignored for direct-access sshHost  sshHost=127.0.0.1
+PASS  SSRF: direct-access tunnel port from instance, not Host  port=3080 instance_port=3080
+--- path traversal / control chars ---
+--- path traversal / control chars (direct manager) ---
+PASS  direct manager traversal/control-char 400 BAD_REQUEST four-field, no Location  path=/workbench/i-627d81d8a46b/../../etc/passwd status=400 code=BAD_REQUEST loc=
+PASS  direct manager sample leaks no /etc/passwd  path=/workbench/i-627d81d8a46b/../../etc/passwd
+PASS  direct manager traversal/control-char 400 BAD_REQUEST four-field, no Location  path=/workbench/i-627d81d8a46b/%2e%2e/%2e%2e/etc/passwd status=400 code=BAD_REQUEST loc=
+PASS  direct manager sample leaks no /etc/passwd  path=/workbench/i-627d81d8a46b/%2e%2e/%2e%2e/etc/passwd
+PASS  direct manager traversal/control-char 400 BAD_REQUEST four-field, no Location  path=/workbench/i-627d81d8a46b/..%2f..%2fetc%2fpasswd status=400 code=BAD_REQUEST loc=
+PASS  direct manager sample leaks no /etc/passwd  path=/workbench/i-627d81d8a46b/..%2f..%2fetc%2fpasswd
+PASS  direct manager traversal/control-char 400 BAD_REQUEST four-field, no Location  path=/workbench/i-627d81d8a46b/%2e%2e%5c%2e%2e%5cetc%5cpasswd status=400 code=BAD_REQUEST loc=
+PASS  direct manager sample leaks no /etc/passwd  path=/workbench/i-627d81d8a46b/%2e%2e%5c%2e%2e%5cetc%5cpasswd
+PASS  direct manager traversal/control-char 400 BAD_REQUEST four-field, no Location  path=/workbench/i-627d81d8a46b/%00evil status=400 code=BAD_REQUEST loc=
+PASS  direct manager sample leaks no /etc/passwd  path=/workbench/i-627d81d8a46b/%00evil
+PASS  direct manager traversal/control-char 400 BAD_REQUEST four-field, no Location  path=/workbench/i-627d81d8a46b/%0d%0aX-Injected:%20evil status=400 code=BAD_REQUEST loc=
+PASS  direct manager sample leaks no /etc/passwd  path=/workbench/i-627d81d8a46b/%0d%0aX-Injected:%20evil
+PASS  direct manager traversal/control-char 400 BAD_REQUEST four-field, no Location  path=/workbench/i-627d81d8a46b/http://evil.example/../../x status=400 code=BAD_REQUEST loc=
+PASS  direct manager sample leaks no /etc/passwd  path=/workbench/i-627d81d8a46b/http://evil.example/../../x
+PASS  direct manager all 7 traversal/control-char samples 400 four-field  ok=7/7
+--- absolute-form (proxy-style) request target with traversal ---
+PASS  absolute-form traversal direct manager 400 four-field  status=400 code=BAD_REQUEST details={} trace=b34213842f68
+PASS  absolute-form traversal has no Location redirect  
+PASS  absolute-form traversal leaks no /etc/passwd  
+--- raw path guard runs before auth (unauth traversal -> 400, not 401) ---
+PASS  unauth raw dot-segment direct manager 400 four-field (guard before session)  status=400 code=BAD_REQUEST details={} trace=7085af76f001
+--- error four-field shapes (via Nginx) ---
+PASS  unknown instance 404 four-field  status=404 code=NOT_FOUND details={} trace=2d11d81af4d2
+PASS  invalid instance body 400 four-field  status=400 code=VALIDATION details={} trace=a5670cee5325
+PASS  wrong old password rejected  status=400 code=VALIDATION
+--- stopped instance 409 via Nginx; manager down -> Nginx 502 ---
+PASS  stop instance 200  
+PASS  stopped instance workbench 409 four-field via Nginx  status=409 code=INSTANCE_NOT_READY details={} trace=0b251c3b855f
+PASS  stopped instance direct-access ready=false  
+PASS  manager stopped -> Nginx /api/health 502  
+PASS  manager stopped -> Nginx /workbench 502  
+--- Nginx access_log off + secret scan ---
+PASS  Nginx access_log off for /api/ locations  api_lines=0 access_lines=12
+PASS  Nginx access log has no query string/token/cookie  query=0 sensitive=0
+PASS  manager/Nginx logs + evidence no raw token/cookie  matches=0
+PASS  passwords never appear in logs/evidence  matches=0
+PASS  manager logs ERROR count 0  errors=0
+--- platform no-touch ---
+PASS  /etc/nginx unchanged  
+PASS  reference repo unchanged (baseline git status hash)  before=88b665dc9e72fcd2... after=88b665dc9e72fcd2...
+PASS  Windows DSH program tree unchanged (read-only)  
+PASS  data-root 0700  
+
+=== RESULT ===
+checks_passed=57 checks_failed=0 scenario=/tmp/pcl-dsh-go-test/m2s-scenario-20261024-161033
+RESULT=PASS
+EXIT_CODE=0 scenario=/tmp/pcl-dsh-go-test/m2s-scenario-20261024-161033

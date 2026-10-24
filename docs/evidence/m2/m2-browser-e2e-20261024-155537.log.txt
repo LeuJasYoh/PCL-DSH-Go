@@ -1,0 +1,67 @@
+=== PCL-DSH-Go M2-E browser-through-Nginx setup 20261024-155537 ===
+PASS  system :80 untouched (isolated Nginx uses :8088)  
+manager built from current tree (M2-E): size=8806560 B sha256=afeea3465f8c3ffb43a225eb292587eccf304b9c686565333a56309f8b7e16ab
+PASS  manager linux/amd64 build from current tree  size=8806560 sha256=afeea3465f8c3ffb43a225eb292587eccf304b9c686565333a56309f8b7e16ab
+INFO  reused real DSH runtime via symlink: /tmp/pcl-dsh-go-test/e2e-data/runtimes/0.2.1-rc.3 -> /tmp/pcl-dsh-go-test/m2b-data/runtimes/0.2.1-rc.3 (no reinstall)
+manager start pid=54412 port=18080
+PASS  manager /api/health  
+PASS  nginx -t (production template, isolated instance)  
+PASS  isolated Nginx listening on 127.0.0.1:8088  system :80 untouched
+api POST /api/auth/login -> 204
+PASS  login via Nginx 204  
+api GET /api/auth/me -> 200
+api PUT /api/auth/password -> 204
+PASS  change password via Nginx 204  
+api GET /api/auth/me -> 200
+api POST /api/auth/login -> 204
+PASS  login (new password) via Nginx 204  
+api GET /api/auth/me -> 200
+PASS  JSESSIONID obtained via Nginx  len=32
+PASS  browser cookie temp file 0600 (WSL /tmp, outside repo)  path=/tmp/pcl-dsh-go-test/m2b-secrets-20261024-155537/cookie
+PASS  Windows -> WSL Nginx reachable  browser_host=127.0.0.1
+api POST /api/instances -> 201
+PASS  create instance via Nginx 201  
+PASS  instance id/port  id=i-df4bea05cace port=3080
+api POST /api/instances/i-df4bea05cace/launch -> 202
+PASS  launch 202 via Nginx  
+api GET /api/jobs/j-fd8d56922a06 -> 200
+api GET /api/jobs/j-fd8d56922a06 -> 200
+api GET /api/jobs/j-fd8d56922a06 -> 200
+api GET /api/jobs/j-fd8d56922a06 -> 200
+api GET /api/jobs/j-fd8d56922a06 -> 200
+api GET /api/jobs/j-fd8d56922a06 -> 200
+PASS  launch Job SUCCEEDED via Nginx  state=SUCCEEDED
+handoff written: /mnt/d/Projects/DSHL/.m2-browser/handoff.env (19 vars); servers stay up for the CDP phase
+BROWSER_URL=http://127.0.0.1:8088/workbench/i-df4bea05cace/
+PNG_WIN=D:\Projects\DSHL\PCL-DSH-Go\docs\evidence\m2\browser-workbench-nginx.png
+PASS=15 FAIL=0
+
+=== M2-E browser verify phase 2026-10-24T15:58:31+08:00 ===
+PASS  handoff present  stamp=20261024-155537
+PASS  browser URL points at Nginx :8088  url=http://127.0.0.1:8088/workbench/i-df4bea05cace/
+PASS  browser result JSON present  path=/mnt/d/Projects/DSHL/.m2-browser/result.json
+PASS  screenshot PNG present (Windows CDP wrote it)  path=/mnt/d/Projects/DSHL/PCL-DSH-Go/docs/evidence/m2/browser-workbench-nginx.png
+browser result: ok=true title=DeepSeek Harness root_len=31 boot=true ws101=true png=34164B 500x320 console_errors=0 page_exceptions=0
+PASS  browser title=DeepSeek Harness  title=DeepSeek Harness
+PASS  browser rendered #root content  root_len=31
+PASS  window.__DSH_BOOT__ present  
+PASS  browser observed /api/remote.mux WS 101  ws101=true (optional observation)
+PASS  screenshot non-blank (bytes/dimensions)  bytes=34164 dims=500x320 file=34164B
+INFO  console errors (records; login-before-page 401 noise would be reported here): 0; page exceptions: 0
+PASS  CDP client reports no failures  failures=[]
+PASS  nginx/manager stopped, ports released  
+PASS  browser cookie temp file deleted  
+PASS  Edge profile/temp files deleted  
+PASS  manager logs/evidence no raw token/cookie  matches=0
+PASS  manager logs ERROR count 0  errors=0
+PASS  data-root 0700  
+PASS  Windows DSH program tree unchanged (read-only)  hash=d21dbbc5855f4bfd...
+PASS  /etc/nginx unchanged by browser E2E  hash=3c8808e336fc4c6f...
+PASS  reference repo unchanged (baseline git status hash)  before=88b665dc9e72fcd2... after=88b665dc9e72fcd2...
+PASS  Edge headless instance killed (no m2-browser msedge process)  processes=0
+PASS  Edge pid file removed  
+
+=== RESULT ===
+checks_passed=36 checks_failed=0 scenario=/tmp/pcl-dsh-go-test/m2b-scenario-20261024-155537
+RESULT=PASS
+EXIT_CODE=0 scenario=/tmp/pcl-dsh-go-test/m2b-scenario-20261024-155537

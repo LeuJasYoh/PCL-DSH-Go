@@ -141,7 +141,8 @@ type apiRoute struct {
 }
 
 // buildHandler registers every route and wraps the mux with the middleware
-// chain (outermost first): trace/security headers/recover/access log, session
+// chain (outermost first): trace/security headers/recover/access log, workbench
+// raw-path guard (dot segments must be a 400, not a ServeMux redirect), session
 // lookup, authorization/CSRF/busy guards, JSON body limit.
 func (a *API) buildHandler() http.Handler {
 	mux := http.NewServeMux()
@@ -202,7 +203,15 @@ func (a *API) buildHandler() http.Handler {
 	mux.Handle("/workbench/", a.workbench)
 	mux.HandleFunc("GET /{$}", a.handleRoot)
 
-	return a.withTracing(a.withSession(a.withGuards(a.withBodyLimit(mux))))
+	return a.withTracing(
+		a.withWorkbenchRawPathGuard(
+			a.withSession(
+				a.withGuards(
+					a.withBodyLimit(mux),
+				),
+			),
+		),
+	)
 }
 
 // standardMethods are the HTTP methods that get an explicit JSON 405 handler

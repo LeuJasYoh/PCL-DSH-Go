@@ -2,7 +2,7 @@
 
 PCL-DSH-Go 是 [PCL-DSH-Linux](https://github.com/LeuJasYoh/pcl-dsh-linux) 的 Go 重写版：在 Linux 服务器上以 WebUI 管理 DeepSeek Harness（DSH）实例的管理器。
 
-> 状态：**M0 垂直切片 + M1 后端核心已完成**（2026-10-24，真实 DSH `0.2.1-rc.3` 在 WSL 验收通过）；M2–M5（反代硬化/整合包与插件/WebUI/发布）等待实现。本仓库包含计划、实现规格、DSH 集成契约、前端迁移指南、验收标准、任务拆解与实现提示词。
+> 状态：**M0 垂直切片 + M1 后端核心 + M2 反代硬化/Nginx 生产链路已完成**（2026-10-24，真实 DSH `0.2.1-rc.3` 在 WSL 验收通过）；M3–M5（整合包与插件/WebUI/发布）等待实现。本仓库包含计划、实现规格、DSH 集成契约、前端迁移指南、验收标准、任务拆解与实现提示词。
 
 ## 目标
 
@@ -11,6 +11,24 @@ PCL-DSH-Go 是 [PCL-DSH-Linux](https://github.com/LeuJasYoh/pcl-dsh-linux) 的 G
 - 任务与日志、整合包导入导出、已装插件管理、直连登录（SSH 隧道 + 一次性 token URL，SSH 用户可配置）；
 - 保留 WebUI；不含账户系统、社区插件目录、背景图管理、旧数据兼容；
 - 内置 Node 24.22.1 + pnpm 11.28.5，服务器无需系统 Node/npm/JDK。
+
+## M2 状态（2026-10-24）
+
+M2 已完成并通过真实 DSH `0.2.1-rc.3` + **Nginx 生产链路**验收（Nginx 隔离实例 8088：链路 67/67、真实浏览器 36/36、安全/错误路径 57/57；Lead 独立复跑一致；证据见 `docs/evidence/m2/`）：
+
+- `/workbench` HTTP/SSE/WS 硬化：Origin 同源写保护、动态 hop-by-hop、统一四字段错误体、SSE 不缓冲/断连取消、10MiB 流式 body、WS dial-first（上游 401/404/409/502 → HTTP JSON、子协议透传、1MiB/关闭码）、raw dot-segment 路径 400；
+- TrustedProxy：仅回环来源且 `X-Real-IP` 为合法裸 IP 时作为登录限流/审计客户端 IP；
+- `packaging/nginx/pcl-dsh-go.conf` + README：静态/SPA、`^~ /api/` 与 `^~ /workbench/`、HTTP/1.1、SSE 不缓冲、大 body 流式、3600s 超时、WS Upgrade、Host 端口保留、access_log off、server_tokens off。
+
+### 在 WSL 验证 M2（不修改系统 Nginx）
+
+```bash
+bash scripts/wsl/m2-nginx-e2e.sh     # 真实 manager+DSH 经隔离 Nginx(8088)：67 项
+bash scripts/wsl/m2-browser-e2e.sh   # Windows Edge headless CDP 经 Nginx：36 项（截图入证据）
+bash scripts/wsl/m2-security-e2e.sh  # SSRF/路径/认证边界/错误体/日志泄漏：57 项
+```
+
+生产安装：将 `packaging/nginx/pcl-dsh-go.conf` 放入 Nginx `conf.d/`（manager 保持 127.0.0.1:8080，TLS 由运维在 Nginx 终止）；systemd/install.sh 在 M5 提供。
 
 ## M1 状态（2026-10-24）
 
@@ -75,6 +93,8 @@ M0 调试 API（仅 `--pcl.dev-mode` 启用并绑定 127.0.0.1；M1 由正式认
 
 ## 文档
 
+- [M2 验收报告（反代硬化 + Nginx 生产链路）](docs/M2_RESULTS.md)
+- [M2 冻结决策](docs/M2_INTERFACES.md)
 - [M1 验收报告（后端 v1 API + 真实 DSH 集成）](docs/M1_RESULTS.md)
 - [M0 验收报告（真实 DSH 0.2.1-rc.3）](docs/M0_RESULTS.md)
 - [M0 冻结接口](docs/M0_INTERFACES.md)

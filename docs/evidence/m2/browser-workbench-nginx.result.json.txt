@@ -1,0 +1,17 @@
+{
+  "note": "M2-E browser-through-Nginx result (sanitized; from actual Edge 155 headless CDP run; cookie file deleted)",
+  "evidence": "m2-browser-e2e-20261024-155537.log.txt",
+  "url": "http://127.0.0.1:8088/workbench/i-df4bea05cace/",
+  "ok": true,
+  "title": "DeepSeek Harness",
+  "rootTextLength": 31,
+  "rootTextSnippet": "探索未至之境 预览版 选择工作区 标准模式 选择一个工作区开始",
+  "dshBoot": { "present": true, "release": "[object Object]", "keys": ["rev", "release", "entries", "batches"] },
+  "ws101": true,
+  "wsHandshake": { "url": "ws://127.0.0.1:8088/workbench/i-df4bea05cace/api/remote.mux", "status": 101 },
+  "consoleErrors": 0,
+  "pageExceptions": 0,
+  "screenshot": { "path": "docs/evidence/m2/browser-workbench-nginx.png", "bytes": 34164, "width": 500, "height": 320 },
+  "loadMs": 3081,
+  "failures": []
+}
