@@ -2,7 +2,7 @@
 
 PCL-DSH-Go 是 [PCL-DSH-Linux](https://github.com/LeuJasYoh/pcl-dsh-linux) 的 Go 重写版：在 Linux 服务器上以 WebUI 管理 DeepSeek Harness（DSH）实例的管理器。
 
-> 状态：**M0 垂直切片已完成**（2026-10-24，真实 DSH `0.2.1-rc.3` 在 WSL 验收通过）；M1–M5（完整 API/反代硬化/整合包与插件/WebUI/发布）等待实现。本仓库包含计划、实现规格、DSH 集成契约、前端迁移指南、验收标准、任务拆解与实现提示词。
+> 状态：**M0 垂直切片 + M1 后端核心已完成**（2026-10-24，真实 DSH `0.2.1-rc.3` 在 WSL 验收通过）；M2–M5（反代硬化/整合包与插件/WebUI/发布）等待实现。本仓库包含计划、实现规格、DSH 集成契约、前端迁移指南、验收标准、任务拆解与实现提示词。
 
 ## 目标
 
@@ -11,6 +11,31 @@ PCL-DSH-Go 是 [PCL-DSH-Linux](https://github.com/LeuJasYoh/pcl-dsh-linux) 的 G
 - 任务与日志、整合包导入导出、已装插件管理、直连登录（SSH 隧道 + 一次性 token URL，SSH 用户可配置）；
 - 保留 WebUI；不含账户系统、社区插件目录、背景图管理、旧数据兼容；
 - 内置 Node 24.22.1 + pnpm 11.28.5，服务器无需系统 Node/npm/JDK。
+
+## M1 状态（2026-10-24）
+
+M1 后端核心已完成并通过真实 DSH `0.2.1-rc.3` 黑盒验收（**209/209 检查 PASS**，证据见 `docs/evidence/m1/`）：
+正式 v1 REST API（认证/会话/CSRF/登录限流/首登改密/审计）、实例与运行时 CRUD、Job+SSE（安装/探测/启动，取消/超时/续传）、设置、日志 tail、直连登录后端、`/workbench` 登录门槛。M0 的 dev-mode 调试 API 已删除；整合包/插件（M3）、WebUI（M4）、Nginx/发行包（M2/M5）尚未实现。
+
+### 构建与首次启动（WSL）
+
+```bash
+cd /mnt/d/Projects/DSHL/PCL-DSH-Go
+GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -trimpath \
+  -ldflags "-s -w -X main.version=0.2.0-m1" -o bin/pcl-dsh-go ./cmd/pcl-dsh-go
+/mnt/d/Projects/DSHL/PCL-DSH-Go/bin/pcl-dsh-go \
+  --server.address=127.0.0.1 --server.port=18080 \
+  --pcl.data-root=/tmp/pcl-dsh-go-test/m1-data \
+  --pcl.tool-root=/opt/pcl-dsh-go/tools
+```
+
+首次启动生成 `<data-root>/initial-password`（0600，24 位）：用它 `POST /api/auth/login`，随后必须 `PUT /api/auth/password` 改密；之后所有 `/api/**`（除 health/login/me）需要 `JSESSIONID` 会话 + `XSRF-TOKEN`/`X-XSRF-TOKEN` 双提交。`POST /api/instances/{id}/launch`、`POST /api/runtimes`、`POST /api/runtimes/{version}/probe` 返回 202 Job，事件通过 `GET /api/jobs/{id}/events`（SSE）消费。
+
+### 一键验收
+
+```bash
+bash scripts/wsl/m1-acceptance.sh --full   # fresh data-root + 真实安装 rc.3，约 3–4 分钟
+```
 
 ## M0 状态（2026-10-24）
 
@@ -50,6 +75,7 @@ M0 调试 API（仅 `--pcl.dev-mode` 启用并绑定 127.0.0.1；M1 由正式认
 
 ## 文档
 
+- [M1 验收报告（后端 v1 API + 真实 DSH 集成）](docs/M1_RESULTS.md)
 - [M0 验收报告（真实 DSH 0.2.1-rc.3）](docs/M0_RESULTS.md)
 - [M0 冻结接口](docs/M0_INTERFACES.md)
 - [开发计划](docs/DEVELOPMENT_PLAN.md)

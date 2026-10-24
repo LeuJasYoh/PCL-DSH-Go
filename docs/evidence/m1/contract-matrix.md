@@ -24,6 +24,7 @@
 **中间件决策顺序（实现与测试都按此断言）**：
 1. 路由匹配 → 2. 公开路由（login/health）直接进入 → 3. 会话校验（失败 401）→ 4. 首登 pending（失败 403 PASSWORD_CHANGE_REQUIRED；`/auth/**` 豁免）→ 5. CSRF（非 GET/HEAD 的 `/api/**`，登录豁免；`/workbench` 豁免）→ 6. Busy（写 `/api/**`，auth 与 jobs cancel 豁免）→ 7. handler。
 > `/workbench` 走 3/4（不鉴权 401、pending 403），不做 CSRF/Busy 拦截。
+> 补充（2026-10-24 冻结，task-19 已验证）：**未登录访问未知 /api 路径时认证先于路由解析 → 401 UNAUTHORIZED（fail-closed）**；**已登录访问未知 /api 路径 → 404 NOT_FOUND（JSON 四字段）**。
 
 ## 2. M1 端点矩阵
 
@@ -61,6 +62,7 @@
 | 28 | PUT `/api/settings` | 登录 | 必需 | 同 GET | 200 同上 | 400 VALIDATION；409 CONFLICT_BUSY |
 | 29 | ANY `/workbench/{id}/**` | 登录 | 豁免 | 原始 HTTP 请求 | 反代流（302 token→303→cookie→200 页面/静态/SSE） | 401（未登录）；403 PASSWORD_CHANGE_REQUIRED；404（实例不存在）；409 INSTANCE_NOT_READY；502/504（上游） |
 | 30 | WS `/workbench/{id}/**` | 登录 | 豁免 | Upgrade + Cookie + 子协议 | 101 双向（/api/remote.mux 等） | 401；404；409；502 |
+| 31 | ANY `/api/<未知路径>` | 登录（匿名先 401） | 写方法同通用规则（但匿名已先 401） | — | 已登录：**404 NOT_FOUND** JSON | 匿名：**401 UNAUTHORIZED**（fail-closed） |
 
 > JobView 字段：`{id:"j-"+12hex,type,state:RUNNING|SUCCEEDED|FAILED|CANCELLED,phase,message,createdAt,startedAt|null,finishedAt|null,lastSeq,result|null,error:{code,message,details}|null}`（SPEC §4.3）。
 > InstanceDto：`{id,name,version,profile,port,status:中文,path,profiles:string[]}`；RuntimeDto：`{version,installed,compatibility}`；DirectAccessDto：`{ready,port,directUrl|null,tunnelCommand,sshHost,sshUser,note}`。
@@ -162,6 +164,22 @@
 
 ## 8. task-19 使用方式（证据映射）
 
-- 每个矩阵行 → m1-acceptance.sh 的 phase 中一组断言；证据写到 `docs/evidence/m1/e2e-<ts>.log.txt`（脱敏）+ 失败保留 `scenario`。
-- 必测补充：Cookie/Security 头属性、traceId 12hex、敏感接口 no-store、请求体 1MiB 上限（413）、未知路由 404、Windows DSH 程序树前后 hash 相同、参考仓库未改。
-- 结果回填到 docs/M1_RESULTS.md（task-20），并在此矩阵标注“已验证”列（task-19 追加）。
+- 本节已由 §9/§10（实际执行结果）取代，保留标题仅作历史索引；矩阵正文即 task-19 的断言来源。
+
+## 9. task-19 实际验证结果（2026-10-24，M1-I）
+
+- 正式 E2E：`bash scripts/wsl/m1-acceptance.sh --full`（`M1_WIRING_READY=1`，Windows go1.27.3 交叉编译的 manager `0.2.0-m1`（8,798,368 B，sha256 `0da0825ba0bb7733accc1278b7ececb9788db3425c9827091c44945c6fde570c`，当前工作树），fresh data-root）→ **209/209 检查 PASS，EXIT_CODE=0**。
+- 证据：`docs/evidence/m1/m1-acceptance-20261024-152121.log.txt`（脱敏）+ `...-manager.log.txt`；失败保留现场 `/tmp/pcl-dsh-go-test/m1-scenario-*`（本次无失败）。
+- 覆盖亮点（对应本矩阵）：
+  - G1：未登录 401 / CSRF 403 / 首登 403 PASSWORD_CHANGE_REQUIRED / 改密 204 + initial-password 删除 / 登出 + 旧会话 401 / 5 次失败 423 LOGIN_LOCKED(details.retryAfterSeconds=60) / 匿名与登录 me 的 XSRF。
+  - G2：创建 201、非法 400、重复端口 409、name 更新、version/profile 409 CONFLICT_UNSUPPORTED_CHANGE、运行中改 port 409 CONFLICT_INSTANCE_RUNNING、selection 重启后持久化、停止后删除 trash（含 never-started 非空 trashedPath）、运行时安装/复用/探测/引用保护/删除/404、jobs 重启清空。
+  - G3：install cancel 202→最终 CANCELLED（staging 保留属允许）；真实 install Job≈80s：SSE state+log+result、id 单调、4 次心跳、result `{installed:true,compatibility:"unverified"}`；probe→`verified`；launch Job SUCCEEDED（result 不含 token）；忙时写接口 409 CONFLICT_BUSY；Last-Event-ID 重放成功。
+  - G4（M1 部分）：/workbench 未登录 401；登录后 302 token→DSH 303 Location ./ + Set-Cookie Path=/workbench/{id}→页面 200/title/base href=./→静态资源 200→SSE 分块→WS 101+ready+close 1000。
+  - G5：direct-access 运行中 ready=true/port/tunnelCommand/sshHost(仅 Host)/sshUser(settings)/directUrl(token 脱敏)/no-store；停止后 ready=false+note；未登录 401；不存在 404。
+- 结论：§7 冻结口径全部按预期验证，未发现需上报的产品侧契约差异；错误 JSON 四字段（details={}）已验证；500 INTERNAL 未在 E2E 中触发（无该场景）。
+
+## 10. task-19 使用方式与证据映射（已执行）
+
+- 每个矩阵行 → `scripts/wsl/m1-acceptance.sh` 的 phase 断言；证据写入 `docs/evidence/m1/e2e-*.log.txt`/`m1-acceptance-*.log.txt`（脱敏），失败保留 `/tmp/pcl-dsh-go-test/m1-scenario-*`。
+- 必测补充均已覆盖：Cookie/Security 头属性、traceId 12hex、敏感接口 no-store、请求体超限 413、未知路由（匿名 401/已登录 404）、Windows DSH 程序树前后 hash 相同、参考仓库 git status 基线相同、manager 0 ERROR。
+- 结果回填：`docs/M1_RESULTS.md`（task-20）。

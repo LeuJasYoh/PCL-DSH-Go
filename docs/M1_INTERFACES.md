@@ -244,6 +244,8 @@ func (a *App) Shutdown(ctx context.Context) error
 
 ```go
 func (s *Service) Entries() []Entry // Entry{Version, Compatibility, EntryPath}
+// 说明：<data>/runtimes/<ver> 允许是符号链接（预置/导入 runtime）；InstalledVersions/Entries
+// 会跟随链接（os.Stat），与 Installed()/validateExecutable 行为一致。
 func (s *Service) Remove(version string) (trashPath string, err error)
 // 校验已安装；<data>/runtimes/<ver> → store.MoveToTrash(dataRoot,"runtime",dir)；清探测缓存；未安装 404。
 func (s *Service) CompatibilityOf(version string) string // "verified"/"unverified"（现有 Compatibility 可复用）
@@ -297,7 +299,7 @@ func New(deps Deps) (*Server, error)
 func (s *Server) Handler() http.Handler
 ```
 路由/中间件/响应契约：**严格按 docs/IMPLEMENTATION_SPEC.md §4.1–§4.5 与 §5**，要点：
-- 公开路由：POST /api/auth/login、GET /api/auth/me、GET /api/health；其余 /api/** 需会话。
+- 公开路由：POST /api/auth/login、GET /api/auth/me、GET /api/health；其余 /api/** 需会话。**未认证访问任何 /api/**（包括未知路径）一律 401（fail-closed）；认证后未知路径返回 404 JSON。**
 - 首登 pending：除 /api/auth/**、/api/health 外（含 /workbench 与全部其它 /api）→ 403 PASSWORD_CHANGE_REQUIRED，`details.endpoint="/api/auth/password"`。
 - CSRF：除登录外所有非 GET/HEAD /api/** 必须双提交校验（logout 也要）；/workbench 豁免 CSRF（仅会话）。
 - 忙时：其它写 /api/**（auth 与 /api/jobs/{id}/cancel 除外）→ 409 CONFLICT_BUSY（由 Jobs.Busy() 判定）。

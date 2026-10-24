@@ -100,8 +100,6 @@ cleanup() {
   # The cookie jar holds session secrets: always delete it, on success and failure.
   rm -f "$COOKIE_JAR" 2>/dev/null || true
   rm -f "$SCENARIO"/*.body "$SCENARIO"/*.hdr "$SCENARIO"/login.json 2>/dev/null || true
-  if [ -f "$LOG" ]; then san < "$LOG" > "$LOG.txt" 2>/dev/null || true; fi
-  if [ -f "$SCENARIO/manager.log" ]; then san < "$SCENARIO/manager.log" > "$EVIDENCE_DIR/m1-acceptance-$RUN_STAMP-manager.log.txt" 2>/dev/null || true; fi
   if [ "$code" -eq 3 ]; then
     log ""
     log "RESULT=REFUSED (wiring/phases pending; not a test failure) scenario=$SCENARIO log=$LOG"
@@ -111,12 +109,17 @@ cleanup() {
     log "evidence tail (manager.log):"
     [ -f "$SCENARIO/manager.log" ] && tail -30 "$SCENARIO/manager.log" 2>/dev/null | san | tee -a "$LOG" || true
   fi
+  log "EXIT_CODE=$code scenario=$SCENARIO"
+  if [ -f "$LOG" ]; then san < "$LOG" > "$LOG.txt" 2>/dev/null || true; fi
+  if [ -f "$SCENARIO/manager.log" ]; then san < "$SCENARIO/manager.log" > "$EVIDENCE_DIR/m1-acceptance-$RUN_STAMP-manager.log.txt" 2>/dev/null || true; fi
   exit "$code"
 }
 trap cleanup EXIT
 
-# ---------- Windows DSH read-only baseline ----------
+# ---------- Windows DSH read-only baseline + E2E phases ----------
 source "$SCRIPT_DIR/lib/windows-dsh-baseline.sh"
+# M1 E2E phase implementations live in a separate file; sourcing is side-effect free.
+if [ -f "$SCRIPT_DIR/m1-phases.sh" ]; then source "$SCRIPT_DIR/m1-phases.sh"; fi
 baseline_capture() {
   win_dsh_baseline_capture
   log "Windows DSH baseline: program=$(printf '%s' "$WIN_DSH_PROG_BEFORE" | cut -c1-16)... user=$(printf '%s' "$WIN_DSH_USER_BEFORE" | cut -c1-16)..."
@@ -155,10 +158,8 @@ preflight_ports() {
 fail_preflight() { log "PREFLIGHT FAIL: $*"; exit 2; }
 
 build_linux_manager() {
-  if [ -x "$MANAGER_BIN" ]; then
-    log "manager binary present: $MANAGER_BIN"
-    return 0
-  fi
+  # Always rebuild from the current working tree so the evidence proves the
+  # committed + working-tree source (release builds use -buildvcs=false).
   local go_bin win_go cmd bat win_bat
   if command -v go.exe >/dev/null 2>&1; then go_bin="$(command -v go.exe)"
   elif command -v go >/dev/null 2>&1; then go_bin="$(command -v go)"
@@ -184,7 +185,11 @@ build_linux_manager() {
   esac
   [ -f "$MANAGER_BIN" ] || fail_preflight "manager binary missing after build"
   chmod +x "$MANAGER_BIN"
-  log "manager built: $(stat -c %s "$MANAGER_BIN")B sha256=$(sha256sum "$MANAGER_BIN" | awk '{print $1}')"
+  local build_size build_sha
+  build_size=$(stat -c %s "$MANAGER_BIN")
+  build_sha=$(sha256sum "$MANAGER_BIN" | awk '{print $1}')
+  log "manager built from current tree: size=$(printf '%s' "$build_size")B sha256=$(printf '%s' "$build_sha")"
+  check "manager linux/amd64 build from current tree" 1 "size=$build_size sha256=$build_sha"
 }
 winpath() {
   local p="$1"
@@ -320,11 +325,12 @@ run_selfcheck() {
   log "=== M1 acceptance selfcheck $RUN_STAMP ==="
   if bash -n "$0"; then check "bash -n m1-acceptance.sh" 1; else check "bash -n m1-acceptance.sh" 0; failures=$((failures + 1)); fi
   if bash -n "$SCRIPT_DIR/lib/windows-dsh-baseline.sh"; then check "bash -n windows-dsh-baseline.sh" 1; else check "bash -n windows-dsh-baseline.sh" 0; failures=$((failures + 1)); fi
-  for required in "$REPO_ROOT/docs/M1_INTERFACES.md" "$REPO_ROOT/docs/IMPLEMENTATION_SPEC.md" "$REPO_ROOT/docs/ACCEPTANCE.md" "$EVIDENCE_DIR/contract-matrix.md"; do
+  if bash -n "$SCRIPT_DIR/m1-phases.sh"; then check "bash -n m1-phases.sh" 1; else check "bash -n m1-phases.sh" 0; failures=$((failures + 1)); fi
+  for required in "$REPO_ROOT/docs/M1_INTERFACES.md" "$REPO_ROOT/docs/IMPLEMENTATION_SPEC.md" "$REPO_ROOT/docs/ACCEPTANCE.md" "$EVIDENCE_DIR/contract-matrix.md" "$SCRIPT_DIR/m1-phases.sh" "$SCRIPT_DIR/lib/job-sse.mjs" "$SCRIPT_DIR/lib/sse-e2e.mjs" "$SCRIPT_DIR/lib/ws-e2e.mjs"; do
     check "required input $(basename "$required")" "$([ -f "$required" ] && echo 1 || echo 0)" "path=$required"
     [ -f "$required" ] || failures=$((failures + 1))
   done
-  for fn in san log check info now_ms api json_get baseline_capture baseline_verify start_manager stop_manager init_data_root wait_port_free build_linux_manager phase_login phase_instances phase_runtime_jobs_sse phase_workbench_direct_access; do
+  for fn in san log check info now_ms api json_get baseline_capture baseline_verify start_manager stop_manager init_data_root wait_port_free build_linux_manager do_login refresh_me job_sse phase_anon phase_pending_password phase_security phase_instances_crud phase_prelaunch phase_runtime_jobs phase_launch_workbench phase_stop_delete_restart phase_cleanup_final run_m1_full; do
     if declare -F "$fn" >/dev/null 2>&1; then check "helper defined: $fn" 1; else check "helper defined: $fn" 0; failures=$((failures + 1)); fi
   done
   local masked
@@ -351,7 +357,7 @@ run_selfcheck() {
   log ""
   log "selfcheck: pass=$PASS_COUNT fail=$FAIL_COUNT info=$INFO_COUNT"
   if [ "$FAIL_COUNT" -gt 0 ]; then log "SELFCHECK=FAIL"; return 1; fi
-  log "SELFCHECK=OK (phases pending task-19: task-18 wiring not required for this check)"
+  log "SELFCHECK=OK (helpers + matrix + phase definitions; --full runs the real E2E)"
   return 0
 }
 
@@ -374,11 +380,14 @@ run_full() {
     trap - EXIT
     exit 3
   fi
-  log "=== M1 acceptance full run $RUN_STAMP ==="
-  info "TODO(M1-I): task-19 fills the E2E phases; refusing to fake a pass"
-  log "RESULT=NOT_IMPLEMENTED (task-19; exit 3)"
-  trap - EXIT
-  exit 3
+  if ! declare -F run_m1_full >/dev/null 2>&1; then
+    log "REFUSED: m1-phases.sh is missing or failed to load."
+    log "EXIT_CODE=3"
+    trap - EXIT
+    exit 3
+  fi
+  run_m1_full
+  exit $?
 }
 
 main() {

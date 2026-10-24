@@ -1,0 +1,371 @@
+=== PCL-DSH-Go M1 full acceptance 20261024-152121 ===
+repo=/mnt/d/Projects/DSHL/PCL-DSH-Go root=/tmp/pcl-dsh-go-test data_root=/tmp/pcl-dsh-go-test/m1-data manager_port=18080 dsh_port=3080 version=0.2.1-rc.3
+Windows DSH baseline: program=d21dbbc5855f4bfd... user=7ed004d4b25d91d6...
+reference repo git status baseline hash=88b665dc9e72fcd2...
+manager built from current tree: size=8798368B sha256=0da0825ba0bb7733accc1278b7ececb9788db3425c9827091c44945c6fde570c
+PASS  manager linux/amd64 build from current tree  size=8798368 sha256=0da0825ba0bb7733accc1278b7ececb9788db3425c9827091c44945c6fde570c
+fresh data-root created: /tmp/pcl-dsh-go-test/m1-data (0700)
+manager start pid=40006 data-root=/tmp/pcl-dsh-go-test/m1-data port=18080
+health: {"status":"UP","version":"0.2.0-m1","uptimeSeconds":0}
+PASS  manager /api/health  
+--- phase: anonymous/health/headers ---
+api anon GET /api/health -> 200
+PASS  health anonymous 200  status=200 want=200 
+PASS  health body status=UP  body={"status":"UP","version":"0.2.0-m1","uptimeSeconds":0}
+PASS  health version 0.2.0-m1  version=0.2.0-m1
+PASS  X-Trace-Id is 12 hex  trace=3467b1e5683c
+PASS  X-Content-Type-Options nosniff  
+PASS  Referrer-Policy no-referrer  
+PASS  API Cache-Control no-store  value=no-store
+api anon GET /api/state -> 401
+PASS  anonymous /api/state 401  status=401 want=401 code=UNAUTHORIZED details={} trace=65d695fc63c7
+api anon GET /api/instances -> 401
+PASS  anonymous /api/instances 401  status=401 want=401 code=UNAUTHORIZED details={} trace=d5b26686c76a
+api anon GET /api/jobs -> 401
+PASS  anonymous /api/jobs 401  status=401 want=401 code=UNAUTHORIZED details={} trace=10031e0100e8
+api anon GET /workbench/i-000000000000/ -> 401
+PASS  anonymous /workbench 401  status=401 want=401 code=UNAUTHORIZED details={} trace=af125df5f334
+api anon POST /api/auth/logout -> 204
+PASS  anonymous logout 204 (no CSRF required)  status=204 want=204 
+api anon GET /api/auth/me -> 200
+PASS  anonymous me 200  status=200 want=200 
+PASS  anonymous me authenticated=false  authenticated=false
+PASS  anonymous me csrfToken 32hex  len=32
+PASS  anonymous me sets XSRF-TOKEN cookie  set-cookie=XSRF-TOKEN***; Path***; Max-Age***; SameSite***
+api anon GET /api/does-not-exist -> 401
+PASS  anonymous unknown API route 401 (fail-closed auth-first)  status=401 want=401 code=UNAUTHORIZED details={} trace=133b420943b4
+--- phase: initial password / pending / change password ---
+PASS  initial-password file exists (0600)  mode=600
+api login -> 204
+PASS  login with initial password 204  status=204 want=204 
+PASS  login sets JSESSIONID (HttpOnly/SameSite=Lax/Path=/, no Secure)  cookie=JSESSIONID***; Path***; Max-Age***; HttpOnly; SameSite***; Path***; Max-Age***; SameSite***
+PASS  login sets XSRF-TOKEN (readable)  
+api auth GET /api/auth/me -> 200
+PASS  me authenticated=true after login  
+PASS  me initialPasswordPending=true  
+PASS  me csrfToken matches XSRF cookie  csrf_len=32
+api auth GET /api/state -> 403
+PASS  pending: /api/state 403 PASSWORD_CHANGE_REQUIRED  status=403 want=403 code=PASSWORD_CHANGE_REQUIRED details={"endpoint":"/api/auth/password"} trace=548b9c31df57
+api auth GET /workbench/i-000000000000/ -> 403
+PASS  pending: /workbench 403 PASSWORD_CHANGE_REQUIRED  status=403 want=403 code=PASSWORD_CHANGE_REQUIRED details={"endpoint":"/api/auth/password"} trace=2f4559eb0326
+api auth PUT /api/auth/password -> 204
+PASS  change password 204  status=204 want=204 
+PASS  initial-password file removed after change  
+api auth GET /api/auth/me -> 200
+PASS  me initialPasswordPending=false after change  
+api auth GET /api/state -> 200
+PASS  state 200 after password change  status=200 want=200 
+PASS  state JSON has required keys  keys=version,currentInstanceId,instances,runtimes,status,settings,availableVersions,warnings missing=
+--- phase: settings / CSRF / logout / login lockout ---
+api auth GET /api/settings -> 200
+PASS  settings GET 200  status=200 want=200 
+PASS  settings defaults (registry/sshUser)  registry=https://registry.npmjs.org sshUser=root
+api auth PUT /api/settings -> 400
+PASS  settings invalid sshUser 400 VALIDATION  status=400 want=400 code=VALIDATION details={} trace=5b0403ca1ccc
+api auth PUT /api/settings -> 200
+PASS  settings valid sshUser 200  status=200 want=200 
+PASS  settings reflects qauser  sshUser=qauser
+api auth PUT /api/settings -> 200
+PASS  settings restore root 200  status=200 want=200 
+api auth POST /api/instances -> 403
+PASS  write without X-XSRF-TOKEN 403 CSRF_INVALID  status=403 want=403 code=CSRF_INVALID details={} trace=c2234ae6a0a2
+api auth POST /api/instances -> 201
+PASS  write with CSRF 201  status=201 want=201 
+api auth POST /api/auth/logout -> 403
+PASS  logout with session but no CSRF 403 CSRF_INVALID  status=403 want=403 code=CSRF_INVALID details={} trace=3920128bb678
+api auth POST /api/auth/logout -> 204
+PASS  logout with CSRF 204  status=204 want=204 
+api auth GET /api/state -> 401
+PASS  old session invalid after logout 401  status=401 want=401 code=UNAUTHORIZED details={} trace=a04e0711e26b
+api login -> 204
+PASS  login with new password 204  status=204 want=204 
+api auth GET /api/auth/me -> 200
+api auth GET /api/does-not-exist -> 404
+PASS  authenticated unknown API route 404  status=404 want=404 code=NOT_FOUND details={} trace=13a5715ad049
+--- phase: instances CRUD / validation / selection ---
+api auth POST /api/instances -> 201
+PASS  create instance 201  status=201 want=201 
+PASS  created instance fields  id=i-528b117526b7 port=3081 status=未启动
+PASS  instance profiles includes web  profiles=["web"]
+api auth GET /api/instances/i-528b117526b7 -> 200
+PASS  get instance 200  status=200 want=200 
+api auth POST /api/instances -> 400
+PASS  empty name 400 VALIDATION  status=400 want=400 code=VALIDATION details={} trace=75e11d7ecbe1
+api auth POST /api/instances -> 400
+PASS  bad version 400 VALIDATION  status=400 want=400 code=VALIDATION details={} trace=a3f232586026
+api auth POST /api/instances -> 400
+PASS  bad port 400 VALIDATION  status=400 want=400 code=VALIDATION details={} trace=f0e384990f7a
+api auth POST /api/instances -> 409
+PASS  duplicate port 409 CONFLICT_PORT_BUSY  status=409 want=409 code=CONFLICT_PORT_BUSY details={} trace=f1ec979a7cbe
+api auth PUT /api/instances/i-528b117526b7 -> 200
+PASS  update name 200  status=200 want=200 
+PASS  name updated  name=m1-main-renamed
+api auth PUT /api/instances/i-528b117526b7 -> 409
+PASS  update version 409 CONFLICT_UNSUPPORTED_CHANGE  status=409 want=409 code=CONFLICT_UNSUPPORTED_CHANGE details={} trace=50844fdfe90c
+api auth PUT /api/instances/i-528b117526b7 -> 409
+PASS  update profile 409 CONFLICT_UNSUPPORTED_CHANGE  status=409 want=409 code=CONFLICT_UNSUPPORTED_CHANGE details={} trace=d3432f45474f
+api auth PUT /api/instances/i-528b117526b7/selection -> 200
+PASS  select instance 200  status=200 want=200 
+api auth GET /api/state -> 200
+PASS  state currentInstanceId persisted  current=i-528b117526b7
+PASS  state instances includes main  instances_len=2
+PASS  state status READY  status={"code":"READY","message":"就绪"}
+api auth POST /api/instances -> 201
+PASS  create second instance 201  status=201 want=201 
+--- phase: launch prechecks ---
+api auth POST /api/instances/i-528b117526b7/launch -> 409
+PASS  launch without runtime 409 INSTANCE_NOT_READY  status=409 want=409 code=INSTANCE_NOT_READY details={} trace=e90a90b0a261
+api auth POST /api/instances/i-000000000000/launch -> 404
+PASS  launch unknown instance 404 NOT_FOUND  status=404 want=404 code=NOT_FOUND details={} trace=115326acf11c
+api auth POST /api/instances -> 201
+PASS  create portbusy instance 201  status=201 want=201 
+PASS  port listener started for busy test  port=3083
+api auth POST /api/instances/i-5b268be67d7c/launch -> 409
+PASS  launch port busy 409 CONFLICT_PORT_BUSY  status=409 want=409 code=CONFLICT_PORT_BUSY details={} trace=5fadc56a2761
+--- phase: runtime install cancel / real install / probe (Jobs+SSE) ---
+api auth POST /api/runtimes -> 202
+PASS  install runtime 202  status=202 want=202 
+PASS  install(cancel) job view fields  id=j-40f7b3a01dbc type=INSTALL_RUNTIME state=RUNNING
+PASS  install(cancel) job type=INSTALL_RUNTIME  type=INSTALL_RUNTIME
+PASS  job id format j-12hex  id=j-40f7b3a01dbc
+PASS  job view fields complete  state=RUNNING missing=
+api auth POST /api/jobs/j-40f7b3a01dbc/cancel -> 202
+PASS  cancel running install 202  status=202
+job-sse j-40f7b3a01dbc rc=0: job-sse: status=200 content_type=text/event-stream cache_control=no-cache, no-transform
+job-sse: events=5 names=["state","state","log","log","state"] ping=0 terminal=CANCELLED duration_ms=5
+job-sse: failures=[]
+PASS  install cancelled SSE client ok  rc=0 terminal=CANCELLED
+PASS  install cancelled SSE terminal state=CANCELLED  terminal=CANCELLED fails=[]
+PASS  install cancelled SSE ids monotonic  monotonic=true
+PASS  install cancelled SSE event names include state  names=["state","state","log","log","state"]
+api auth GET /api/jobs/j-40f7b3a01dbc -> 200
+PASS  cancelled job GET 200  status=200 want=200 
+PASS  job terminal CANCELLED  state=CANCELLED
+api auth GET /api/runtimes -> 200
+PASS  runtimes list after cancel 200  status=200 want=200 
+PASS  cancelled install left no runtime  len=0
+INFO  cancelled install staging dirs kept for diagnosis: 0 (design allows)
+api auth POST /api/runtimes -> 202
+PASS  real install runtime 202  status=202 want=202 
+PASS  install(real) job view fields  id=j-fef6e4f10410 type=INSTALL_RUNTIME state=RUNNING
+PASS  install(real) job type=INSTALL_RUNTIME  type=INSTALL_RUNTIME
+api auth PUT /api/settings -> 409
+PASS  busy: settings write during install 409 CONFLICT_BUSY  status=409 want=409 code=CONFLICT_BUSY details={} trace=119657b39e65
+api auth GET /api/state -> 200
+PASS  state status RUNNING during job  status={"code":"RUNNING","message":"进行中：安装运行时"}
+job-sse j-fef6e4f10410 rc=0: job-sse: status=200 content_type=text/event-stream cache_control=no-cache, no-transform
+job-sse: events=378 names=["state","state","log","log","log","log","log","log","log","log","log","log"] ping=5 terminal=SUCCEEDED duration_ms=81426
+job-sse: result={"jobId":"j-fef6e4f10410","state":"SUCCEEDED","result":{"version":"0.2.1-rc.3","installed":true,"compatibility":"unverified"}}
+job-sse: failures=[]
+PASS  install job SSE client ok  rc=0 terminal=SUCCEEDED
+PASS  install job SSE terminal state=SUCCEEDED  terminal=SUCCEEDED fails=[]
+PASS  install job SSE ids monotonic  monotonic=true
+PASS  install job SSE event names include state  names=["state","state","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","lo
+PASS  install SSE has log events  names=["state","state","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","log","lo
+PASS  install SSE heartbeat ping observed  pings=5
+PASS  install result version+installed  result=
+PASS  install result compatibility=unverified  compat=unverified
+api auth GET /api/runtimes -> 200
+PASS  runtimes list after install 200  status=200 want=200 
+PASS  runtime installed unverified before probe  body=[{"version":"0.2.1-rc.3","installed":true,"compatibility":"unverified"}]
+PASS  runtime entry file exists  
+INFO  runtime size: 508M
+api auth POST /api/runtimes/0.2.1-rc.3/probe -> 202
+PASS  probe runtime 202  status=202 want=202 
+PASS  probe job view fields  id=j-5620a9bfd4b3 type=PROBE_RUNTIME state=RUNNING
+PASS  probe job type=PROBE_RUNTIME  type=PROBE_RUNTIME
+job-sse j-5620a9bfd4b3 rc=0: job-sse: status=200 content_type=text/event-stream cache_control=no-cache, no-transform
+job-sse: events=7 names=["state","state","log","log","state","state","result"] ping=0 terminal=SUCCEEDED duration_ms=877
+job-sse: result={"jobId":"j-5620a9bfd4b3","state":"SUCCEEDED","result":{"version":"0.2.1-rc.3","compatibility":"verified"}}
+job-sse: failures=[]
+PASS  probe job SSE client ok  rc=0 terminal=SUCCEEDED
+PASS  probe job SSE terminal state=SUCCEEDED  terminal=SUCCEEDED fails=[]
+PASS  probe job SSE ids monotonic  monotonic=true
+PASS  probe job SSE event names include state  names=["state","state","log","log","state","state","result"]
+PASS  probe result compatibility=verified  compat=verified
+api auth GET /api/runtimes -> 200
+PASS  runtimes verified after probe  body=[{"version":"0.2.1-rc.3","installed":true,"compatibility":"verified"}]
+api auth GET /api/jobs -> 200
+PASS  jobs list 200  status=200 want=200 
+PASS  jobs list has recent jobs  len=3
+job-sse j-5620a9bfd4b3 rc=0: job-sse: status=200 content_type=text/event-stream cache_control=no-cache, no-transform
+job-sse: events=7 names=["state","state","log","log","state","state","result"] ping=0 terminal=SUCCEEDED duration_ms=6
+job-sse: result={"jobId":"j-5620a9bfd4b3","state":"SUCCEEDED","result":{"version":"0.2.1-rc.3","compatibility":"verified"}}
+job-sse: failures=[]
+PASS  SSE Last-Event-ID replay on finished job  events=[{"seq":1,"name":"state","atMs":5,"data":{"jobId":"j-5620a9bfd4b3","seq":1,"ts":
+api auth DELETE /api/state -> 405
+PASS  method not allowed 405 METHOD_NOT_ALLOWED  status=405 want=405 code=METHOD_NOT_ALLOWED details={} trace=27db5751f182
+api auth POST /api/instances(file) -> 413
+PASS  oversized JSON body 413 PAYLOAD_TOO_LARGE  status=413 want=413 code=PAYLOAD_TOO_LARGE details={} trace=0cceaa533ed5
+--- phase: launch / workbench proxy / direct-access ---
+api auth POST /api/instances/i-528b117526b7/launch -> 202
+PASS  launch main 202  status=202 want=202 
+PASS  launch job view fields  id=j-2ce71ebd8aac type=LAUNCH_INSTANCE state=RUNNING
+PASS  launch job type=LAUNCH_INSTANCE  type=LAUNCH_INSTANCE
+job-sse j-2ce71ebd8aac rc=0: job-sse: status=200 content_type=text/event-stream cache_control=no-cache, no-transform
+job-sse: events=9 names=["state","state","log","log","log","log","state","state","result"] ping=0 terminal=SUCCEEDED duration_ms=1456
+job-sse: result={"jobId":"j-2ce71ebd8aac","state":"SUCCEEDED","result":{"instanceId":"i-528b117526b7","webUrl":"/workbench/i-528b117526b7/"}}
+job-sse: failures=[]
+PASS  launch job SSE client ok  rc=0 terminal=SUCCEEDED
+PASS  launch job SSE terminal state=SUCCEEDED  terminal=SUCCEEDED fails=[]
+PASS  launch job SSE ids monotonic  monotonic=true
+PASS  launch job SSE event names include state  names=["state","state","log","log","log","log","state","state","result"]
+PASS  launch result instanceId/webUrl  result=
+api auth GET /api/instances/i-528b117526b7 -> 200
+PASS  instance status 运行中  status=运行中
+PASS  DSH port listening  port=3081
+api auth GET /api/instances/i-528b117526b7/web-url -> 200
+PASS  web-url 200  status=200 want=200 
+PASS  web-url returns console path  url=/workbench/i-528b117526b7/
+api auth POST /api/instances/i-528b117526b7/launch -> 409
+PASS  launch already-running instance 409 CONFLICT_BUSY  status=409 want=409 code=CONFLICT_BUSY details={} trace=bd0281fc4a2c
+api auth POST /api/instances/i-c8753e42c911/launch -> 409
+PASS  launch second instance 409 CONFLICT_RUNNING_INSTANCE  status=409 want=409 code=CONFLICT_RUNNING_INSTANCE details={} trace=a359b5650f5e
+api auth PUT /api/instances/i-528b117526b7 -> 409
+PASS  update running port 409 CONFLICT_INSTANCE_RUNNING  status=409 want=409 code=CONFLICT_INSTANCE_RUNNING details={} trace=a25bc8f6089c
+api auth PUT /api/instances/i-528b117526b7 -> 200
+PASS  update name while running 200  status=200 want=200 
+api anon GET /workbench/i-528b117526b7/ -> 401
+PASS  workbench anonymous 401  status=401 want=401 code=UNAUTHORIZED details={} trace=0f1f64368d8e
+api auth GET /workbench/i-528b117526b7/ -> 302
+PASS  workbench logged-in 302  status=302 want=302 
+PASS  workbench 302 carries bootstrap token  location=/workbench/i-528b117526b7/?token=***
+PASS  DSH bootstrap 303 through proxy  status=303
+PASS  DSH Location ./ preserved  location=Location: ./
+PASS  Set-Cookie rewritten Path=/workbench/id  cookie=Set-Cookie: ***
+PASS  Set-Cookie no Domain/Secure  
+PASS  workbench page 200  status=200
+PASS  workbench title DeepSeek Harness  
+PASS  workbench base href=./  
+PASS  workbench static asset 200  asset=assets/index-BXV-oxvX.js status=200
+proxy sse-e2e: status=200 content_type=text/event-stream cache_control=no-store headers_at_ms=7 chunks=2 chunk_times=[7,7]
+first_chunk=": connected\n\ndata: {\"type\":\"graph\",\"graph\":{\"rev\":\"38bbd5f5b7f5\",\"release\":{\"version\":\"0.2.1-rc.3\",\"commit\":\"be72761\"},\"entries\":[{\"id\":\"@deepseek-ai/dsh-api-gateway\",\"url\":\"plugins/??@deepseek-ai/dsh-api-gateway/client.js&rev=e8bef9329476\",\"rev\":\"e8bef9329476\",\"inject\":[\"@deepseek-ai/dsh-typert-registry\",\"@deepseek-ai/dsh-client-connection\"],\"immediately\":true},{\"id\":\"@deepseek-ai/dsh-client-ui-open-in-app\",\"url\":\"plugins/??@deepseek-ai/dsh-client-ui-open-in-app/client.js&rev=a824ae3b7659\",\"rev"
+checks={"status200":true,"eventStream":true,"connectedComment":true,"dataFrame":true} failures=[]
+PASS  workbench SSE streaming through proxy  status=200 content_type=text/event-stream cache_control=no-store headers_at_ms=7 chunks=2 chunk_times=[7,7]
+first_chunk=": connected\n\ndata: {\"type\":\"graph\",\"graph\":{\"rev\":\"38bbd5f5b7f5\",\"release\":{\"version\":\"0.2.1-rc.3\",\"commit\":\"be72761\"},\"entries\":[{\"id\":\"@deepseek-ai/dsh-api-gateway\",\"url\":\"plugins/??@deepseek-ai/dsh-api-gateway/client.js&rev=e8bef9329476\",\"rev\":\"e8bef9329476\",\"inject\":[\"@deepseek-ai/dsh-typert-registry\",\"@deepseek-ai/dsh-client-connection\"],\"immediately\":true},{\"id\":\"@deepseek-ai/dsh-client-ui-open-in-app\",\"url\":\"plugins/??@deepseek-ai/dsh-client-ui-open-in-app/client.js&rev=a824ae3b7659\",\"rev"
+proxy ws-e2e: status=101 upgraded=true subprotocol=(none) cookie_sent=true
+frame opcode=1 bytes=77 text="{\"type\":\"open\",\"streamId\":\"e2e-1\",\"endpoint\":\"$events\",\"payload\":{\"args\":{}}}"
+frame opcode=10 bytes=8
+frame opcode=1 bytes=133 text="{\"type\":\"item\",\"streamId\":\"e2e-1\",\"value\":{\"type\":\"ready\",\"clientId\":\"0e07d401-04a9-4bd5-aefb-78732160a0c7\",\"host\":{\"home\":\"/root\"}}}"
+frame opcode=8 bytes=2
+PASS  workbench WS 101 through proxy  status=101
+PASS  workbench WS ready frame through proxy  
+PASS  workbench WS close 1000 through proxy  
+api auth GET /api/instances/i-528b117526b7/direct-access -> 200
+PASS  direct-access running 200  status=200 want=200 
+PASS  direct-access ready=true/port  ready=true port=3081
+PASS  direct-access tunnelCommand  cmd=ssh -L 3081:127.0.0.1:3081 root@127.0.0.1
+PASS  direct-access sshHost from Host  sshHost=127.0.0.1
+PASS  direct-access sshUser from settings  sshUser=root
+PASS  direct-access directUrl has token (masked in log)  directUrl=http://127.0.0.1:3081/?token=***
+PASS  direct-access Cache-Control no-store  value=no-store
+api anon GET /api/instances/i-528b117526b7/direct-access -> 401
+PASS  direct-access anonymous 401  status=401 want=401 code=UNAUTHORIZED details={} trace=841176be3387
+api auth GET /api/instances/i-000000000000/direct-access -> 404
+PASS  direct-access unknown 404  status=404 want=404 code=NOT_FOUND details={} trace=42f55e04b0a7
+--- phase: logs/tail / stop / delete / runtime protection / restart ---
+api auth GET /api/logs/tail?lines=50 -> 200
+PASS  logs/tail 200  status=200 want=200 
+PASS  logs/tail returns sanitized lines  lines=50
+PASS  logs/tail has no raw token/cookie  
+api auth GET /api/logs/tail?lines=0 -> 400
+PASS  logs/tail lines=0 400 VALIDATION  status=400 want=400 code=VALIDATION details={} trace=50c4ec57329d
+api auth GET /api/logs/tail?lines=abc -> 400
+PASS  logs/tail lines=abc 400 VALIDATION  status=400 want=400 code=VALIDATION details={} trace=14d35a18a7e6
+api auth GET /api/logs/tail?lines=99999 -> 400
+PASS  logs/tail lines=99999 400 VALIDATION  status=400 want=400 code=VALIDATION details={} trace=01758315ac7b
+api auth POST /api/instances/i-528b117526b7/stop -> 200
+PASS  stop instance 200  status=200 want=200 
+PASS  stopped status 未启动  status=未启动
+PASS  DSH port released after stop  
+PASS  no DSH process left after stop  count=0
+api auth GET /api/instances/i-528b117526b7/direct-access -> 200
+PASS  direct-access stopped 200  status=200 want=200 
+PASS  direct-access stopped ready=false  ready=false note=实例未运行，请先启动实例。
+api auth GET /api/instances/i-528b117526b7/web-url -> 409
+PASS  web-url stopped 409 INSTANCE_NOT_READY  status=409 want=409 code=INSTANCE_NOT_READY details={} trace=017f16b6979f
+api auth GET /workbench/i-528b117526b7/ -> 409
+PASS  workbench stopped 409 INSTANCE_NOT_READY  status=409 body={"code":"INSTANCE_NOT_READY","message":"实例未运行，请先启动实例。"}
+api auth DELETE /api/instances/i-528b117526b7 -> 200
+PASS  delete running-stopped instance 200  status=200 want=200 
+PASS  delete returns non-empty trashedPath in trash  trashed=/tmp/pcl-dsh-go-test/m1-data/trash/instance-i-528b117526b7-1792826598296
+PASS  trashed instance dir exists  path=/tmp/pcl-dsh-go-test/m1-data/trash/instance-i-528b117526b7-1792826598296
+api auth GET /api/instances/i-528b117526b7 -> 404
+PASS  deleted instance GET 404  status=404 want=404 code=NOT_FOUND details={} trace=ff2772689b1f
+api auth DELETE /api/instances/i-690b5e71e583 -> 200
+PASS  delete never-started instance 200  status=200 want=200 
+PASS  never-started delete non-empty trashedPath (task-22)  trashed=/tmp/pcl-dsh-go-test/m1-data/trash/instance-i-690b5e71e583-1792826598638
+api auth DELETE /api/instances/i-c8753e42c911 -> 200
+PASS  delete other instance 200  status=200 want=200 
+api auth DELETE /api/instances/i-5b268be67d7c -> 200
+PASS  delete portbusy instance 200  status=200 want=200 
+api auth POST /api/instances -> 201
+PASS  create runtime-referencing instance 201  status=201 want=201 
+api auth DELETE /api/runtimes/0.2.1-rc.3 -> 409
+PASS  delete referenced runtime 409 CONFLICT_IN_USE  status=409 want=409 code=CONFLICT_IN_USE details={} trace=b9649a6bccc6
+api auth DELETE /api/instances/i-093de60d9c62 -> 200
+PASS  delete reference instance 200  status=200 want=200 
+api auth DELETE /api/runtimes/0.2.1-rc.3 -> 200
+PASS  delete unreferenced runtime 200  status=200 want=200 
+PASS  runtime delete returns trash path  trashed=/tmp/pcl-dsh-go-test/m1-data/trash/runtime-0.2.1-rc.3-1792826599110
+api auth GET /api/runtimes -> 200
+PASS  runtime list empty after delete  len=0
+api auth DELETE /api/runtimes/0.2.1-rc.3 -> 404
+PASS  delete missing runtime 404 NOT_FOUND  status=404 want=404 code=NOT_FOUND details={} trace=422409928072
+api auth POST /api/instances -> 201
+PASS  create persistence instance 201  status=201 want=201 
+api auth PUT /api/instances/i-b22f4fa0fd8b/selection -> 200
+PASS  select persistence instance 200  status=200 want=200 
+api auth GET /api/state -> 200
+PASS  selection before restart  current=i-b22f4fa0fd8b
+PASS  manager port 18080 released  
+PASS  manager port released before restart  
+manager start pid=45032 data-root=/tmp/pcl-dsh-go-test/m1-data port=18080
+health: {"status":"UP","version":"0.2.0-m1","uptimeSeconds":0}
+PASS  manager /api/health  
+api auth GET /api/state -> 401
+PASS  old session invalid after restart 401  status=401 want=401 code=UNAUTHORIZED details={} trace=e9f8e0054039
+api login -> 204
+PASS  login after restart with new password 204  status=204 want=204 
+api auth GET /api/auth/me -> 200
+api auth GET /api/state -> 200
+PASS  state after restart 200  status=200 want=200 
+PASS  selection persisted across restart  current=i-b22f4fa0fd8b
+api auth GET /api/jobs -> 200
+PASS  job history empty after restart (in-memory design)  len=0
+api auth DELETE /api/instances/i-b22f4fa0fd8b -> 200
+PASS  delete persistence instance 200  status=200 want=200 
+api auth GET /api/instances/i-000000000000 -> 404
+PASS  error body four fields (404 NOT_FOUND)  status=404 want=404 code=NOT_FOUND details={} trace=56fecb44b903
+--- phase: login lockout (last; per-IP limiter) ---
+api anon GET /api/state -> 401
+PASS  lockout phase anonymous precheck 401  status=401 want=401 code=UNAUTHORIZED details={} trace=cf233b1f0847
+api anon-login -> 401
+api anon-login -> 401
+api anon-login -> 401
+api anon-login -> 401
+api anon-login -> 423
+PASS  login lockout 423 LOGIN_LOCKED  attempt=5 details={"retryAfterSeconds":60}
+api anon-login -> 423
+PASS  correct password while locked 423 LOGIN_LOCKED  status=423 want=423 code=LOGIN_LOCKED details={"retryAfterSeconds":60} trace=1caf35a5ed91
+INFO  note: per-IP limiter intentionally left locked; this phase runs last and cleanup stops the manager
+--- phase: permissions / secrets / Windows DSH / reference repo ---
+PASS  data-root mode 0700  mode=700
+PASS  config json files 0600  files=3 non600=0
+PASS  initial-password absent after change  
+PASS  logs/evidence no raw token/cookie  matches=0
+PASS  passwords never appear in logs/evidence  matches=0
+PASS  manager logs ERROR count 0  errors=0
+INFO  install staging dirs kept (cancelled install diagnosis allowed): 0
+PASS  manager port 18080 released  
+PASS  manager port released at end  
+PASS  DSH port released at end  
+PASS  no DSH process at end  count=0
+PASS  Windows DSH program tree unchanged (read-only hash)  before=d21dbbc5855f4bfd... after=d21dbbc5855f4bfd...
+INFO  Windows user .dsh differs due to the running Windows DSH's own writes (read-only traversal by acceptance)
+PASS  reference repo unchanged (baseline git status hash)  before=88b665dc9e72fcd2... after=88b665dc9e72fcd2...
+
+=== RESULT ===
+checks_passed=209 checks_failed=0 scenario=/tmp/pcl-dsh-go-test/m1-scenario-20261024-152121
+RESULT=PASS
+EXIT_CODE=0 scenario=/tmp/pcl-dsh-go-test/m1-scenario-20261024-152121
