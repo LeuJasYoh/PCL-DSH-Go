@@ -10,20 +10,60 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"sort"
+	"strings"
 )
 
 // m0CompatibilityLabel is the M0 compatibility string reported for installed
 // runtimes until the M1 compatibility matrix lands.
 const m0CompatibilityLabel = "verified"
 
-// pnpmWorkspaceYAML is written verbatim into the staging directory
-// (docs/DSH_INTEGRATION.md 3.1). It must not be reformatted.
+// pnpmWorkspaceYAML is the base block written verbatim into the staging
+// directory (docs/DSH_INTEGRATION.md 3.1); it must not be reformatted.
+// Release-cohort overrides are appended after it by
+// pnpmWorkspaceYAMLWithOverrides.
 const pnpmWorkspaceYAML = `autoInstallPeers: true
 nodeLinker: hoisted
 resolutionMode: time-based
 strictPeerDependencies: false
 dangerouslyAllowAllBuilds: true
 `
+
+// pnpmWorkspaceYAMLWithOverrides renders the staging pnpm-workspace.yaml.
+//
+// pnpm 11 no longer reads package.json "pnpm.overrides"; its settings moved to
+// pnpm-workspace.yaml. The cohort is therefore written to both places: the
+// workspace file is authoritative for pnpm 11, the package.json copy keeps
+// older pnpm versions working.
+//
+// Package names and versions are YAML single-quoted (sorted by name, which is
+// deterministic), so arbitrary npm scoped names cannot break the document.
+func pnpmWorkspaceYAMLWithOverrides(overrides map[string]string) ([]byte, error) {
+	var builder strings.Builder
+	builder.WriteString(pnpmWorkspaceYAML)
+	if len(overrides) == 0 {
+		return []byte(builder.String()), nil
+	}
+	names := make([]string, 0, len(overrides))
+	for name := range overrides {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	builder.WriteString("overrides:\n")
+	for _, name := range names {
+		version := overrides[name]
+		if !validPackageName(name) {
+			return nil, fmt.Errorf("发行批次包含无效包名 %q", name)
+		}
+		if !IsVersion(version) || !versionPathPattern.MatchString(version) {
+			return nil, fmt.Errorf("发行批次包含无效版本 %q（包 %s）", version, name)
+		}
+		// Single quotes only need doubling for embedded quotes; npm names and
+		// SemVer versions cannot contain a single quote, but escape anyway.
+		fmt.Fprintf(&builder, "  '%s': '%s'\n", strings.ReplaceAll(name, "'", "''"), strings.ReplaceAll(version, "'", "''"))
+	}
+	return []byte(builder.String()), nil
+}
 
 // installPackageJSON is the staged package.json (docs/DSH_INTEGRATION.md 3.1).
 type installPackageJSON struct {
@@ -123,7 +163,11 @@ func (s *Service) Install(ctx context.Context, version, registry string, logf fu
 	if err := os.WriteFile(filepath.Join(staging, "package.json"), manifestData, 0o600); err != nil {
 		return InstallResult{}, fmt.Errorf("写入 package.json 失败：%w", err)
 	}
-	if err := os.WriteFile(filepath.Join(staging, "pnpm-workspace.yaml"), []byte(pnpmWorkspaceYAML), 0o600); err != nil {
+	workspaceData, err := pnpmWorkspaceYAMLWithOverrides(overrides)
+	if err != nil {
+		return InstallResult{}, fmt.Errorf("生成 pnpm-workspace.yaml 失败：%w", err)
+	}
+	if err := os.WriteFile(filepath.Join(staging, "pnpm-workspace.yaml"), workspaceData, 0o600); err != nil {
 		return InstallResult{}, fmt.Errorf("写入 pnpm-workspace.yaml 失败：%w", err)
 	}
 
@@ -144,6 +188,7 @@ func (s *Service) Install(ctx context.Context, version, registry string, logf fu
 		Registry:       base,
 		Proxy:          s.currentProxy(),
 		Home:           installHome,
+		HostPath:       os.Getenv("PATH"),
 	})
 	if err != nil {
 		return InstallResult{}, fmt.Errorf("构建安装环境失败：%w", err)

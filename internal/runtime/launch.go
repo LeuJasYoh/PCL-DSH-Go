@@ -67,6 +67,7 @@ func (s *Service) BuildLaunchSpec(instance store.Instance, dirs config.Dirs, tl 
 		AgentsHome:     agentsHome,
 		Registry:       registry,
 		Proxy:          proxy,
+		HostPath:       os.Getenv("PATH"),
 	})
 	if err != nil {
 		return process.LaunchSpec{}, fmt.Errorf("构建启动环境失败：%w", err)

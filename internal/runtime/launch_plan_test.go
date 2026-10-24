@@ -277,6 +277,61 @@ func TestBuildLaunchEnvironmentValidation(t *testing.T) {
 	}
 }
 
+func TestBuildLaunchPathHostPath(t *testing.T) {
+	t.Parallel()
+	nodePath := filepath.Join("opt", "node", "bin", "node")
+	basePath := strings.Join([]string{
+		filepath.Dir(nodePath),
+		filepath.Join("data", "tools", "shims"),
+		filepath.Join("tools", "pnpm"),
+	}, string(os.PathListSeparator))
+	if got := buildLaunchPath(nodePath, filepath.Join("data", "tools", "shims"), filepath.Join("tools", "pnpm"), ""); got != basePath {
+		t.Fatalf("buildLaunchPath(no host) = %q, want %q", got, basePath)
+	}
+	if strings.HasSuffix(basePath, string(os.PathListSeparator)) {
+		t.Fatalf("PATH must not end with a separator when HostPath is empty: %q", basePath)
+	}
+	// docs/DSH_INTEGRATION 1.2: <node-bin>:<shims>:<pnpm>:<原 PATH>.
+	hostPath := strings.Join([]string{"/usr/local/bin", "/usr/bin", "/bin"}, string(os.PathListSeparator))
+	want := basePath + string(os.PathListSeparator) + hostPath
+	if got := buildLaunchPath(nodePath, filepath.Join("data", "tools", "shims"), filepath.Join("tools", "pnpm"), hostPath); got != want {
+		t.Fatalf("buildLaunchPath(with host) = %q, want %q", got, want)
+	}
+	if got := buildLaunchPath(nodePath, filepath.Join("data", "tools", "shims"), filepath.Join("tools", "pnpm"), "   "); got != basePath {
+		t.Fatalf("buildLaunchPath(blank host) = %q, want %q", got, basePath)
+	}
+}
+
+func TestBuildLaunchEnvironmentHostPath(t *testing.T) {
+	t.Parallel()
+	root := t.TempDir()
+	hostPath := strings.Join([]string{"/usr/local/sbin", "/usr/local/bin", "/usr/sbin", "/usr/bin", "/bin"}, string(os.PathListSeparator))
+	options := launchEnvOptions{
+		DataRoot:       root,
+		NodePath:       filepath.Join(root, "tools", "node", "bin", "node"),
+		PnpmHome:       filepath.Join(root, "tools", "pnpm"),
+		ShimsDirectory: filepath.Join(root, "tools", "shims"),
+		DSHHome:        filepath.Join(root, "dsh-home"),
+		AgentsHome:     filepath.Join(root, "agents-home"),
+		Registry:       "https://registry.npmjs.org",
+		HostPath:       hostPath,
+	}
+	environment, err := buildLaunchEnvironment(options)
+	if err != nil {
+		t.Fatalf("buildLaunchEnvironment() error = %v", err)
+	}
+	values := environmentMap(t, environment)
+	wantPath := strings.Join([]string{
+		filepath.Dir(options.NodePath),
+		options.ShimsDirectory,
+		options.PnpmHome,
+		hostPath,
+	}, string(os.PathListSeparator))
+	if got := values["PATH"]; got != wantPath {
+		t.Fatalf("PATH = %q, want %q", got, wantPath)
+	}
+}
+
 func TestDerivePnpmHome(t *testing.T) {
 	t.Parallel()
 	if got, want := derivePnpmHome(filepath.Join("opt", "tools"), "/data"), filepath.Join("opt", "tools", "pnpm"); got != want {

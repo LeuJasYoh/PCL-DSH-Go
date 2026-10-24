@@ -127,6 +127,8 @@ func TestBuildLaunchSpecSuccess(t *testing.T) {
 			filepath.Dir(fixture.toolchain.NodePath),
 			filepath.Join(fixture.dirs.DataRoot, "tools", "shims"),
 			filepath.Join(fixture.dirs.DataRoot, "tools", "pnpm"),
+			// docs/DSH_INTEGRATION 1.2: the manager PATH is appended last.
+			os.Getenv("PATH"),
 		}, string(os.PathListSeparator)),
 	}
 	for key, want := range expected {

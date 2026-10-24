@@ -37,6 +37,10 @@ type launchEnvOptions struct {
 	// Home is only set for install/restore helpers; DSH launches leave it unset
 	// because DSH_HOME/DSH_AGENTS_HOME fully scope the instance.
 	Home string
+	// HostPath is the manager process PATH (os.Getenv("PATH")). It is appended
+	// to the constructed PATH as required by docs/DSH_INTEGRATION.md 1.2:
+	// <node-bin>:<data>/tools/shims:<pnpm-home>:<原 PATH>.
+	HostPath string
 }
 
 // buildLaunchEnvironment builds the whitelisted environment for a DSH child
@@ -76,7 +80,7 @@ func buildLaunchEnvironment(options launchEnvOptions) ([]string, error) {
 		"PNPM_CONFIG_AUTO_INSTALL_PEERS=true",
 		"XDG_CACHE_HOME="+cacheDirectory,
 		"DSH_TELEMETRY_MODE=DISABLED",
-		"PATH="+buildLaunchPath(options.NodePath, options.ShimsDirectory, options.PnpmHome),
+		"PATH="+buildLaunchPath(options.NodePath, options.ShimsDirectory, options.PnpmHome, options.HostPath),
 	)
 	if options.Proxy != "" {
 		environment = append(environment,
@@ -91,8 +95,9 @@ func buildLaunchEnvironment(options launchEnvOptions) ([]string, error) {
 }
 
 // buildLaunchPath composes PATH from the bundled node directory, the pnpm shim
-// directory and PNPM_HOME. No host PATH entry is inherited.
-func buildLaunchPath(nodePath, shimsDirectory, pnpmHome string) string {
+// directory, PNPM_HOME and finally the manager's own PATH (docs/DSH_INTEGRATION
+// 1.2). An empty hostPath leaves no trailing separator.
+func buildLaunchPath(nodePath, shimsDirectory, pnpmHome, hostPath string) string {
 	entries := []string{filepath.Dir(nodePath)}
 	for _, entry := range []string{shimsDirectory, pnpmHome} {
 		if entry == "" {
@@ -109,7 +114,11 @@ func buildLaunchPath(nodePath, shimsDirectory, pnpmHome string) string {
 			entries = append(entries, entry)
 		}
 	}
-	return strings.Join(entries, string(os.PathListSeparator))
+	path := strings.Join(entries, string(os.PathListSeparator))
+	if trimmedHostPath := strings.TrimSpace(hostPath); trimmedHostPath != "" {
+		path += string(os.PathListSeparator) + trimmedHostPath
+	}
+	return path
 }
 
 // validateProxy accepts an empty proxy or a plain http(s) URL without

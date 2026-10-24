@@ -119,13 +119,21 @@ func TestInstallSuccess(t *testing.T) {
 		}
 	}
 
-	// pnpm-workspace.yaml is written verbatim.
+	// pnpm-workspace.yaml starts with the verbatim base block and carries the
+	// release-cohort overrides (pnpm 11 reads overrides from the workspace file).
+	// After install pnpm may append its own keys (e.g. minimumReleaseAgeExclude),
+	// so only the prefix and the generated overrides block are asserted.
 	workspaceData, err := os.ReadFile(filepath.Join(target, "pnpm-workspace.yaml"))
 	if err != nil {
 		t.Fatalf("read pnpm-workspace.yaml: %v", err)
 	}
-	if string(workspaceData) != pnpmWorkspaceYAML {
-		t.Fatalf("pnpm-workspace.yaml = %q, want %q", string(workspaceData), pnpmWorkspaceYAML)
+	workspaceText := string(workspaceData)
+	if !strings.HasPrefix(workspaceText, pnpmWorkspaceYAML) {
+		t.Fatalf("pnpm-workspace.yaml does not start with the verbatim base block:\n%s", workspaceText)
+	}
+	overridesBlock := "overrides:\n  '@deepseek-ai/dsh-base': '0.2.1-rc.3'\n  '@deepseek-ai/dsh-web': '0.2.1-rc.3'\n"
+	if !strings.Contains(workspaceText, overridesBlock) {
+		t.Fatalf("pnpm-workspace.yaml overrides block missing or unsorted:\n%s", workspaceText)
 	}
 
 	// The fake pnpm recorded the exact argv/environment of the install.
@@ -162,6 +170,7 @@ func TestInstallSuccess(t *testing.T) {
 		filepath.Dir(toolchain.NodePath),
 		filepath.Join(dataRoot, "tools", "shims"),
 		filepath.Join(dataRoot, "tools", "pnpm"),
+		os.Getenv("PATH"),
 	}, string(os.PathListSeparator))
 	if record.Env["PATH"] != wantPath {
 		t.Fatalf("pnpm PATH = %q, want %q", record.Env["PATH"], wantPath)
@@ -206,6 +215,45 @@ func TestInstallSuccess(t *testing.T) {
 	}
 	if !reused.Reused || reused.EntryPath != result.EntryPath {
 		t.Fatalf("reused Install() result = %+v", reused)
+	}
+}
+
+func TestPnpmWorkspaceYAMLWithOverrides(t *testing.T) {
+	t.Parallel()
+	empty, err := pnpmWorkspaceYAMLWithOverrides(nil)
+	if err != nil {
+		t.Fatalf("pnpmWorkspaceYAMLWithOverrides(nil) error = %v", err)
+	}
+	if string(empty) != pnpmWorkspaceYAML {
+		t.Fatalf("empty overrides changed the base block: %q", string(empty))
+	}
+	overrides := map[string]string{
+		"@deepseek-ai/dsh-web":  "0.2.1-rc.3",
+		"@deepseek-ai/dsh-base": "0.2.1-rc.3",
+		"@deepseek-ai/dsh-z":    "0.2.1-rc.3",
+	}
+	rendered, err := pnpmWorkspaceYAMLWithOverrides(overrides)
+	if err != nil {
+		t.Fatalf("pnpmWorkspaceYAMLWithOverrides() error = %v", err)
+	}
+	want := pnpmWorkspaceYAML +
+		"overrides:\n" +
+		"  '@deepseek-ai/dsh-base': '0.2.1-rc.3'\n" +
+		"  '@deepseek-ai/dsh-web': '0.2.1-rc.3'\n" +
+		"  '@deepseek-ai/dsh-z': '0.2.1-rc.3'\n"
+	if string(rendered) != want {
+		t.Fatalf("workspace yaml = %q, want %q", string(rendered), want)
+	}
+	// YAML-safe quoting: the scoped name starts with '@', which is not a legal
+	// plain scalar, so both key and value must be single quoted.
+	if !strings.Contains(string(rendered), "  '@deepseek-ai/dsh-base': '0.2.1-rc.3'") {
+		t.Fatalf("workspace yaml does not quote the overrides safely:\n%s", rendered)
+	}
+	if _, err := pnpmWorkspaceYAMLWithOverrides(map[string]string{"bad name": "0.2.1-rc.3"}); err == nil {
+		t.Fatalf("invalid package name was accepted")
+	}
+	if _, err := pnpmWorkspaceYAMLWithOverrides(map[string]string{"@deepseek-ai/dsh-x": "latest"}); err == nil {
+		t.Fatalf("invalid version was accepted")
 	}
 }
 
