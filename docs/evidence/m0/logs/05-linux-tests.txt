@@ -3,8 +3,6 @@ go_version=go version go1.27.3 windows/amd64
 repo=/mnt/d/Projects/DSHL/PCL-DSH-Go
 out=/mnt/d/Projects/DSHL/PCL-DSH-Go/bin/tests
 === build github.com/LeuJasYoh/PCL-DSH-Go/internal/app -> bin/tests/app.test
-?   	github.com/LeuJasYoh/PCL-DSH-Go/internal/app	[no test files]
-  (no test files)
 === build github.com/LeuJasYoh/PCL-DSH-Go/internal/config -> bin/tests/config.test
 === build github.com/LeuJasYoh/PCL-DSH-Go/internal/logging -> bin/tests/logging.test
 === build github.com/LeuJasYoh/PCL-DSH-Go/internal/process -> bin/tests/process.test
@@ -13,6 +11,14 @@ out=/mnt/d/Projects/DSHL/PCL-DSH-Go/bin/tests
 === build github.com/LeuJasYoh/PCL-DSH-Go/internal/server/proxy -> bin/tests/server_proxy.test
 === build github.com/LeuJasYoh/PCL-DSH-Go/internal/store -> bin/tests/store.test
 === build github.com/LeuJasYoh/PCL-DSH-Go/internal/tools -> bin/tests/tools.test
+
+=== run github.com/LeuJasYoh/PCL-DSH-Go/internal/app
+=== RUN   TestPortInUse
+--- PASS: TestPortInUse (0.08s)
+=== RUN   TestBusyErrorIsConflict
+--- PASS: TestBusyErrorIsConflict (0.00s)
+PASS
+--- PASS github.com/LeuJasYoh/PCL-DSH-Go/internal/app
 
 === run github.com/LeuJasYoh/PCL-DSH-Go/internal/config
 === RUN   TestLoadDefaults
@@ -80,13 +86,13 @@ PASS
 === RUN   TestSensitiveKey
 --- PASS: TestSensitiveKey (0.00s)
 === RUN   TestSetupWritesJSONToFile
-{"time":"2026-10-24T13:51:51.746699402+08:00","level":"INFO","msg":"hello","service":"pcl-dsh-go","version":"0.0.0-test","k":"v"}
+{"time":"2026-10-24T14:14:50.179216629+08:00","level":"INFO","msg":"hello","service":"pcl-dsh-go","version":"0.0.0-test","k":"v"}
 --- PASS: TestSetupWritesJSONToFile (0.00s)
 === RUN   TestSetupLevelFromEnv
-{"time":"2026-10-24T13:51:51.747046438+08:00","level":"WARN","msg":"warn-line","service":"pcl-dsh-go","version":"v"}
+{"time":"2026-10-24T14:14:50.17939999+08:00","level":"WARN","msg":"warn-line","service":"pcl-dsh-go","version":"v"}
 --- PASS: TestSetupLevelFromEnv (0.00s)
 === RUN   TestSetupInvalidLevelFallsBackToInfo
-{"time":"2026-10-24T13:51:51.747539867+08:00","level":"INFO","msg":"info-line","service":"pcl-dsh-go","version":"v"}
+{"time":"2026-10-24T14:14:50.179556762+08:00","level":"INFO","msg":"info-line","service":"pcl-dsh-go","version":"v"}
 --- PASS: TestSetupInvalidLevelFallsBackToInfo (0.00s)
 === RUN   TestSetupRejectsEmptyDir
 --- PASS: TestSetupRejectsEmptyDir (0.00s)
@@ -157,29 +163,29 @@ PASS
 === RUN   TestParseProcStatLinux
 --- PASS: TestParseProcStatLinux (0.00s)
 === RUN   TestLinuxLaunchReadyAndStop
---- PASS: TestLinuxLaunchReadyAndStop (0.29s)
+--- PASS: TestLinuxLaunchReadyAndStop (0.28s)
 === RUN   TestLinuxReadinessAccepts401WithBootstrap
 --- PASS: TestLinuxReadinessAccepts401WithBootstrap (0.21s)
 === RUN   TestLinuxReadinessRetries404
---- PASS: TestLinuxReadinessRetries404 (0.43s)
+--- PASS: TestLinuxReadinessRetries404 (0.41s)
 === RUN   TestLinuxRejectsNonLoopbackToken
 --- PASS: TestLinuxRejectsNonLoopbackToken (1.23s)
 === RUN   TestLinuxExitedBeforeReady
 --- PASS: TestLinuxExitedBeforeReady (0.02s)
 === RUN   TestLinuxPortBusy
---- PASS: TestLinuxPortBusy (0.02s)
+--- PASS: TestLinuxPortBusy (0.01s)
 === RUN   TestLinuxAlreadyRunning
 --- PASS: TestLinuxAlreadyRunning (0.22s)
 === RUN   TestLinuxStopKillsDescendantsButNotOthers
---- PASS: TestLinuxStopKillsDescendantsButNotOthers (0.22s)
+--- PASS: TestLinuxStopKillsDescendantsButNotOthers (0.21s)
 === RUN   TestLinuxStopEscalatesToSIGKILL
---- PASS: TestLinuxStopEscalatesToSIGKILL (3.22s)
+--- PASS: TestLinuxStopEscalatesToSIGKILL (3.21s)
 === RUN   TestLinuxSelfExitState
---- PASS: TestLinuxSelfExitState (0.93s)
+--- PASS: TestLinuxSelfExitState (0.94s)
 === RUN   TestLinuxExitedProcessWithLiveDescendant
---- PASS: TestLinuxExitedProcessWithLiveDescendant (0.52s)
+--- PASS: TestLinuxExitedProcessWithLiveDescendant (0.57s)
 === RUN   TestLinuxStopAll
---- PASS: TestLinuxStopAll (0.44s)
+--- PASS: TestLinuxStopAll (0.43s)
 === RUN   TestStripANSI
 --- PASS: TestStripANSI (0.00s)
 === RUN   TestParseBootstrapURI
@@ -234,6 +240,8 @@ PASS
 === PAUSE TestCohortCachePathUsesRegistryHash
 === RUN   TestInstallSuccess
 === PAUSE TestInstallSuccess
+=== RUN   TestPnpmWorkspaceYAMLWithOverrides
+=== PAUSE TestPnpmWorkspaceYAMLWithOverrides
 === RUN   TestInstallPnpmFailureKeepsStaging
 === PAUSE TestInstallPnpmFailureKeepsStaging
 === RUN   TestInstallValidationFailures
@@ -262,10 +270,33 @@ PASS
 === PAUSE TestBuildLaunchEnvironmentProxyAndInstallHome
 === RUN   TestBuildLaunchEnvironmentValidation
 === PAUSE TestBuildLaunchEnvironmentValidation
+=== RUN   TestBuildLaunchPathHostPath
+=== PAUSE TestBuildLaunchPathHostPath
+=== RUN   TestBuildLaunchEnvironmentHostPath
+=== PAUSE TestBuildLaunchEnvironmentHostPath
 === RUN   TestDerivePnpmHome
 === PAUSE TestDerivePnpmHome
 === RUN   TestValidateProxy
 === PAUSE TestValidateProxy
+=== RUN   TestBuildLaunchSpecSuccess
+=== PAUSE TestBuildLaunchSpecSuccess
+=== RUN   TestBuildLaunchSpecProxy
+=== PAUSE TestBuildLaunchSpecProxy
+=== RUN   TestBuildLaunchSpecDefaultRegistryAndWebAlias
+=== PAUSE TestBuildLaunchSpecDefaultRegistryAndWebAlias
+=== RUN   TestBuildLaunchSpecIgnoresUnverifiedEntryPath
+=== PAUSE TestBuildLaunchSpecIgnoresUnverifiedEntryPath
+=== RUN   TestBuildLaunchSpecCustomProfile
+=== PAUSE TestBuildLaunchSpecCustomProfile
+=== RUN   TestBuildLaunchSpecFailClosed
+=== PAUSE TestBuildLaunchSpecFailClosed
+=== RUN   TestBuildLaunchSpecInvalidProxy
+=== PAUSE TestBuildLaunchSpecInvalidProxy
+=== RUN   TestBuildLaunchSpecIncompleteDirs
+=== PAUSE TestBuildLaunchSpecIncompleteDirs
+=== RUN   TestProbeRealDSHRuntime
+    probe_real_linux_test.go:36: set PCL_DSH_REAL_NODE and PCL_DSH_REAL_RUNTIME to probe a real DSH runtime
+--- SKIP: TestProbeRealDSHRuntime (0.00s)
 === RUN   TestProbeCapabilitiesSuccess
 === PAUSE TestProbeCapabilitiesSuccess
 === RUN   TestProbeCapabilitiesMinimalHelp
@@ -336,120 +367,76 @@ PASS
 === PAUSE TestSortVersionsDescending
 === RUN   TestCompareNumericIdentifier
 === PAUSE TestCompareNumericIdentifier
+=== RUN   TestValidateExecutable
+=== PAUSE TestValidateExecutable
+=== RUN   TestValidateExecutableSymlinkEscape
+=== PAUSE TestValidateExecutableSymlinkEscape
+=== RUN   TestInstalledVersions
+=== PAUSE TestInstalledVersions
+=== RUN   TestServiceProbeCachingAndInvalidation
+=== PAUSE TestServiceProbeCachingAndInvalidation
+=== RUN   TestServiceProbeCompatibilityChangeInvalidatesCache
+=== PAUSE TestServiceProbeCompatibilityChangeInvalidatesCache
+=== RUN   TestServiceProbeNotInstalled
+=== PAUSE TestServiceProbeNotInstalled
+=== RUN   TestServiceAvailableVersions
+=== PAUSE TestServiceAvailableVersions
+=== RUN   TestServiceNewNormalizesDataRoot
+=== PAUSE TestServiceNewNormalizesDataRoot
 === CONT  TestCohortDependencies
-=== CONT  TestProbeCapabilitiesAppHelpFailureIsTolerated
-=== CONT  TestInstallRejectsExistingUnvalidatedTarget
-=== CONT  TestReleaseCohortInputValidation
+=== CONT  TestProbeCapabilitiesMinimalHelp
+=== CONT  TestRegistryRedirectsAreNotFollowed
+=== CONT  TestAssembleLaunchCommandWebAlias
 --- PASS: TestCohortDependencies (0.00s)
-=== CONT  TestReleaseCohortManifestMismatch
-=== CONT  TestAssembleLaunchCommandCustomProfileOrder
-=== CONT  TestDerivePnpmHome
---- PASS: TestAssembleLaunchCommandCustomProfileOrder (0.00s)
-=== CONT  TestBuildLaunchEnvironmentValidation
---- PASS: TestDerivePnpmHome (0.00s)
-=== CONT  TestValidateProxy
-=== RUN   TestBuildLaunchEnvironmentValidation/data_root
-=== PAUSE TestBuildLaunchEnvironmentValidation/data_root
-=== CONT  TestProbeCapabilitiesSuccess
-=== RUN   TestBuildLaunchEnvironmentValidation/node_path
-=== PAUSE TestBuildLaunchEnvironmentValidation/node_path
-=== CONT  TestBuildLaunchEnvironmentProxyAndInstallHome
-=== CONT  TestBuildLaunchEnvironmentWhitelist
-=== CONT  TestCohortCachePathUsesRegistryHash
---- PASS: TestInstallRejectsExistingUnvalidatedTarget (0.00s)
-=== CONT  TestCohortCacheMatchesRealRC3Fixture
---- PASS: TestCohortCachePathUsesRegistryHash (0.00s)
---- PASS: TestBuildLaunchEnvironmentProxyAndInstallHome (0.00s)
-=== CONT  TestReleaseCohortRegistryFailure
-=== CONT  TestAssembleLaunchCommandFailClosedWithoutPort
---- PASS: TestBuildLaunchEnvironmentWhitelist (0.00s)
-=== CONT  TestReleaseCohortCacheSaveFailureIsNonFatal
+=== CONT  TestCollectCohortLimit
+=== CONT  TestCollectCohortDeterministicError
 === CONT  TestInstallValidationFailures
---- PASS: TestAssembleLaunchCommandFailClosedWithoutPort (0.00s)
-=== CONT  TestCohortCacheAcceptsISOTimestamp
 === RUN   TestInstallValidationFailures/version_mismatch
+=== CONT  TestSortVersionsDescending
+--- PASS: TestCollectCohortLimit (0.00s)
 === CONT  TestInstallPnpmFailureKeepsStaging
---- PASS: TestReleaseCohortInputValidation (0.00s)
+=== CONT  TestCohortCacheMatchesRealRC3Fixture
+=== RUN   TestSortVersionsDescending/release_candidates
+=== PAUSE TestSortVersionsDescending/release_candidates
+=== CONT  TestInstallEarlyFailureCleansStaging
+=== RUN   TestSortVersionsDescending/build_metadata_tie
+=== CONT  TestReleaseCohortManifestMismatch
 === PAUSE TestInstallValidationFailures/version_mismatch
 === RUN   TestInstallValidationFailures/bin_escapes_package
 === PAUSE TestInstallValidationFailures/bin_escapes_package
-=== CONT  TestAssembleLaunchCommandValidation
-=== CONT  TestAssembleLaunchCommandNoLaunchEntry
-=== RUN   TestAssembleLaunchCommandValidation/node_empty
-=== PAUSE TestAssembleLaunchCommandValidation/node_empty
-=== RUN   TestAssembleLaunchCommandValidation/node_relative
-=== PAUSE TestAssembleLaunchCommandValidation/node_relative
-=== RUN   TestAssembleLaunchCommandValidation/entry_empty
-=== PAUSE TestAssembleLaunchCommandValidation/entry_empty
-=== RUN   TestAssembleLaunchCommandValidation/profile
-=== PAUSE TestAssembleLaunchCommandValidation/profile
---- PASS: TestAssembleLaunchCommandNoLaunchEntry (0.00s)
-=== RUN   TestAssembleLaunchCommandValidation/port_zero
-=== CONT  TestCohortDigest
-=== PAUSE TestAssembleLaunchCommandValidation/port_zero
-=== RUN   TestAssembleLaunchCommandValidation/port_high
---- PASS: TestCohortDigest (0.00s)
-=== CONT  TestCollectCohortLimit
-=== CONT  TestProbeCapabilitiesMinimalHelp
-=== CONT  TestCollectCohortDeterministicError
-=== CONT  TestInstallSuccess
-=== PAUSE TestAssembleLaunchCommandValidation/port_high
-=== RUN   TestBuildLaunchEnvironmentValidation/dsh_home
---- PASS: TestValidateProxy (0.00s)
-=== CONT  TestRegistryResponseBodyLimit
-=== CONT  TestAssembleLaunchCommandWebAlias
-=== PAUSE TestBuildLaunchEnvironmentValidation/dsh_home
-=== RUN   TestBuildLaunchEnvironmentValidation/agents_home
-=== CONT  TestAssembleLaunchCommandProfileAndAppOptions
-=== CONT  TestSortVersionsDescending
-=== RUN   TestSortVersionsDescending/release_candidates
---- PASS: TestCollectCohortDeterministicError (0.00s)
---- PASS: TestCollectCohortLimit (0.00s)
-=== CONT  TestCompareNumericIdentifier
-=== CONT  TestVersionCompareReleaseCandidates
-=== PAUSE TestBuildLaunchEnvironmentValidation/agents_home
---- PASS: TestAssembleLaunchCommandProfileAndAppOptions (0.00s)
-=== CONT  TestVersionCompareSemVerPriorityChain
---- PASS: TestCompareNumericIdentifier (0.00s)
---- PASS: TestVersionCompareReleaseCandidates (0.00s)
-=== RUN   TestBuildLaunchEnvironmentValidation/registry
-=== PAUSE TestBuildLaunchEnvironmentValidation/registry
-=== RUN   TestBuildLaunchEnvironmentValidation/proxy
-=== PAUSE TestBuildLaunchEnvironmentValidation/proxy
-=== RUN   TestBuildLaunchEnvironmentValidation/proxy_userinfo
-=== PAUSE TestBuildLaunchEnvironmentValidation/proxy_userinfo
-=== CONT  TestBuildMetadataIgnoredForPrecedence
---- PASS: TestVersionCompareSemVerPriorityChain (0.00s)
-=== CONT  TestFetchPackageManifestValidation
-=== CONT  TestParseVersion
---- PASS: TestBuildMetadataIgnoredForPrecedence (0.00s)
-=== RUN   TestParseVersion/0.2.1-rc.3
---- PASS: TestFetchPackageManifestValidation (0.00s)
-=== PAUSE TestSortVersionsDescending/release_candidates
-=== PAUSE TestParseVersion/0.2.1-rc.3
-=== RUN   TestSortVersionsDescending/build_metadata_tie
-=== RUN   TestParseVersion/0.2.1-rc.10
-=== CONT  TestFetchPackageManifestMismatch
-=== PAUSE TestParseVersion/0.2.1-rc.10
-=== RUN   TestParseVersion/0.2.1
-=== PAUSE TestParseVersion/0.2.1
-=== CONT  TestFetchPackageManifest
-=== RUN   TestParseVersion/1.0.0-alpha.beta.1
-=== PAUSE TestParseVersion/1.0.0-alpha.beta.1
-=== RUN   TestParseVersion/10.20.30+build.5
+=== CONT  TestReleaseCohortCacheSaveFailureIsNonFatal
 === PAUSE TestSortVersionsDescending/build_metadata_tie
 === RUN   TestSortVersionsDescending/empty
 === PAUSE TestSortVersionsDescending/empty
 === RUN   TestSortVersionsDescending/all_invalid
 === PAUSE TestSortVersionsDescending/all_invalid
+=== CONT  TestVersionCompareSemVerPriorityChain
+=== CONT  TestParseVersion
+=== RUN   TestParseVersion/0.2.1-rc.3
+=== PAUSE TestParseVersion/0.2.1-rc.3
+=== RUN   TestParseVersion/0.2.1-rc.10
+=== PAUSE TestParseVersion/0.2.1-rc.10
+=== CONT  TestReleaseCohortRegistryFailure
+=== CONT  TestCohortCacheAcceptsISOTimestamp
+=== CONT  TestAssembleLaunchCommandProfileAndAppOptions
+=== CONT  TestReleaseCohortExpiredCacheIsRebuilt
+=== CONT  TestReleaseCohortInputValidation
+--- PASS: TestAssembleLaunchCommandWebAlias (0.00s)
+--- PASS: TestVersionCompareSemVerPriorityChain (0.00s)
+--- PASS: TestAssembleLaunchCommandProfileAndAppOptions (0.00s)
+=== RUN   TestParseVersion/0.2.1
+--- PASS: TestCollectCohortDeterministicError (0.00s)
+=== CONT  TestReleaseCohortCorruptOrTamperedCacheIsRebuilt
+=== PAUSE TestParseVersion/0.2.1
+=== RUN   TestParseVersion/1.0.0-alpha.beta.1
+=== PAUSE TestParseVersion/1.0.0-alpha.beta.1
+=== RUN   TestParseVersion/10.20.30+build.5
 === PAUSE TestParseVersion/10.20.30+build.5
---- PASS: TestAssembleLaunchCommandWebAlias (0.01s)
 === RUN   TestParseVersion/0.2.1-rc.3+sha.abc123
+=== CONT  TestBuildMetadataIgnoredForPrecedence
+--- PASS: TestBuildMetadataIgnoredForPrecedence (0.00s)
 === PAUSE TestParseVersion/0.2.1-rc.3+sha.abc123
 === RUN   TestParseVersion/invalid_
-=== CONT  TestNormalizeRegistry
---- PASS: TestNormalizeRegistry (0.00s)
-=== CONT  TestAvailableVersionsCancellation
 === PAUSE TestParseVersion/invalid_
 === RUN   TestParseVersion/invalid_1
 === PAUSE TestParseVersion/invalid_1
@@ -461,7 +448,22 @@ PASS
 === PAUSE TestParseVersion/invalid_v1.2.3
 === RUN   TestParseVersion/invalid_V1.2.3
 === PAUSE TestParseVersion/invalid_V1.2.3
+=== CONT  TestVersionCompareReleaseCandidates
+--- PASS: TestVersionCompareReleaseCandidates (0.00s)
+=== CONT  TestServiceNewNormalizesDataRoot
+=== CONT  TestServiceProbeCachingAndInvalidation
 === RUN   TestParseVersion/invalid_01.2.3
+=== CONT  TestFetchPackageManifestValidation
+--- PASS: TestServiceNewNormalizesDataRoot (0.00s)
+=== CONT  TestServiceAvailableVersions
+--- PASS: TestFetchPackageManifestValidation (0.00s)
+=== CONT  TestServiceProbeNotInstalled
+--- PASS: TestReleaseCohortInputValidation (0.00s)
+=== CONT  TestServiceProbeCompatibilityChangeInvalidatesCache
+--- PASS: TestServiceProbeNotInstalled (0.00s)
+=== CONT  TestOptionsFromHelp
+--- PASS: TestOptionsFromHelp (0.00s)
+=== CONT  TestAvailableVersionsConnectionError
 === PAUSE TestParseVersion/invalid_01.2.3
 === RUN   TestParseVersion/invalid_1.02.3
 === PAUSE TestParseVersion/invalid_1.02.3
@@ -487,13 +489,68 @@ PASS
 === PAUSE TestParseVersion/invalid__1.2.3
 === RUN   TestParseVersion/invalid_18446744073709551616.0.0
 === PAUSE TestParseVersion/invalid_18446744073709551616.0.0
-=== CONT  TestEscapedPackagePathAndPackageNames
---- PASS: TestEscapedPackagePathAndPackageNames (0.00s)
-=== CONT  TestAvailableVersionsConnectionError
-=== CONT  TestRegistryRedirectsAreNotFollowed
---- PASS: TestAvailableVersionsCancellation (0.00s)
 === CONT  TestAvailableVersionsTimeout
 --- PASS: TestCohortCacheMatchesRealRC3Fixture (0.01s)
+=== CONT  TestRegistryResponseBodyLimit
+--- PASS: TestProbeCapabilitiesMinimalHelp (0.01s)
+=== CONT  TestAvailableVersionsNoVersions
+--- PASS: TestInstallPnpmFailureKeepsStaging (0.02s)
+=== CONT  TestAvailableVersionsInvalidJSON
+--- PASS: TestRegistryRedirectsAreNotFollowed (0.02s)
+=== CONT  TestAvailableVersionsUpstreamHTTPErrors
+=== RUN   TestAvailableVersionsUpstreamHTTPErrors/404
+=== PAUSE TestAvailableVersionsUpstreamHTTPErrors/404
+=== RUN   TestAvailableVersionsUpstreamHTTPErrors/500
+=== PAUSE TestAvailableVersionsUpstreamHTTPErrors/500
+=== RUN   TestAvailableVersionsUpstreamHTTPErrors/502
+=== PAUSE TestAvailableVersionsUpstreamHTTPErrors/502
+=== CONT  TestAvailableVersionsSuccess
+2026/10/24 14:14:58 INFO Harness 0.2.1-rc.3 · profile 启动 · 原生插件管理 · 可设端口 component=runtime-probe version=0.2.1-rc.3
+2026/10/24 14:14:58 INFO Harness 0.2.1-rc.3 · profile 启动 · 原生插件管理 · 可设端口 component=runtime-probe version=0.2.1-rc.3
+--- PASS: TestServiceProbeCachingAndInvalidation (0.02s)
+=== CONT  TestProbeEnvironmentIsBlankBase
+--- PASS: TestProbeEnvironmentIsBlankBase (0.00s)
+=== CONT  TestLooksLikeAppHelp
+--- PASS: TestLooksLikeAppHelp (0.00s)
+=== CONT  TestReleaseCohortSuccessAndCacheReuse
+--- PASS: TestReleaseCohortManifestMismatch (0.03s)
+=== CONT  TestEscapedPackagePathAndPackageNames
+--- PASS: TestEscapedPackagePathAndPackageNames (0.00s)
+=== CONT  TestFetchPackageManifestMismatch
+2026/10/24 14:14:58 INFO Harness 0.2.1-rc.3 · profile 启动 · 原生插件管理 · 可设端口
+已应用本机 config/compatibility.json 的人工能力声明。 component=runtime-probe version=0.2.1-rc.3
+--- PASS: TestServiceProbeCompatibilityChangeInvalidatesCache (0.03s)
+=== CONT  TestFetchPackageManifest
+--- PASS: TestInstallEarlyFailureCleansStaging (0.04s)
+=== CONT  TestValidateExecutable
+=== RUN   TestValidateExecutable/bin_object
+=== PAUSE TestValidateExecutable/bin_object
+=== RUN   TestValidateExecutable/bin_string
+=== PAUSE TestValidateExecutable/bin_string
+=== RUN   TestValidateExecutable/no_dsh_key
+=== PAUSE TestValidateExecutable/no_dsh_key
+=== RUN   TestValidateExecutable/missing_bin
+=== PAUSE TestValidateExecutable/missing_bin
+=== RUN   TestValidateExecutable/absolute_bin
+=== PAUSE TestValidateExecutable/absolute_bin
+=== RUN   TestValidateExecutable/parent_escape
+=== PAUSE TestValidateExecutable/parent_escape
+=== RUN   TestValidateExecutable/entry_missing
+=== PAUSE TestValidateExecutable/entry_missing
+=== RUN   TestValidateExecutable/wrong_name
+=== PAUSE TestValidateExecutable/wrong_name
+=== RUN   TestValidateExecutable/wrong_version
+=== PAUSE TestValidateExecutable/wrong_version
+=== RUN   TestValidateExecutable/malformed_json
+=== PAUSE TestValidateExecutable/malformed_json
+=== CONT  TestInstalledVersions
+--- PASS: TestInstalledVersions (0.00s)
+=== CONT  TestValidateExecutableSymlinkEscape
+--- PASS: TestValidateExecutableSymlinkEscape (0.00s)
+=== CONT  TestCompareNumericIdentifier
+--- PASS: TestCompareNumericIdentifier (0.00s)
+=== CONT  TestProbeCapabilitiesInvalidCompatibilityOption
+--- PASS: TestProbeCapabilitiesInvalidCompatibilityOption (0.01s)
 === CONT  TestProbeCapabilitiesInputValidation
 === RUN   TestProbeCapabilitiesInputValidation/version
 === PAUSE TestProbeCapabilitiesInputValidation/version
@@ -507,75 +564,248 @@ PASS
 === PAUSE TestProbeCapabilitiesInputValidation/entry_path
 === RUN   TestProbeCapabilitiesInputValidation/relative_node
 === PAUSE TestProbeCapabilitiesInputValidation/relative_node
---- PASS: TestProbeCapabilitiesMinimalHelp (0.01s)
-=== CONT  TestAvailableVersionsInvalidJSON
-=== CONT  TestAvailableVersionsNoVersions
---- PASS: TestInstallSuccess (0.02s)
-=== CONT  TestAvailableVersionsUpstreamHTTPErrors
-=== RUN   TestAvailableVersionsUpstreamHTTPErrors/404
-=== PAUSE TestAvailableVersionsUpstreamHTTPErrors/404
-=== RUN   TestAvailableVersionsUpstreamHTTPErrors/500
-=== PAUSE TestAvailableVersionsUpstreamHTTPErrors/500
-=== RUN   TestAvailableVersionsUpstreamHTTPErrors/502
-=== PAUSE TestAvailableVersionsUpstreamHTTPErrors/502
-=== CONT  TestAvailableVersionsSuccess
---- PASS: TestProbeCapabilitiesAppHelpFailureIsTolerated (0.03s)
-=== CONT  TestProbeEnvironmentIsBlankBase
---- PASS: TestProbeCapabilitiesSuccess (0.02s)
-=== CONT  TestOptionsFromHelp
---- PASS: TestProbeEnvironmentIsBlankBase (0.00s)
---- PASS: TestOptionsFromHelp (0.00s)
-=== CONT  TestProbeCapabilitiesInvalidCompatibilityOption
-=== CONT  TestLooksLikeAppHelp
---- PASS: TestLooksLikeAppHelp (0.00s)
 === CONT  TestProbeCapabilitiesCustomProfileWithoutDeclarationFailsClosed
---- PASS: TestCohortCacheAcceptsISOTimestamp (0.02s)
+--- PASS: TestReleaseCohortRegistryFailure (0.05s)
 === CONT  TestProbeCapabilitiesCustomProfileDeclaredOptions
---- PASS: TestFetchPackageManifest (0.02s)
-=== CONT  TestProbeCapabilitiesMalformedCompatibility
---- PASS: TestProbeCapabilitiesInvalidCompatibilityOption (0.01s)
-=== CONT  TestReleaseCohortExpiredCacheIsRebuilt
 --- PASS: TestProbeCapabilitiesCustomProfileDeclaredOptions (0.01s)
-=== CONT  TestReleaseCohortCorruptOrTamperedCacheIsRebuilt
+=== CONT  TestProbeCapabilitiesMalformedCompatibility
 --- PASS: TestProbeCapabilitiesCustomProfileWithoutDeclarationFailsClosed (0.01s)
+=== CONT  TestProbeCapabilitiesLauncherFailureIsFailClosed
+=== RUN   TestReleaseCohortCorruptOrTamperedCacheIsRebuilt/garbage
+=== RUN   TestReleaseCohortCorruptOrTamperedCacheIsRebuilt/digest
+--- PASS: TestProbeCapabilitiesMalformedCompatibility (0.01s)
+=== CONT  TestProbeCapabilitiesCompatibilityOverrides
+=== RUN   TestReleaseCohortCorruptOrTamperedCacheIsRebuilt/future_timestamp
+--- PASS: TestReleaseCohortCorruptOrTamperedCacheIsRebuilt (0.06s)
+    --- PASS: TestReleaseCohortCorruptOrTamperedCacheIsRebuilt/garbage (0.00s)
+    --- PASS: TestReleaseCohortCorruptOrTamperedCacheIsRebuilt/digest (0.00s)
+    --- PASS: TestReleaseCohortCorruptOrTamperedCacheIsRebuilt/future_timestamp (0.00s)
+=== CONT  TestProbeCapabilitiesTimeout
+--- PASS: TestProbeCapabilitiesLauncherFailureIsFailClosed (0.01s)
 === CONT  TestInstallInvalidInputs
 --- PASS: TestInstallInvalidInputs (0.00s)
-=== CONT  TestReleaseCohortSuccessAndCacheReuse
---- PASS: TestProbeCapabilitiesMalformedCompatibility (0.01s)
-=== CONT  TestProbeCapabilitiesTimeout
---- PASS: TestAvailableVersionsConnectionError (0.04s)
-=== CONT  TestProbeCapabilitiesCompatibilityOverrides
+=== CONT  TestValidateProxy
+--- PASS: TestValidateProxy (0.00s)
+=== CONT  TestProbeCapabilitiesSuccess
 --- PASS: TestProbeCapabilitiesCompatibilityOverrides (0.01s)
-=== CONT  TestProbeCapabilitiesLauncherFailureIsFailClosed
---- PASS: TestRegistryResponseBodyLimit (0.06s)
+=== CONT  TestBuildLaunchSpecIncompleteDirs
+--- PASS: TestBuildLaunchSpecIncompleteDirs (0.00s)
+=== CONT  TestBuildLaunchSpecInvalidProxy
+--- PASS: TestBuildLaunchSpecInvalidProxy (0.00s)
+=== CONT  TestBuildLaunchSpecFailClosed
+=== RUN   TestBuildLaunchSpecFailClosed/caps_version_mismatch
+=== PAUSE TestBuildLaunchSpecFailClosed/caps_version_mismatch
+=== RUN   TestBuildLaunchSpecFailClosed/caps_profile_mismatch
+=== PAUSE TestBuildLaunchSpecFailClosed/caps_profile_mismatch
+=== RUN   TestBuildLaunchSpecFailClosed/missing_toolchain
+=== PAUSE TestBuildLaunchSpecFailClosed/missing_toolchain
+=== RUN   TestBuildLaunchSpecFailClosed/missing_runtime
+=== PAUSE TestBuildLaunchSpecFailClosed/missing_runtime
+=== RUN   TestBuildLaunchSpecFailClosed/unconfirmed_port
+=== PAUSE TestBuildLaunchSpecFailClosed/unconfirmed_port
+=== RUN   TestBuildLaunchSpecFailClosed/no_profile_selector
+=== PAUSE TestBuildLaunchSpecFailClosed/no_profile_selector
+=== RUN   TestBuildLaunchSpecFailClosed/invalid_registry
+=== PAUSE TestBuildLaunchSpecFailClosed/invalid_registry
+=== RUN   TestBuildLaunchSpecFailClosed/invalid_instance_port
+=== PAUSE TestBuildLaunchSpecFailClosed/invalid_instance_port
+=== RUN   TestBuildLaunchSpecFailClosed/empty_instance_id
+=== PAUSE TestBuildLaunchSpecFailClosed/empty_instance_id
+=== CONT  TestBuildLaunchSpecCustomProfile
+--- PASS: TestBuildLaunchSpecCustomProfile (0.00s)
+=== CONT  TestBuildLaunchSpecIgnoresUnverifiedEntryPath
+--- PASS: TestBuildLaunchSpecIgnoresUnverifiedEntryPath (0.00s)
+=== CONT  TestBuildLaunchSpecDefaultRegistryAndWebAlias
+--- PASS: TestBuildLaunchSpecDefaultRegistryAndWebAlias (0.00s)
+=== CONT  TestBuildLaunchSpecProxy
+--- PASS: TestBuildLaunchSpecProxy (0.00s)
+=== CONT  TestBuildLaunchSpecSuccess
+--- PASS: TestReleaseCohortExpiredCacheIsRebuilt (0.07s)
+=== CONT  TestCohortCachePathUsesRegistryHash
+--- PASS: TestCohortCachePathUsesRegistryHash (0.00s)
+=== CONT  TestPnpmWorkspaceYAMLWithOverrides
+--- PASS: TestPnpmWorkspaceYAMLWithOverrides (0.00s)
+=== CONT  TestInstallSuccess
+--- PASS: TestBuildLaunchSpecSuccess (0.00s)
+=== CONT  TestAvailableVersionsCancellation
+--- PASS: TestAvailableVersionsCancellation (0.00s)
 === CONT  TestProbeCapabilitiesAppHelpWithoutUsageIsUnverified
---- PASS: TestProbeCapabilitiesLauncherFailureIsFailClosed (0.01s)
-=== CONT  TestInstallEarlyFailureCleansStaging
---- PASS: TestRegistryRedirectsAreNotFollowed (0.06s)
+--- PASS: TestProbeCapabilitiesSuccess (0.01s)
+=== CONT  TestProbeCapabilitiesAppHelpFailureIsTolerated
+--- PASS: TestCohortCacheAcceptsISOTimestamp (0.08s)
+=== CONT  TestBuildLaunchEnvironmentProxyAndInstallHome
+--- PASS: TestBuildLaunchEnvironmentProxyAndInstallHome (0.00s)
+=== CONT  TestDerivePnpmHome
+--- PASS: TestDerivePnpmHome (0.00s)
+=== CONT  TestBuildLaunchEnvironmentHostPath
+--- PASS: TestBuildLaunchEnvironmentHostPath (0.00s)
+=== CONT  TestBuildLaunchPathHostPath
+--- PASS: TestBuildLaunchPathHostPath (0.00s)
+=== CONT  TestBuildLaunchEnvironmentValidation
+=== RUN   TestBuildLaunchEnvironmentValidation/data_root
+=== PAUSE TestBuildLaunchEnvironmentValidation/data_root
+=== RUN   TestBuildLaunchEnvironmentValidation/node_path
+=== PAUSE TestBuildLaunchEnvironmentValidation/node_path
+=== RUN   TestBuildLaunchEnvironmentValidation/dsh_home
+=== PAUSE TestBuildLaunchEnvironmentValidation/dsh_home
+=== RUN   TestBuildLaunchEnvironmentValidation/agents_home
+=== PAUSE TestBuildLaunchEnvironmentValidation/agents_home
+=== CONT  TestAssembleLaunchCommandValidation
+=== RUN   TestBuildLaunchEnvironmentValidation/registry
+=== PAUSE TestBuildLaunchEnvironmentValidation/registry
+=== RUN   TestBuildLaunchEnvironmentValidation/proxy
+=== PAUSE TestBuildLaunchEnvironmentValidation/proxy
+=== RUN   TestBuildLaunchEnvironmentValidation/proxy_userinfo
+=== RUN   TestAssembleLaunchCommandValidation/node_empty
+=== PAUSE TestBuildLaunchEnvironmentValidation/proxy_userinfo
+--- PASS: TestInstallSuccess (0.01s)
+=== PAUSE TestAssembleLaunchCommandValidation/node_empty
+=== RUN   TestAssembleLaunchCommandValidation/node_relative
+=== PAUSE TestAssembleLaunchCommandValidation/node_relative
+=== RUN   TestAssembleLaunchCommandValidation/entry_empty
+=== PAUSE TestAssembleLaunchCommandValidation/entry_empty
+=== RUN   TestAssembleLaunchCommandValidation/profile
+=== PAUSE TestAssembleLaunchCommandValidation/profile
+=== RUN   TestAssembleLaunchCommandValidation/port_zero
+=== PAUSE TestAssembleLaunchCommandValidation/port_zero
+=== RUN   TestAssembleLaunchCommandValidation/port_high
+=== PAUSE TestAssembleLaunchCommandValidation/port_high
+=== CONT  TestBuildLaunchEnvironmentWhitelist
+=== CONT  TestAssembleLaunchCommandCustomProfileOrder
+--- PASS: TestBuildLaunchEnvironmentWhitelist (0.00s)
+=== CONT  TestInstallRejectsExistingUnvalidatedTarget
+--- PASS: TestAssembleLaunchCommandCustomProfileOrder (0.00s)
+=== CONT  TestCohortDigest
+--- PASS: TestCohortDigest (0.00s)
+=== CONT  TestAssembleLaunchCommandNoLaunchEntry
+--- PASS: TestInstallRejectsExistingUnvalidatedTarget (0.00s)
+=== CONT  TestNormalizeRegistry
+--- PASS: TestAssembleLaunchCommandNoLaunchEntry (0.00s)
+=== CONT  TestAssembleLaunchCommandFailClosedWithoutPort
+--- PASS: TestNormalizeRegistry (0.00s)
 === CONT  TestInstallValidationFailures/version_mismatch
---- PASS: TestProbeCapabilitiesAppHelpWithoutUsageIsUnverified (0.01s)
+--- PASS: TestAssembleLaunchCommandFailClosedWithoutPort (0.00s)
+=== CONT  TestSortVersionsDescending/release_candidates
+=== CONT  TestSortVersionsDescending/all_invalid
+=== CONT  TestSortVersionsDescending/empty
+=== CONT  TestSortVersionsDescending/build_metadata_tie
+--- PASS: TestSortVersionsDescending (0.00s)
+    --- PASS: TestSortVersionsDescending/release_candidates (0.00s)
+    --- PASS: TestSortVersionsDescending/all_invalid (0.00s)
+    --- PASS: TestSortVersionsDescending/empty (0.00s)
+    --- PASS: TestSortVersionsDescending/build_metadata_tie (0.00s)
 === CONT  TestInstallValidationFailures/bin_escapes_package
---- PASS: TestReleaseCohortManifestMismatch (0.08s)
-=== CONT  TestAssembleLaunchCommandValidation/node_empty
-=== CONT  TestAssembleLaunchCommandValidation/port_zero
-=== CONT  TestAssembleLaunchCommandValidation/entry_empty
-=== CONT  TestAssembleLaunchCommandValidation/profile
-=== CONT  TestAssembleLaunchCommandValidation/node_relative
-=== CONT  TestAssembleLaunchCommandValidation/port_high
+--- PASS: TestProbeCapabilitiesAppHelpWithoutUsageIsUnverified (0.01s)
+=== CONT  TestParseVersion/0.2.1-rc.3
+=== CONT  TestParseVersion/invalid_1.02.3
+=== CONT  TestParseVersion/invalid_18446744073709551616.0.0
+=== CONT  TestParseVersion/invalid__1.2.3
+=== CONT  TestParseVersion/invalid_1.2.3_
+=== CONT  TestParseVersion/invalid_latest
+=== CONT  TestParseVersion/invalid_1.2.3+build..1
+=== CONT  TestParseVersion/invalid_1.2.3-..
+=== CONT  TestParseVersion/invalid_1.2.3-alpha.01
+=== CONT  TestParseVersion/invalid_1.2.3-01
+=== CONT  TestParseVersion/invalid_1.2.3+
+=== CONT  TestParseVersion/invalid_1.2.3-
+=== CONT  TestParseVersion/invalid_1.2.03
+=== CONT  TestParseVersion/invalid_1
+=== CONT  TestParseVersion/invalid_01.2.3
+=== CONT  TestParseVersion/invalid_V1.2.3
+=== CONT  TestParseVersion/invalid_v1.2.3
+=== CONT  TestParseVersion/invalid_1.2.3.4
+=== CONT  TestParseVersion/invalid_1.2
+=== CONT  TestParseVersion/10.20.30+build.5
+=== CONT  TestParseVersion/invalid_
+=== CONT  TestParseVersion/0.2.1-rc.3+sha.abc123
+=== CONT  TestParseVersion/0.2.1
+=== CONT  TestParseVersion/1.0.0-alpha.beta.1
+=== CONT  TestParseVersion/0.2.1-rc.10
+--- PASS: TestParseVersion (0.01s)
+    --- PASS: TestParseVersion/0.2.1-rc.3 (0.00s)
+    --- PASS: TestParseVersion/invalid_1.02.3 (0.00s)
+    --- PASS: TestParseVersion/invalid_18446744073709551616.0.0 (0.00s)
+    --- PASS: TestParseVersion/invalid__1.2.3 (0.00s)
+    --- PASS: TestParseVersion/invalid_1.2.3_ (0.00s)
+    --- PASS: TestParseVersion/invalid_latest (0.00s)
+    --- PASS: TestParseVersion/invalid_1.2.3+build..1 (0.00s)
+    --- PASS: TestParseVersion/invalid_1.2.3-.. (0.00s)
+    --- PASS: TestParseVersion/invalid_1.2.3-alpha.01 (0.00s)
+    --- PASS: TestParseVersion/invalid_1.2.3-01 (0.00s)
+    --- PASS: TestParseVersion/invalid_1.2.3+ (0.00s)
+    --- PASS: TestParseVersion/invalid_1.2.3- (0.00s)
+    --- PASS: TestParseVersion/invalid_1.2.03 (0.00s)
+    --- PASS: TestParseVersion/invalid_1 (0.00s)
+    --- PASS: TestParseVersion/invalid_01.2.3 (0.00s)
+    --- PASS: TestParseVersion/invalid_V1.2.3 (0.00s)
+    --- PASS: TestParseVersion/invalid_v1.2.3 (0.00s)
+    --- PASS: TestParseVersion/invalid_1.2.3.4 (0.00s)
+    --- PASS: TestParseVersion/invalid_1.2 (0.00s)
+    --- PASS: TestParseVersion/10.20.30+build.5 (0.00s)
+    --- PASS: TestParseVersion/invalid_ (0.00s)
+    --- PASS: TestParseVersion/0.2.1-rc.3+sha.abc123 (0.00s)
+    --- PASS: TestParseVersion/0.2.1 (0.00s)
+    --- PASS: TestParseVersion/1.0.0-alpha.beta.1 (0.00s)
+    --- PASS: TestParseVersion/0.2.1-rc.10 (0.00s)
+=== CONT  TestAvailableVersionsUpstreamHTTPErrors/404
+=== CONT  TestAvailableVersionsUpstreamHTTPErrors/502
+--- PASS: TestInstallValidationFailures (0.00s)
+    --- PASS: TestInstallValidationFailures/bin_escapes_package (0.01s)
+    --- PASS: TestInstallValidationFailures/version_mismatch (0.01s)
+=== CONT  TestAvailableVersionsUpstreamHTTPErrors/500
+--- PASS: TestServiceAvailableVersions (0.09s)
+=== CONT  TestValidateExecutable/bin_object
+=== CONT  TestValidateExecutable/parent_escape
+=== CONT  TestValidateExecutable/malformed_json
+=== CONT  TestValidateExecutable/wrong_version
+=== CONT  TestValidateExecutable/wrong_name
+=== CONT  TestValidateExecutable/entry_missing
+=== CONT  TestValidateExecutable/missing_bin
+=== CONT  TestValidateExecutable/absolute_bin
+=== CONT  TestValidateExecutable/no_dsh_key
+=== CONT  TestValidateExecutable/bin_string
+--- PASS: TestValidateExecutable (0.00s)
+    --- PASS: TestValidateExecutable/bin_object (0.00s)
+    --- PASS: TestValidateExecutable/parent_escape (0.00s)
+    --- PASS: TestValidateExecutable/malformed_json (0.00s)
+    --- PASS: TestValidateExecutable/wrong_version (0.00s)
+    --- PASS: TestValidateExecutable/wrong_name (0.00s)
+    --- PASS: TestValidateExecutable/entry_missing (0.00s)
+    --- PASS: TestValidateExecutable/missing_bin (0.00s)
+    --- PASS: TestValidateExecutable/absolute_bin (0.00s)
+    --- PASS: TestValidateExecutable/no_dsh_key (0.00s)
+    --- PASS: TestValidateExecutable/bin_string (0.00s)
+=== CONT  TestProbeCapabilitiesInputValidation/version
+=== CONT  TestProbeCapabilitiesInputValidation/node_path
+=== CONT  TestProbeCapabilitiesInputValidation/relative_node
+=== CONT  TestProbeCapabilitiesInputValidation/entry_path
+=== CONT  TestProbeCapabilitiesInputValidation/data_root
+=== CONT  TestProbeCapabilitiesInputValidation/profile
+=== CONT  TestBuildLaunchSpecFailClosed/caps_version_mismatch
+--- PASS: TestProbeCapabilitiesInputValidation (0.00s)
+    --- PASS: TestProbeCapabilitiesInputValidation/version (0.00s)
+    --- PASS: TestProbeCapabilitiesInputValidation/node_path (0.00s)
+    --- PASS: TestProbeCapabilitiesInputValidation/relative_node (0.00s)
+    --- PASS: TestProbeCapabilitiesInputValidation/entry_path (0.00s)
+    --- PASS: TestProbeCapabilitiesInputValidation/data_root (0.00s)
+    --- PASS: TestProbeCapabilitiesInputValidation/profile (0.00s)
+--- PASS: TestProbeCapabilitiesAppHelpFailureIsTolerated (0.01s)
+=== CONT  TestBuildLaunchSpecFailClosed/no_profile_selector
+=== CONT  TestBuildLaunchSpecFailClosed/empty_instance_id
+=== CONT  TestBuildLaunchSpecFailClosed/invalid_instance_port
+=== CONT  TestBuildLaunchSpecFailClosed/invalid_registry
+=== CONT  TestBuildLaunchSpecFailClosed/missing_runtime
+=== CONT  TestBuildLaunchSpecFailClosed/unconfirmed_port
+=== CONT  TestBuildLaunchSpecFailClosed/missing_toolchain
+=== CONT  TestBuildLaunchSpecFailClosed/caps_profile_mismatch
 === CONT  TestBuildLaunchEnvironmentValidation/data_root
 === CONT  TestBuildLaunchEnvironmentValidation/proxy_userinfo
---- PASS: TestAssembleLaunchCommandValidation (0.00s)
-    --- PASS: TestAssembleLaunchCommandValidation/node_empty (0.00s)
-    --- PASS: TestAssembleLaunchCommandValidation/port_zero (0.00s)
-    --- PASS: TestAssembleLaunchCommandValidation/entry_empty (0.00s)
-    --- PASS: TestAssembleLaunchCommandValidation/profile (0.00s)
-    --- PASS: TestAssembleLaunchCommandValidation/node_relative (0.00s)
-    --- PASS: TestAssembleLaunchCommandValidation/port_high (0.00s)
 === CONT  TestBuildLaunchEnvironmentValidation/proxy
 === CONT  TestBuildLaunchEnvironmentValidation/registry
 === CONT  TestBuildLaunchEnvironmentValidation/agents_home
 === CONT  TestBuildLaunchEnvironmentValidation/dsh_home
 === CONT  TestBuildLaunchEnvironmentValidation/node_path
+=== CONT  TestAssembleLaunchCommandValidation/node_empty
 --- PASS: TestBuildLaunchEnvironmentValidation (0.00s)
     --- PASS: TestBuildLaunchEnvironmentValidation/data_root (0.00s)
     --- PASS: TestBuildLaunchEnvironmentValidation/proxy_userinfo (0.00s)
@@ -584,110 +814,43 @@ PASS
     --- PASS: TestBuildLaunchEnvironmentValidation/agents_home (0.00s)
     --- PASS: TestBuildLaunchEnvironmentValidation/dsh_home (0.00s)
     --- PASS: TestBuildLaunchEnvironmentValidation/node_path (0.00s)
-=== CONT  TestSortVersionsDescending/release_candidates
-=== CONT  TestSortVersionsDescending/all_invalid
-=== CONT  TestSortVersionsDescending/empty
-=== CONT  TestSortVersionsDescending/build_metadata_tie
---- PASS: TestSortVersionsDescending (0.01s)
-    --- PASS: TestSortVersionsDescending/release_candidates (0.00s)
-    --- PASS: TestSortVersionsDescending/all_invalid (0.00s)
-    --- PASS: TestSortVersionsDescending/empty (0.00s)
-    --- PASS: TestSortVersionsDescending/build_metadata_tie (0.00s)
-=== CONT  TestParseVersion/0.2.1-rc.3
-=== CONT  TestParseVersion/invalid_1.02.3
-=== CONT  TestParseVersion/10.20.30+build.5
-=== CONT  TestParseVersion/invalid_
-=== CONT  TestParseVersion/0.2.1-rc.3+sha.abc123
-=== CONT  TestParseVersion/invalid_v1.2.3
-=== CONT  TestParseVersion/invalid_01.2.3
-=== CONT  TestParseVersion/invalid_V1.2.3
-=== CONT  TestParseVersion/invalid_1.2.3.4
-=== CONT  TestParseVersion/invalid_1.2.3-..
-=== CONT  TestParseVersion/invalid_18446744073709551616.0.0
-=== CONT  TestParseVersion/invalid__1.2.3
-=== CONT  TestParseVersion/invalid_1.2.3_
-=== CONT  TestParseVersion/invalid_latest
-=== CONT  TestParseVersion/invalid_1.2.3+build..1
-=== CONT  TestParseVersion/invalid_1.2
-=== CONT  TestParseVersion/0.2.1
-=== CONT  TestParseVersion/1.0.0-alpha.beta.1
-=== CONT  TestParseVersion/0.2.1-rc.10
-=== CONT  TestParseVersion/invalid_1.2.3+
-=== CONT  TestParseVersion/invalid_1.2.3-alpha.01
-=== CONT  TestParseVersion/invalid_1.2.3-01
-=== CONT  TestParseVersion/invalid_1.2.3-
-=== CONT  TestParseVersion/invalid_1.2.03
-=== CONT  TestParseVersion/invalid_1
---- PASS: TestParseVersion (0.01s)
-    --- PASS: TestParseVersion/0.2.1-rc.3 (0.00s)
-    --- PASS: TestParseVersion/invalid_1.02.3 (0.00s)
-    --- PASS: TestParseVersion/10.20.30+build.5 (0.00s)
-    --- PASS: TestParseVersion/invalid_ (0.00s)
-    --- PASS: TestParseVersion/0.2.1-rc.3+sha.abc123 (0.00s)
-    --- PASS: TestParseVersion/invalid_v1.2.3 (0.00s)
-    --- PASS: TestParseVersion/invalid_01.2.3 (0.00s)
-    --- PASS: TestParseVersion/invalid_V1.2.3 (0.00s)
-    --- PASS: TestParseVersion/invalid_1.2.3.4 (0.00s)
-    --- PASS: TestParseVersion/invalid_1.2.3-.. (0.00s)
-    --- PASS: TestParseVersion/invalid_18446744073709551616.0.0 (0.00s)
-    --- PASS: TestParseVersion/invalid__1.2.3 (0.00s)
-    --- PASS: TestParseVersion/invalid_1.2.3_ (0.00s)
-    --- PASS: TestParseVersion/invalid_latest (0.00s)
-    --- PASS: TestParseVersion/invalid_1.2.3+build..1 (0.00s)
-    --- PASS: TestParseVersion/invalid_1.2 (0.00s)
-    --- PASS: TestParseVersion/0.2.1 (0.00s)
-    --- PASS: TestParseVersion/1.0.0-alpha.beta.1 (0.00s)
-    --- PASS: TestParseVersion/0.2.1-rc.10 (0.00s)
-    --- PASS: TestParseVersion/invalid_1.2.3+ (0.00s)
-    --- PASS: TestParseVersion/invalid_1.2.3-alpha.01 (0.00s)
-    --- PASS: TestParseVersion/invalid_1.2.3-01 (0.00s)
-    --- PASS: TestParseVersion/invalid_1.2.3- (0.00s)
-    --- PASS: TestParseVersion/invalid_1.2.03 (0.00s)
-    --- PASS: TestParseVersion/invalid_1 (0.00s)
-=== CONT  TestProbeCapabilitiesInputValidation/version
-=== CONT  TestProbeCapabilitiesInputValidation/relative_node
-=== CONT  TestProbeCapabilitiesInputValidation/entry_path
-=== CONT  TestProbeCapabilitiesInputValidation/node_path
-=== CONT  TestProbeCapabilitiesInputValidation/data_root
-=== CONT  TestProbeCapabilitiesInputValidation/profile
-=== CONT  TestAvailableVersionsUpstreamHTTPErrors/404
---- PASS: TestProbeCapabilitiesInputValidation (0.00s)
-    --- PASS: TestProbeCapabilitiesInputValidation/version (0.00s)
-    --- PASS: TestProbeCapabilitiesInputValidation/relative_node (0.00s)
-    --- PASS: TestProbeCapabilitiesInputValidation/entry_path (0.00s)
-    --- PASS: TestProbeCapabilitiesInputValidation/node_path (0.00s)
-    --- PASS: TestProbeCapabilitiesInputValidation/data_root (0.00s)
-    --- PASS: TestProbeCapabilitiesInputValidation/profile (0.00s)
---- PASS: TestReleaseCohortCacheSaveFailureIsNonFatal (0.09s)
-=== CONT  TestAvailableVersionsUpstreamHTTPErrors/502
---- PASS: TestFetchPackageManifestMismatch (0.09s)
-=== CONT  TestAvailableVersionsUpstreamHTTPErrors/500
---- PASS: TestReleaseCohortRegistryFailure (0.11s)
---- PASS: TestAvailableVersionsInvalidJSON (0.12s)
---- PASS: TestAvailableVersionsNoVersions (0.13s)
---- PASS: TestAvailableVersionsSuccess (0.13s)
---- PASS: TestReleaseCohortExpiredCacheIsRebuilt (0.14s)
-=== RUN   TestReleaseCohortCorruptOrTamperedCacheIsRebuilt/garbage
-=== RUN   TestReleaseCohortCorruptOrTamperedCacheIsRebuilt/digest
-=== RUN   TestReleaseCohortCorruptOrTamperedCacheIsRebuilt/future_timestamp
---- PASS: TestReleaseCohortCorruptOrTamperedCacheIsRebuilt (0.16s)
-    --- PASS: TestReleaseCohortCorruptOrTamperedCacheIsRebuilt/garbage (0.00s)
-    --- PASS: TestReleaseCohortCorruptOrTamperedCacheIsRebuilt/digest (0.00s)
-    --- PASS: TestReleaseCohortCorruptOrTamperedCacheIsRebuilt/future_timestamp (0.00s)
+=== CONT  TestAssembleLaunchCommandValidation/port_zero
+--- PASS: TestBuildLaunchSpecFailClosed (0.00s)
+    --- PASS: TestBuildLaunchSpecFailClosed/caps_version_mismatch (0.00s)
+    --- PASS: TestBuildLaunchSpecFailClosed/no_profile_selector (0.00s)
+    --- PASS: TestBuildLaunchSpecFailClosed/empty_instance_id (0.00s)
+    --- PASS: TestBuildLaunchSpecFailClosed/invalid_instance_port (0.00s)
+    --- PASS: TestBuildLaunchSpecFailClosed/invalid_registry (0.00s)
+    --- PASS: TestBuildLaunchSpecFailClosed/missing_runtime (0.00s)
+    --- PASS: TestBuildLaunchSpecFailClosed/unconfirmed_port (0.00s)
+    --- PASS: TestBuildLaunchSpecFailClosed/missing_toolchain (0.00s)
+    --- PASS: TestBuildLaunchSpecFailClosed/caps_profile_mismatch (0.00s)
+=== CONT  TestAssembleLaunchCommandValidation/profile
+=== CONT  TestAssembleLaunchCommandValidation/entry_empty
+=== CONT  TestAssembleLaunchCommandValidation/port_high
+=== CONT  TestAssembleLaunchCommandValidation/node_relative
+--- PASS: TestAssembleLaunchCommandValidation (0.00s)
+    --- PASS: TestAssembleLaunchCommandValidation/node_empty (0.00s)
+    --- PASS: TestAssembleLaunchCommandValidation/port_zero (0.00s)
+    --- PASS: TestAssembleLaunchCommandValidation/profile (0.00s)
+    --- PASS: TestAssembleLaunchCommandValidation/port_high (0.00s)
+    --- PASS: TestAssembleLaunchCommandValidation/entry_empty (0.00s)
+    --- PASS: TestAssembleLaunchCommandValidation/node_relative (0.00s)
+--- PASS: TestReleaseCohortCacheSaveFailureIsNonFatal (0.11s)
+--- PASS: TestAvailableVersionsConnectionError (0.12s)
+--- PASS: TestRegistryResponseBodyLimit (0.12s)
+--- PASS: TestAvailableVersionsNoVersions (0.15s)
+--- PASS: TestAvailableVersionsInvalidJSON (0.15s)
+--- PASS: TestAvailableVersionsSuccess (0.15s)
+--- PASS: TestReleaseCohortSuccessAndCacheReuse (0.17s)
+--- PASS: TestFetchPackageManifestMismatch (0.17s)
+--- PASS: TestFetchPackageManifest (0.17s)
 --- PASS: TestProbeCapabilitiesTimeout (0.15s)
---- PASS: TestReleaseCohortSuccessAndCacheReuse (0.16s)
---- PASS: TestInstallEarlyFailureCleansStaging (0.13s)
---- PASS: TestAvailableVersionsTimeout (0.21s)
 --- PASS: TestAvailableVersionsUpstreamHTTPErrors (0.00s)
     --- PASS: TestAvailableVersionsUpstreamHTTPErrors/404 (0.13s)
-    --- PASS: TestAvailableVersionsUpstreamHTTPErrors/502 (0.13s)
-    --- PASS: TestAvailableVersionsUpstreamHTTPErrors/500 (0.13s)
-=== NAME  TestInstallPnpmFailureKeepsStaging
-    install_test.go:218: Install returned after 21.596474629s
---- PASS: TestInstallPnpmFailureKeepsStaging (21.60s)
---- PASS: TestInstallValidationFailures (0.00s)
-    --- PASS: TestInstallValidationFailures/version_mismatch (21.62s)
-    --- PASS: TestInstallValidationFailures/bin_escapes_package (23.21s)
+    --- PASS: TestAvailableVersionsUpstreamHTTPErrors/502 (0.14s)
+    --- PASS: TestAvailableVersionsUpstreamHTTPErrors/500 (0.15s)
+--- PASS: TestAvailableVersionsTimeout (0.23s)
 PASS
 --- PASS github.com/LeuJasYoh/PCL-DSH-Go/internal/runtime
 
@@ -734,19 +897,19 @@ PASS
 === RUN   TestBootstrapSkipped/cookie_and_token
 === RUN   TestBootstrapSkipped/no_bootstrap_query_avoids_redirect_loop
 --- PASS: TestBootstrapSkipped (0.11s)
-    --- PASS: TestBootstrapSkipped/dsh_auth_cookie_present (0.02s)
+    --- PASS: TestBootstrapSkipped/dsh_auth_cookie_present (0.03s)
     --- PASS: TestBootstrapSkipped/token_in_query (0.02s)
     --- PASS: TestBootstrapSkipped/cookie_and_token (0.03s)
-    --- PASS: TestBootstrapSkipped/no_bootstrap_query_avoids_redirect_loop (0.03s)
+    --- PASS: TestBootstrapSkipped/no_bootstrap_query_avoids_redirect_loop (0.02s)
 === RUN   TestAuthorizerMapping
 === RUN   TestAuthorizerMapping/allowed
 === RUN   TestAuthorizerMapping/unauthorized
 === RUN   TestAuthorizerMapping/forbidden
 === RUN   TestAuthorizerMapping/wrapped_forbidden
 === RUN   TestAuthorizerMapping/nil_authorizer_allows
---- PASS: TestAuthorizerMapping (0.10s)
-    --- PASS: TestAuthorizerMapping/allowed (0.02s)
-    --- PASS: TestAuthorizerMapping/unauthorized (0.02s)
+--- PASS: TestAuthorizerMapping (0.14s)
+    --- PASS: TestAuthorizerMapping/allowed (0.04s)
+    --- PASS: TestAuthorizerMapping/unauthorized (0.03s)
     --- PASS: TestAuthorizerMapping/forbidden (0.02s)
     --- PASS: TestAuthorizerMapping/wrapped_forbidden (0.02s)
     --- PASS: TestAuthorizerMapping/nil_authorizer_allows (0.02s)
@@ -756,11 +919,11 @@ PASS
 === RUN   TestResolveErrorMapping/not_running
 === RUN   TestResolveErrorMapping/not_ready
 === RUN   TestResolveErrorMapping/unknown_error
---- PASS: TestResolveErrorMapping (0.07s)
+--- PASS: TestResolveErrorMapping (0.05s)
     --- PASS: TestResolveErrorMapping/not_found (0.01s)
-    --- PASS: TestResolveErrorMapping/wrapped_not_found (0.02s)
+    --- PASS: TestResolveErrorMapping/wrapped_not_found (0.01s)
     --- PASS: TestResolveErrorMapping/not_running (0.01s)
-    --- PASS: TestResolveErrorMapping/not_ready (0.02s)
+    --- PASS: TestResolveErrorMapping/not_ready (0.01s)
     --- PASS: TestResolveErrorMapping/unknown_error (0.01s)
 === RUN   TestPathValidation
 === RUN   TestPathValidation//workbench/../etc/passwd
@@ -771,7 +934,7 @@ PASS
 === RUN   TestPathValidation//workbench//assets
 === RUN   TestPathValidation//workbench/%20/assets
 === RUN   TestPathValidation//workbench/i-test/%2e%2e%2fsecret
---- PASS: TestPathValidation (0.05s)
+--- PASS: TestPathValidation (0.03s)
     --- PASS: TestPathValidation//workbench/../etc/passwd (0.00s)
     --- PASS: TestPathValidation//workbench/%2e%2e/etc/passwd (0.00s)
     --- PASS: TestPathValidation//workbench/i-test/../secret (0.00s)
@@ -781,7 +944,7 @@ PASS
     --- PASS: TestPathValidation//workbench/%20/assets (0.00s)
     --- PASS: TestPathValidation//workbench/i-test/%2e%2e%2fsecret (0.00s)
 === RUN   TestMethodNotAllowed
---- PASS: TestMethodNotAllowed (0.02s)
+--- PASS: TestMethodNotAllowed (0.01s)
 === RUN   TestNotFoundOutsideWorkbench
 --- PASS: TestNotFoundOutsideWorkbench (0.01s)
 === RUN   TestHTTPForwarding
@@ -789,13 +952,13 @@ PASS
 === RUN   TestResponseHeaderRewrites
 --- PASS: TestResponseHeaderRewrites (0.02s)
 === RUN   TestLocationRewrites
---- PASS: TestLocationRewrites (0.03s)
+--- PASS: TestLocationRewrites (0.02s)
 === RUN   TestDefaultTimeoutConfiguration
 --- PASS: TestDefaultTimeoutConfiguration (0.00s)
 === RUN   TestResponseHopByHopHeadersStripped
---- PASS: TestResponseHopByHopHeadersStripped (0.03s)
+--- PASS: TestResponseHopByHopHeadersStripped (0.02s)
 === RUN   TestSSEStreaming
---- PASS: TestSSEStreaming (0.03s)
+--- PASS: TestSSEStreaming (0.02s)
 === RUN   TestUpstreamConnectFailure502
 --- PASS: TestUpstreamConnectFailure502 (0.02s)
 === RUN   TestUpstreamTimeout504
@@ -810,19 +973,19 @@ PASS
 === RUN   TestBootstrapPathJoining/base_with_trailing_slash
 === RUN   TestBootstrapPathJoining/base_without_trailing_slash
 === RUN   TestBootstrapPathJoining/root_request_with_base
---- PASS: TestBootstrapPathJoining (0.15s)
-    --- PASS: TestBootstrapPathJoining/empty_base_defaults_to_root (0.03s)
-    --- PASS: TestBootstrapPathJoining/root_base (0.04s)
+--- PASS: TestBootstrapPathJoining (0.11s)
+    --- PASS: TestBootstrapPathJoining/empty_base_defaults_to_root (0.02s)
+    --- PASS: TestBootstrapPathJoining/root_base (0.02s)
     --- PASS: TestBootstrapPathJoining/base_with_trailing_slash (0.02s)
     --- PASS: TestBootstrapPathJoining/base_without_trailing_slash (0.02s)
-    --- PASS: TestBootstrapPathJoining/root_request_with_base (0.03s)
+    --- PASS: TestBootstrapPathJoining/root_request_with_base (0.02s)
 === RUN   TestInvalidTargetPortRejected
 === RUN   TestInvalidTargetPortRejected/port_0
 === RUN   TestInvalidTargetPortRejected/port_-1
 === RUN   TestInvalidTargetPortRejected/port_65536
---- PASS: TestInvalidTargetPortRejected (0.05s)
-    --- PASS: TestInvalidTargetPortRejected/port_0 (0.02s)
-    --- PASS: TestInvalidTargetPortRejected/port_-1 (0.02s)
+--- PASS: TestInvalidTargetPortRejected (0.03s)
+    --- PASS: TestInvalidTargetPortRejected/port_0 (0.01s)
+    --- PASS: TestInvalidTargetPortRejected/port_-1 (0.01s)
     --- PASS: TestInvalidTargetPortRejected/port_65536 (0.01s)
 === RUN   TestRealDSHHTTPFlow
 --- PASS: TestRealDSHHTTPFlow (0.03s)
@@ -985,33 +1148,33 @@ PASS
 === RUN   TestWebSocketSubprotocol
 --- PASS: TestWebSocketSubprotocol (0.03s)
 === RUN   TestWebSocketCookieAndOriginRewrite
---- PASS: TestWebSocketCookieAndOriginRewrite (0.03s)
+--- PASS: TestWebSocketCookieAndOriginRewrite (0.04s)
 === RUN   TestWebSocketCrossOriginRejected
---- PASS: TestWebSocketCrossOriginRejected (0.01s)
+--- PASS: TestWebSocketCrossOriginRejected (0.02s)
 === RUN   TestWebSocketWithoutOriginAllowed
 --- PASS: TestWebSocketWithoutOriginAllowed (0.04s)
 === RUN   TestWebSocketUpstreamCloseCodeForwarded
 --- PASS: TestWebSocketUpstreamCloseCodeForwarded (0.02s)
 === RUN   TestWebSocketMessageTooLarge
---- PASS: TestWebSocketMessageTooLarge (0.03s)
+--- PASS: TestWebSocketMessageTooLarge (0.02s)
 === RUN   TestWebSocketClientMessageTooLarge
---- PASS: TestWebSocketClientMessageTooLarge (0.05s)
+--- PASS: TestWebSocketClientMessageTooLarge (0.03s)
 === RUN   TestWebSocketUpstreamUnavailable
---- PASS: TestWebSocketUpstreamUnavailable (0.02s)
+--- PASS: TestWebSocketUpstreamUnavailable (0.01s)
 === RUN   TestWebSocketResolverErrorBeforeUpgrade
 --- PASS: TestWebSocketResolverErrorBeforeUpgrade (0.01s)
 === RUN   TestWebSocketAuthorizerRejected
---- PASS: TestWebSocketAuthorizerRejected (0.02s)
+--- PASS: TestWebSocketAuthorizerRejected (0.01s)
 === RUN   TestWebSocketTrailingSlashRedirect
 --- PASS: TestWebSocketTrailingSlashRedirect (0.01s)
 === RUN   TestWebSocketPingKeepAlive
---- PASS: TestWebSocketPingKeepAlive (0.08s)
+--- PASS: TestWebSocketPingKeepAlive (0.07s)
 PASS
 --- PASS github.com/LeuJasYoh/PCL-DSH-Go/internal/server/proxy
 
 === run github.com/LeuJasYoh/PCL-DSH-Go/internal/store
 === RUN   TestPermissionsLinux
---- PASS: TestPermissionsLinux (0.00s)
+--- PASS: TestPermissionsLinux (0.01s)
 === RUN   TestOpenInitializesDefaults
 --- PASS: TestOpenInitializesDefaults (0.00s)
 === RUN   TestOpenEmptyDataRoot
@@ -1065,7 +1228,7 @@ PASS
 === RUN   TestIDFormatAndUniqueness
 --- PASS: TestIDFormatAndUniqueness (0.00s)
 === RUN   TestConcurrentAccess
---- PASS: TestConcurrentAccess (0.02s)
+--- PASS: TestConcurrentAccess (0.01s)
 PASS
 --- PASS github.com/LeuJasYoh/PCL-DSH-Go/internal/store
 
@@ -1100,7 +1263,7 @@ PASS
 --- PASS: TestVerifyWithFakeShellScripts (0.00s)
 === RUN   TestVerifyRealToolchain
     verify_linux_test.go:74: 真实工具链：node=24.22.1 path=/opt/pcl-dsh-go/tools/node/bin/node；pnpm=11.28.5 path=/opt/pcl-dsh-go/tools/pnpm/node_modules/pnpm/bin/pnpm.cjs；toolRoot="/opt/pcl-dsh-go/tools"
---- PASS: TestVerifyRealToolchain (0.83s)
+--- PASS: TestVerifyRealToolchain (0.49s)
 === RUN   TestLocatePathFallbackRealEnvironment
 --- PASS: TestLocatePathFallbackRealEnvironment (0.00s)
 === RUN   TestParseVersion
@@ -1131,5 +1294,5 @@ PASS
 --- PASS github.com/LeuJasYoh/PCL-DSH-Go/internal/tools
 
 ==========================
-built=8 build_failed=0 run_failed=0
+built=9 build_failed=0 run_failed=0
 RESULT=PASS

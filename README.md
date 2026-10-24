@@ -50,6 +50,8 @@ M0 调试 API（仅 `--pcl.dev-mode` 启用并绑定 127.0.0.1；M1 由正式认
 
 ## 文档
 
+- [M0 验收报告（真实 DSH 0.2.1-rc.3）](docs/M0_RESULTS.md)
+- [M0 冻结接口](docs/M0_INTERFACES.md)
 - [开发计划](docs/DEVELOPMENT_PLAN.md)
 - [实现规格](docs/IMPLEMENTATION_SPEC.md)
 - [DSH 集成契约](docs/DSH_INTEGRATION.md)
