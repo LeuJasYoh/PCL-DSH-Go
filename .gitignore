@@ -1,0 +1,32 @@
+# Go
+/bin/
+/dist/
+*.exe
+*.test
+*.out
+coverage.out
+coverage.html
+
+# Node / Web
+node_modules/
+pcl-dsh-web/dist/
+.pnpm-store/
+
+# Runtime data (local development)
+data/
+*.log
+*.pid
+
+# Local env / editor / OS
+.env
+.env.*
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# Temporary
+.tmp/
+tmp/
+reports/
