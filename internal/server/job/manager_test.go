@@ -707,3 +707,35 @@ func toParsedEvents(t *testing.T, events []Event) []parsedEvent {
 func decodeEventData(ev Event, target any) error {
 	return json.Unmarshal(ev.Data, target)
 }
+
+// TestKindConstants locks the frozen Kind strings (docs/M3_INTERFACES.md §7) and
+// checks that the M3 kinds flow through Start/View like the M1 kinds.
+func TestKindConstants(t *testing.T) {
+	want := map[Kind]string{
+		KindLaunchInstance: "LAUNCH_INSTANCE",
+		KindInstallRuntime: "INSTALL_RUNTIME",
+		KindProbeRuntime:   "PROBE_RUNTIME",
+		KindImportPack:     "IMPORT_PACK",
+		KindExportPack:     "EXPORT_PACK",
+		KindPluginMutate:   "PLUGIN_MUTATE",
+	}
+	for kind, value := range want {
+		if string(kind) != value {
+			t.Fatalf("Kind = %q，期望 %q", string(kind), value)
+		}
+	}
+	m, _ := newManager(t, Options{})
+	for _, kind := range []Kind{KindImportPack, KindExportPack, KindPluginMutate} {
+		view, err := m.Start(kind, 0, func(context.Context, *Job) (any, error) {
+			return map[string]any{"ok": true}, nil
+		})
+		if err != nil {
+			t.Fatalf("Start(%s) 失败: %v", kind, err)
+		}
+		final := waitState(t, m, view.ID, StateSucceeded)
+		if final.Type != kind {
+			t.Fatalf("View.Type = %q，期望 %q", final.Type, kind)
+		}
+		waitIdle(t, m)
+	}
+}

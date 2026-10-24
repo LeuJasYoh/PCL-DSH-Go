@@ -147,6 +147,24 @@ type fakeRuntime struct {
 	removed      []string
 	proxy        string
 	buildSpecErr error
+
+	entryPaths      map[string]string
+	entryPathErr    error
+	entryPathCalls  int
+	profileEnvDir   string
+	profileEnv      []string
+	profileEnvErr   error
+	profileEnvCalls int
+	lastProfileEnv  profileEnvCall
+}
+
+// profileEnvCall records ProfileInstallEnvironment arguments for assertions.
+type profileEnvCall struct {
+	Dirs       config.Dirs
+	InstanceID string
+	Profile    string
+	Registry   string
+	Proxy      string
 }
 
 func newFakeRuntime() *fakeRuntime {
@@ -200,6 +218,43 @@ func (f *fakeRuntime) Installed(version string) bool {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	return f.installed[version]
+}
+
+func (f *fakeRuntime) EntryPath(version string) (string, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.entryPathCalls++
+	if f.entryPathErr != nil {
+		return "", f.entryPathErr
+	}
+	if path, ok := f.entryPaths[version]; ok {
+		return path, nil
+	}
+	return "", os.ErrNotExist
+}
+
+func (f *fakeRuntime) ProfileInstallEnvironment(dirs config.Dirs, instanceID, profile, registry, proxy string) (string, []string, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.profileEnvCalls++
+	f.lastProfileEnv = profileEnvCall{
+		Dirs:       dirs,
+		InstanceID: instanceID,
+		Profile:    profile,
+		Registry:   registry,
+		Proxy:      proxy,
+	}
+	if f.profileEnvErr != nil {
+		return "", nil, f.profileEnvErr
+	}
+	dir := f.profileEnvDir
+	if dir == "" {
+		dir = filepath.Join(dirs.InstancesDir, instanceID, "dsh-home", "profiles", profile)
+	}
+	if err := os.MkdirAll(dir, 0o700); err != nil {
+		return "", nil, err
+	}
+	return dir, append([]string(nil), f.profileEnv...), nil
 }
 
 func (f *fakeRuntime) CompatibilityOf(string) string {

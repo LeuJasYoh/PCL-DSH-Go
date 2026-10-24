@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/app"
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/artifact"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/config"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/server/api"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/server/job"
@@ -32,13 +33,19 @@ var errNotAuthenticated = errors.New("workbench: not authenticated")
 
 // Deps are the server dependencies (docs/M1_INTERFACES.md 10).
 type Deps struct {
-	Config    config.Config
-	Logger    *slog.Logger
-	Dirs      config.Dirs
-	Store     *store.Store
-	Security  *security.Manager
-	Jobs      *job.Manager
-	App       *app.App
+	Config   config.Config
+	Logger   *slog.Logger
+	Dirs     config.Dirs
+	Store    *store.Store
+	Security *security.Manager
+	Jobs     *job.Manager
+	App      *app.App
+	// Pack backs the /api/packs/** endpoints (preview/import/export).
+	Pack api.PackService
+	// Plugins backs the /api/instances/{id}/plugins endpoints.
+	Plugins api.PluginService
+	// Artifacts serves pack export downloads (GET /api/artifacts/{id}).
+	Artifacts *artifact.Store
 	StartedAt time.Time
 }
 
@@ -60,6 +67,10 @@ func New(deps Deps) (*Server, error) {
 		return nil, errors.New("server: job manager is required")
 	case deps.App == nil:
 		return nil, errors.New("server: application is required")
+	case deps.Pack == nil:
+		return nil, errors.New("server: pack service is required")
+	case deps.Plugins == nil:
+		return nil, errors.New("server: plugin service is required")
 	}
 	workbench := proxy.New(
 		deps.Logger,
@@ -74,8 +85,11 @@ func New(deps Deps) (*Server, error) {
 		Security:  deps.Security,
 		Jobs:      deps.Jobs,
 		App:       deps.App,
+		Pack:      deps.Pack,
+		Plugins:   deps.Plugins,
 		StartedAt: deps.StartedAt,
 		Workbench: workbench,
+		Artifacts: deps.Artifacts,
 	})
 	if err != nil {
 		return nil, err

@@ -19,6 +19,8 @@ import (
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/app"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/config"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/logging"
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/pack"
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/plugin"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/server/job"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/server/security"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/store"
@@ -28,6 +30,32 @@ func TestNewRejectsMissingDependencies(t *testing.T) {
 	if _, err := New(Deps{}); err == nil {
 		t.Fatal("New(Deps{}) succeeded, want an error")
 	}
+}
+
+// stubPack is a no-op api.PackService for the wiring test.
+type stubPack struct{}
+
+func (stubPack) Preview(context.Context, io.Reader, string) (pack.Preview, error) {
+	return pack.Preview{}, nil
+}
+
+func (stubPack) Import(context.Context, pack.ImportInput, func(string)) (pack.ImportResult, error) {
+	return pack.ImportResult{}, nil
+}
+
+func (stubPack) Export(context.Context, pack.ExportInput, func(string)) (pack.ExportResult, error) {
+	return pack.ExportResult{}, nil
+}
+
+// stubPlugins is a no-op api.PluginService for the wiring test.
+type stubPlugins struct{}
+
+func (stubPlugins) List(context.Context, string, string) ([]plugin.DTO, error) {
+	return nil, nil
+}
+
+func (stubPlugins) Mutate(context.Context, plugin.MutateInput, func(string)) (plugin.MutateResult, error) {
+	return plugin.MutateResult{}, nil
 }
 
 // wiredEnv is a fully wired server (real store/admin/security/jobs/app) used to
@@ -81,6 +109,8 @@ func newWiredEnv(t *testing.T) *wiredEnv {
 		Security:  manager,
 		Jobs:      jobs,
 		App:       application,
+		Pack:      stubPack{},
+		Plugins:   stubPlugins{},
 		StartedAt: time.Now(),
 	})
 	if err != nil {

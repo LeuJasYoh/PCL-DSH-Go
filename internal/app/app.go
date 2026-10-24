@@ -116,6 +116,8 @@ type runtimeBackend interface {
 	Entries() []runtime.Entry
 	Remove(version string) (string, error)
 	BuildLaunchSpec(instance store.Instance, dirs config.Dirs, tl *tools.Tools, registry, proxy string, capabilities runtime.Capabilities) (process.LaunchSpec, error)
+	EntryPath(version string) (string, error)
+	ProfileInstallEnvironment(dirs config.Dirs, instanceID, profile, registry, proxy string) (dir string, env []string, err error)
 }
 
 // instanceProcess is the subset of process.Handle used by App.
@@ -148,6 +150,13 @@ type App struct {
 	runtime runtimeBackend
 	process processBackend
 
+	// installer runs pnpm for RestoreProfileDependencies; tests replace it so
+	// no real pnpm is needed.
+	installer profileInstaller
+	// runtimeService is the concrete runtime service behind the runtime backend
+	// (nil for test instances built with fake backends).
+	runtimeService *runtime.Service
+
 	mu sync.Mutex // serialises mutating operations
 
 	availableMu sync.Mutex
@@ -170,6 +179,7 @@ func New(deps Deps) (*App, error) {
 	rt := runtime.New(deps.Logger, deps.Tools, deps.Dirs.DataRoot)
 	rt.SetProxy(deps.Store.Settings().Proxy)
 	application := newApp(deps, rt, managerProcess{manager: process.NewManager(deps.Logger)})
+	application.runtimeService = rt
 	if deps.Tools != nil {
 		verifyCtx, cancel := context.WithTimeout(context.Background(), toolchainVerifyTimeout)
 		defer cancel()
@@ -186,13 +196,14 @@ func New(deps Deps) (*App, error) {
 // newApp assembles an App with explicit backends (used by New and tests).
 func newApp(deps Deps, rt runtimeBackend, proc processBackend) *App {
 	return &App{
-		cfg:     deps.Config,
-		dirs:    deps.Dirs,
-		logger:  deps.Logger,
-		store:   deps.Store,
-		tools:   deps.Tools,
-		runtime: rt,
-		process: proc,
+		cfg:       deps.Config,
+		dirs:      deps.Dirs,
+		logger:    deps.Logger,
+		store:     deps.Store,
+		tools:     deps.Tools,
+		runtime:   rt,
+		process:   proc,
+		installer: newExecProfileInstaller(deps.Tools),
 	}
 }
 
@@ -231,6 +242,12 @@ func (m managerProcess) Running() []instanceProcess {
 func (m managerProcess) StopAll(ctx context.Context) error {
 	return m.manager.StopAll(ctx)
 }
+
+// RuntimeService exposes the concrete runtime.Service used by the App so the
+// process-wide wiring (pack/plugin services, Lead main wiring) shares the same
+// capability cache and proxy configuration instead of creating a second runtime
+// service. Test Apps built with fake backends return nil.
+func (a *App) RuntimeService() *runtime.Service { return a.runtimeService }
 
 func (a *App) tryLock() bool { return a.mu.TryLock() }
 

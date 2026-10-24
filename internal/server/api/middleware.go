@@ -5,6 +5,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"mime"
 	"net/http"
 	"strings"
 	"time"
@@ -78,14 +79,25 @@ func (a *API) withTracing(next http.Handler) http.Handler {
 	})
 }
 
-// withBodyLimit bounds JSON request bodies to maxJSONBody.
+// withBodyLimit bounds JSON request bodies to maxJSONBody. Multipart uploads
+// are exempt: their streaming limit (2 GiB) is enforced by the upload helper
+// itself (docs/IMPLEMENTATION_SPEC.md 4.1).
 func (a *API) withBodyLimit(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Body != nil && isAPIPath(r.URL.Path) && methodHasJSONBody(r.Method) {
+		if r.Body != nil && isAPIPath(r.URL.Path) && methodHasJSONBody(r.Method) && !isMultipartForm(r) {
 			r.Body = http.MaxBytesReader(w, r.Body, maxJSONBody)
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+// isMultipartForm reports whether the request declares a multipart body.
+func isMultipartForm(r *http.Request) bool {
+	if r == nil {
+		return false
+	}
+	mediaType, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
+	return err == nil && strings.HasPrefix(mediaType, "multipart/")
 }
 
 // withSession resolves the JSESSIONID session (sliding its expiry) and stores

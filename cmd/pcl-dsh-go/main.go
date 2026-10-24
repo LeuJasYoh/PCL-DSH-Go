@@ -20,13 +20,20 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/app"
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/artifact"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/config"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/logging"
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/pack"
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/plugin"
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/runtime"
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/safe"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/server"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/server/job"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/server/security"
@@ -159,6 +166,47 @@ func run(args []string) int {
 		return 1
 	}
 
+	// Pack/artifact/plugin services share the same runtime.Service instance as
+	// the app so capability/probe caches cannot diverge.
+	runtimeService := application.RuntimeService()
+	settings := instanceStore.Settings()
+	artifactStore, err := artifact.Open(filepath.Join(dirs.CacheDir, "exports"))
+	if err != nil {
+		logger.Error("初始化 artifact 存储失败", "error", err)
+		return 1
+	}
+	if cleanupErr := artifactStore.Cleanup(time.Now()); cleanupErr != nil {
+		logger.Warn("清理过期 artifact 失败", "error", cleanupErr)
+	}
+	packService, err := pack.New(pack.Options{
+		DataRoot:  dirs.DataRoot,
+		Dirs:      dirs,
+		Store:     instanceStore,
+		Safe:      safe.DefaultLimits(),
+		Runtime:   packRuntimeAdapter{service: runtimeService, registry: settings.Registry},
+		App:       application,
+		Artifacts: artifactStore,
+		Logger:    logger,
+	})
+	if err != nil {
+		logger.Error("初始化整合包服务失败", "error", err)
+		return 1
+	}
+	packService.CleanupExpired(time.Now())
+	pluginService, err := plugin.New(plugin.Options{
+		Dirs:     dirs,
+		Store:    instanceStore,
+		Tools:    toolchain,
+		Runtime:  runtimeService,
+		Registry: settings.Registry,
+		Proxy:    settings.Proxy,
+		Logger:   logger,
+	})
+	if err != nil {
+		logger.Error("初始化插件服务失败", "error", err)
+		return 1
+	}
+
 	jobs := job.NewManager(logger, job.Options{})
 
 	managerServer, err := server.New(server.Deps{
@@ -169,6 +217,9 @@ func run(args []string) int {
 		Security:  securityManager,
 		Jobs:      jobs,
 		App:       application,
+		Pack:      packService,
+		Plugins:   pluginService,
+		Artifacts: artifactStore,
 		StartedAt: startedAt,
 	})
 	if err != nil {
@@ -231,4 +282,23 @@ func run(args []string) int {
 
 	logger.Info("pcl-dsh-go 已停止")
 	return exitCode
+}
+
+// packRuntimeAdapter adapts *runtime.Service to pack.RuntimeAccess: the pack
+// service installs runtimes without knowing which npm registry is configured.
+type packRuntimeAdapter struct {
+	service  *runtime.Service
+	registry string
+}
+
+func (a packRuntimeAdapter) Installed(version string) bool {
+	return a.service.Installed(version)
+}
+
+func (a packRuntimeAdapter) Install(ctx context.Context, version string, logf func(string)) (runtime.InstallResult, error) {
+	registry := strings.TrimSpace(a.registry)
+	if registry == "" {
+		registry = runtime.DefaultRegistry
+	}
+	return a.service.Install(ctx, version, registry, logf)
 }

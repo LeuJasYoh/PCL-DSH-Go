@@ -14,6 +14,7 @@ import (
 	"context"
 	"crypto/rand"
 	"errors"
+	"io"
 	"log/slog"
 	"net/http"
 	"sort"
@@ -22,7 +23,10 @@ import (
 
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/apierr"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/app"
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/artifact"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/config"
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/pack"
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/plugin"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/runtime"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/server/job"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/server/security"
@@ -32,6 +36,13 @@ import (
 // cryptorandRead is crypto/rand.Read, indirected so newTraceID has one call
 // site (and tests could stub it if ever needed).
 var cryptorandRead = rand.Read
+
+// Compile-time contract checks: the production services must keep satisfying the
+// API interfaces (docs/M3_INTERFACES.md 8).
+var (
+	_ PackService   = (*pack.Service)(nil)
+	_ PluginService = (*plugin.Service)(nil)
+)
 
 // App is the subset of *app.App used by the HTTP handlers. *app.App implements
 // it; tests provide an in-memory fake.
@@ -62,21 +73,46 @@ type Jobs interface {
 	Register(mux *http.ServeMux)
 }
 
+// PackService is the subset of *pack.Service used by the API: integration-pack
+// preview, import and export (docs/M3_INTERFACES.md 3/8). *pack.Service
+// implements it; tests provide a fake.
+type PackService interface {
+	Preview(ctx context.Context, reader io.Reader, filename string) (pack.Preview, error)
+	Import(ctx context.Context, in pack.ImportInput, logf func(string)) (pack.ImportResult, error)
+	Export(ctx context.Context, in pack.ExportInput, logf func(string)) (pack.ExportResult, error)
+}
+
+// PluginService is the subset of *plugin.Service used by the API: installed
+// plugin listing and mutations (docs/M3_INTERFACES.md 5/8). *plugin.Service
+// implements it; tests provide a fake.
+type PluginService interface {
+	List(ctx context.Context, instanceID, profile string) ([]plugin.DTO, error)
+	Mutate(ctx context.Context, in plugin.MutateInput, logf func(string)) (plugin.MutateResult, error)
+}
+
 // Deps are the API dependencies. Every field is required except Workbench
-// (a default 404 handler is used when nil) and StartedAt (defaults to now).
+// (a default 404 handler is used when nil), Artifacts (the download route stays
+// unmounted when nil) and StartedAt (defaults to now).
 type Deps struct {
-	Config    config.Config
-	Logger    *slog.Logger
-	Dirs      config.Dirs
-	Store     *store.Store
-	Security  *security.Manager
-	Jobs      Jobs
-	App       App
+	Config   config.Config
+	Logger   *slog.Logger
+	Dirs     config.Dirs
+	Store    *store.Store
+	Security *security.Manager
+	Jobs     Jobs
+	App      App
+	// Pack backs the /api/packs/** endpoints (preview/import/export).
+	Pack PackService
+	// Plugins backs the /api/instances/{id}/plugins endpoints.
+	Plugins   PluginService
 	StartedAt time.Time
 	// Workbench is the /workbench reverse-proxy handler. The API mounts it
 	// after the session/first-login guards, so the proxy itself never has to
 	// produce the PASSWORD_CHANGE_REQUIRED response.
 	Workbench http.Handler
+	// Artifacts serves GET /api/artifacts/{id} (pack export downloads,
+	// docs/M3_INTERFACES.md 4). Optional: nil leaves the route unmounted.
+	Artifacts *artifact.Store
 }
 
 // API serves the manager's REST API v1.
@@ -88,8 +124,11 @@ type API struct {
 	security  *security.Manager
 	jobs      Jobs
 	app       App
+	pack      PackService
+	plugins   PluginService
 	startedAt time.Time
 	workbench http.Handler
+	artifacts *artifact.Store
 	handler   http.Handler
 }
 
@@ -110,6 +149,12 @@ func New(deps Deps) (*API, error) {
 	if deps.App == nil {
 		return nil, errors.New("api: application is required")
 	}
+	if deps.Pack == nil {
+		return nil, errors.New("api: pack service is required")
+	}
+	if deps.Plugins == nil {
+		return nil, errors.New("api: plugin service is required")
+	}
 	if deps.StartedAt.IsZero() {
 		deps.StartedAt = time.Now()
 	}
@@ -124,8 +169,11 @@ func New(deps Deps) (*API, error) {
 		security:  deps.Security,
 		jobs:      deps.Jobs,
 		app:       deps.App,
+		pack:      deps.Pack,
+		plugins:   deps.Plugins,
 		startedAt: deps.StartedAt,
 		workbench: deps.Workbench,
+		artifacts: deps.Artifacts,
 	}
 	a.handler = a.buildHandler()
 	return a, nil
@@ -186,6 +234,19 @@ func (a *API) buildHandler() http.Handler {
 			http.MethodPut: a.handleUpdateSettings,
 		}},
 		{"/api/logs/tail", map[string]http.HandlerFunc{http.MethodGet: a.handleLogsTail}},
+		// Integration packs (M3): preview is synchronous; import/export are jobs.
+		{"/api/packs/preview", map[string]http.HandlerFunc{http.MethodPost: a.handlePackPreview}},
+		{"/api/packs/import", map[string]http.HandlerFunc{http.MethodPost: a.handlePackImport}},
+		{"/api/packs/export", map[string]http.HandlerFunc{http.MethodPost: a.handlePackExport}},
+		// Installed plugins of one instance (M3).
+		{"/api/instances/{id}/plugins", map[string]http.HandlerFunc{
+			http.MethodGet:  a.handleListPlugins,
+			http.MethodPost: a.handleAddPlugin,
+		}},
+		{"/api/instances/{id}/plugins/{name...}", map[string]http.HandlerFunc{
+			http.MethodPatch:  a.handleUpdatePlugin,
+			http.MethodDelete: a.handleRemovePlugin,
+		}},
 	}
 	for _, route := range routes {
 		a.registerRoute(mux, route)
@@ -194,6 +255,13 @@ func (a *API) buildHandler() http.Handler {
 	// Jobs (/api/jobs, /api/jobs/{id}, /api/jobs/{id}/events, cancel) are
 	// registered by the job manager itself.
 	a.jobs.Register(mux)
+
+	// Artifact downloads (GET /api/artifacts/{id}) are mounted inside the
+	// guarded mux so they inherit sessions, the first-login gate and the
+	// security headers (docs/M3_INTERFACES.md 4).
+	if a.artifacts != nil {
+		a.artifacts.Register(mux)
+	}
 
 	// JSON 404 for unknown API paths.
 	mux.HandleFunc("/api", a.handleAPINotFound)

@@ -22,8 +22,11 @@ import (
 
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/apierr"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/app"
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/artifact"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/config"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/logging"
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/pack"
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/plugin"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/process"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/runtime"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/server/job"
@@ -324,6 +327,137 @@ func mapTestStoreError(err error) error {
 	}
 }
 
+// fakePack is an in-memory api.PackService implementation.
+type fakePack struct {
+	mu sync.Mutex
+
+	preview      pack.Preview
+	previewErr   error
+	previewCalls int
+	lastFilename string
+	importResult pack.ImportResult
+	importErr    error
+	lastImport   pack.ImportInput
+	importCalls  int
+	exportResult pack.ExportResult
+	exportErr    error
+	lastExport   pack.ExportInput
+	exportCalls  int
+}
+
+func (f *fakePack) Preview(_ context.Context, reader io.Reader, filename string) (pack.Preview, error) {
+	data, err := io.ReadAll(reader)
+	if err != nil {
+		return pack.Preview{}, err
+	}
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.previewCalls++
+	f.lastFilename = filename
+	if f.previewErr != nil {
+		return pack.Preview{}, f.previewErr
+	}
+	if f.preview.ID == "" {
+		return pack.Preview{
+			ID:            "0123456789ab",
+			Name:          "test-pack",
+			Format:        pack.FormatDSPack,
+			Version:       "1.0.0",
+			DSHVersion:    "0.2.1-rc.3",
+			Profiles:      []string{"web"},
+			UnpackedBytes: int64(len(data)),
+			Warnings:      []string{},
+		}, nil
+	}
+	return f.preview, nil
+}
+
+func (f *fakePack) Import(_ context.Context, in pack.ImportInput, logf func(string)) (pack.ImportResult, error) {
+	if logf != nil {
+		logf("import " + in.PreviewID)
+	}
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.importCalls++
+	f.lastImport = in
+	if f.importErr != nil {
+		return pack.ImportResult{}, f.importErr
+	}
+	if f.importResult.InstanceID == "" {
+		return pack.ImportResult{InstanceID: "i-0123456789ab", Name: in.Name}, nil
+	}
+	return f.importResult, nil
+}
+
+func (f *fakePack) Export(_ context.Context, in pack.ExportInput, logf func(string)) (pack.ExportResult, error) {
+	if logf != nil {
+		logf("export " + in.InstanceID)
+	}
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.exportCalls++
+	f.lastExport = in
+	if f.exportErr != nil {
+		return pack.ExportResult{}, f.exportErr
+	}
+	if f.exportResult.ArtifactID == "" {
+		return pack.ExportResult{ArtifactID: "0123456789ab", Filename: "export.dspack", Size: 128}, nil
+	}
+	return f.exportResult, nil
+}
+
+// fakePlugins is an in-memory api.PluginService implementation.
+type fakePlugins struct {
+	mu sync.Mutex
+
+	list           []plugin.DTO
+	listErr        error
+	listCalls      int
+	lastInstanceID string
+	lastProfile    string
+	mutateResult   plugin.MutateResult
+	mutateErr      error
+	lastMutate     plugin.MutateInput
+	mutateCalls    int
+}
+
+func (f *fakePlugins) List(_ context.Context, instanceID, profile string) ([]plugin.DTO, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.listCalls++
+	f.lastInstanceID = instanceID
+	f.lastProfile = profile
+	if f.listErr != nil {
+		return nil, f.listErr
+	}
+	if f.list == nil {
+		return []plugin.DTO{}, nil
+	}
+	return append([]plugin.DTO(nil), f.list...), nil
+}
+
+func (f *fakePlugins) Mutate(_ context.Context, in plugin.MutateInput, logf func(string)) (plugin.MutateResult, error) {
+	if logf != nil {
+		logf("plugin " + in.Action + " " + in.Spec)
+	}
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.mutateCalls++
+	f.lastMutate = in
+	if f.mutateErr != nil {
+		return plugin.MutateResult{}, f.mutateErr
+	}
+	if f.mutateResult.Name == "" {
+		return plugin.MutateResult{
+			InstanceID: in.InstanceID,
+			Profile:    in.Profile,
+			Action:     in.Action,
+			Name:       "test-plugin",
+		}, nil
+	}
+	return f.mutateResult, nil
+}
+
 // workbenchRecorder counts /workbench proxy invocations.
 type workbenchRecorder struct {
 	mu   sync.Mutex
@@ -355,6 +489,9 @@ type testEnv struct {
 	dirs      config.Dirs
 	logs      *bytes.Buffer
 	workbench *workbenchRecorder
+	artifacts *artifact.Store
+	pack      *fakePack
+	plugins   *fakePlugins
 }
 
 // newTestEnv builds a full API stack on a temporary data root. pending controls
@@ -385,6 +522,12 @@ func newTestEnv(t *testing.T, pending bool) *testEnv {
 	t.Cleanup(jobs.Shutdown)
 	workbench := &workbenchRecorder{}
 	fake := &fakeApp{st: st, dirs: dirs, live: map[string]app.LiveStatus{}}
+	fakePackService := &fakePack{}
+	fakePluginService := &fakePlugins{}
+	artifactStore, err := artifact.Open(filepath.Join(dirs.CacheDir, "exports"))
+	if err != nil {
+		t.Fatalf("artifact.Open() error = %v", err)
+	}
 	server, err := New(Deps{
 		Config:    config.Config{Version: testVersion},
 		Logger:    logger,
@@ -393,8 +536,11 @@ func newTestEnv(t *testing.T, pending bool) *testEnv {
 		Security:  manager,
 		Jobs:      jobs,
 		App:       fake,
+		Pack:      fakePackService,
+		Plugins:   fakePluginService,
 		StartedAt: time.Now().Add(-90 * time.Second),
 		Workbench: workbench,
+		Artifacts: artifactStore,
 	})
 	if err != nil {
 		t.Fatalf("api.New() error = %v", err)
@@ -409,6 +555,9 @@ func newTestEnv(t *testing.T, pending bool) *testEnv {
 		dirs:      dirs,
 		logs:      logs,
 		workbench: workbench,
+		artifacts: artifactStore,
+		pack:      fakePackService,
+		plugins:   fakePluginService,
 	}
 }
 

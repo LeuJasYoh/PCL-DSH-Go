@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-// Package job implements the M1 job manager: at most one globally active
-// long-running task (install / probe / launch), an in-memory job history and
-// per-job SSE event streams.
+// Package job implements the job manager used by the M1/M3 API: at most one
+// globally active long-running task (install / probe / launch / pack import /
+// pack export / plugin mutation), an in-memory job history and per-job SSE
+// event streams.
 //
 // The contract is docs/M1_INTERFACES.md §6 and docs/IMPLEMENTATION_SPEC.md
 // §4.5. The manager owns:
@@ -47,6 +48,12 @@ const (
 	KindInstallRuntime Kind = "INSTALL_RUNTIME"
 	// KindProbeRuntime probes an installed DSH runtime.
 	KindProbeRuntime Kind = "PROBE_RUNTIME"
+	// KindImportPack imports a dspack/Overture pack as a new instance.
+	KindImportPack Kind = "IMPORT_PACK"
+	// KindExportPack exports an instance profile/home as a downloadable pack.
+	KindExportPack Kind = "EXPORT_PACK"
+	// KindPluginMutate installs, updates or removes a plugin of an instance.
+	KindPluginMutate Kind = "PLUGIN_MUTATE"
 )
 
 // State is the lifecycle state of a job.
