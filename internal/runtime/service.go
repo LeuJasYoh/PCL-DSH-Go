@@ -113,14 +113,24 @@ func (s *Service) InstalledVersions() []string {
 	if s.dataRoot == "" {
 		return nil
 	}
-	entries, err := os.ReadDir(filepath.Join(s.dataRoot, "runtimes"))
+	runtimesDirectory := filepath.Join(s.dataRoot, "runtimes")
+	entries, err := os.ReadDir(runtimesDirectory)
 	if err != nil {
 		return nil
 	}
 	versions := make([]string, 0, len(entries))
 	for _, entry := range entries {
-		if !entry.IsDir() || !IsVersion(entry.Name()) {
+		if !IsVersion(entry.Name()) {
 			continue
+		}
+		if !entry.IsDir() {
+			// An imported/prepared runtime may be a symlink to a directory
+			// (docs/M1_INTERFACES.md 8 allows pre-populated runtimes). Follow
+			// it so Installed/Entries agree with validateExecutable.
+			info, statErr := os.Stat(filepath.Join(runtimesDirectory, entry.Name()))
+			if statErr != nil || !info.IsDir() {
+				continue
+			}
 		}
 		if _, err := s.executable(entry.Name()); err != nil {
 			continue
