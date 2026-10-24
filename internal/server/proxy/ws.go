@@ -4,11 +4,10 @@ package proxy
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
-	"net"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -24,13 +23,22 @@ const maxCloseReasonBytes = 123
 // before closing the underlying sockets.
 const wsCloseGrace = 250 * time.Millisecond
 
-// serveWebSocket proxies one WebSocket connection: validate the origin, upgrade
-// the browser connection, dial the loopback instance and relay frames in both
-// directions. WebSocket traffic never goes through httputil.ReverseProxy.
+// serveWebSocket proxies one WebSocket connection using the dial-first order
+// required by docs/M2_INTERFACES.md §4: validate the Origin and loopback target,
+// dial the upstream instance first, surface upstream handshake rejections as
+// normal HTTP JSON errors, and only then upgrade the browser connection. When
+// the browser is upgraded, the response echoes the subprotocol the upstream
+// actually selected (never the client's first offer).
 func (h *Handler) serveWebSocket(w http.ResponseWriter, r *http.Request, route workbenchRoute, upstream *url.URL, port int) {
-	if !sameOriginWebSocket(r) {
+	if !sameOriginRequest(r) {
 		h.logger.Warn("workbench ws cross-origin rejected", "instance", route.instanceID)
 		writeJSONError(w, r.Method, http.StatusForbidden, codeForbidden, "跨源 WebSocket 握手被拒绝。")
+		return
+	}
+	if !validWebSocketHandshake(r) {
+		// Validate before dialing the upstream so malformed handshakes also get
+		// the unified JSON 400 body instead of gorilla's plain-text rejection.
+		writeJSONError(w, r.Method, http.StatusBadRequest, codeBadRequest, "WebSocket 握手请求无效。")
 		return
 	}
 	wsURL := &url.URL{
@@ -45,31 +53,14 @@ func (h *Handler) serveWebSocket(w http.ResponseWriter, r *http.Request, route w
 		return
 	}
 
-	// Forward the browser's offered subprotocols upstream. The client handshake
-	// echoes the first supported offer; when the upstream selects the same
-	// protocol both legs agree, and a mismatch is only reported at debug level
-	// (frames are opaque to the proxy).
+	// Forward the browser's offered subprotocol list, the DSH cookies and a
+	// loopback Origin to the upstream; the upstream decides what it accepts.
 	protocols := websocket.Subprotocols(r)
-	upgrader := h.upgrader
-	upgrader.CheckOrigin = func(*http.Request) bool { return true }
-	if len(protocols) > 0 {
-		upgrader.Subprotocols = protocols
-	}
-	client, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		// Upgrade has already written an HTTP error response.
-		h.logger.Debug("workbench ws client upgrade failed", "instance", route.instanceID, "kind", errorKind(err))
-		return
-	}
-	defer client.Close()
-	client.SetReadLimit(maxWSMessageBytes)
-
 	headers := make(http.Header)
 	if cookie := dshCookieHeader(r.Header); cookie != "" {
 		headers.Set("Cookie", cookie)
 	}
 	if r.Header.Get("Origin") != "" {
-		// Upstream only ever sees the loopback origin.
 		headers.Set("Origin", "http://"+upstream.Host)
 	}
 	dialer := *h.dialer
@@ -80,23 +71,105 @@ func (h *Handler) serveWebSocket(w http.ResponseWriter, r *http.Request, route w
 	if handshakeTimeout <= 0 {
 		handshakeTimeout = defaultWSHandshakeTimeout
 	}
-	// The HTTP request context is tied to the (now hijacked) connection; dial
-	// with an independent timeout so a slow upstream cannot wedge the handler.
-	dialCtx, cancel := context.WithTimeout(context.Background(), handshakeTimeout)
+	dialCtx, cancel := context.WithTimeout(r.Context(), handshakeTimeout)
 	defer cancel()
 	upstreamConn, resp, err := dialer.DialContext(dialCtx, wsURL.String(), headers)
 	if err != nil {
 		h.logger.Warn("workbench ws upstream dial failed", "instance", route.instanceID,
 			"kind", errorKind(err), "status", responseStatusCode(resp))
-		closeClientAfterUpstreamFailure(client, resp)
+		h.writeWebSocketDialError(w, r, resp)
 		return
 	}
 	defer upstreamConn.Close()
 	upstreamConn.SetReadLimit(maxWSMessageBytes)
-	if chosen := client.Subprotocol(); chosen != "" && upstreamConn.Subprotocol() != chosen {
-		h.logger.Debug("workbench ws subprotocol mismatch", "instance", route.instanceID)
+
+	// Upstream accepted the handshake: now upgrade the browser. The gorilla
+	// Upgrader is given the upstream-selected subprotocol through
+	// responseHeader; without that, gorilla would fall back to the first
+	// client offer (forbidden by the M2 contract).
+	upgrader := h.upgrader
+	upgrader.CheckOrigin = func(*http.Request) bool { return true }
+	upgrader.Subprotocols = nil
+	var responseHeader http.Header
+	if selected := upstreamConn.Subprotocol(); selected != "" {
+		responseHeader = http.Header{"Sec-Websocket-Protocol": {selected}}
 	}
+	client, err := upgrader.Upgrade(w, r, responseHeader)
+	if err != nil {
+		// Upgrade has already written an HTTP error response; the upstream
+		// connection is closed by the deferred Close.
+		h.logger.Debug("workbench ws client upgrade failed", "instance", route.instanceID, "kind", errorKind(err))
+		return
+	}
+	defer client.Close()
+	client.SetReadLimit(maxWSMessageBytes)
 	h.relayWebSocket(client, upstreamConn)
+}
+
+// writeWebSocketDialError turns an upstream handshake rejection into the
+// matching HTTP JSON error (dial-first contract). A connection-level failure (no
+// HTTP response) maps to 502 UPSTREAM_ERROR.
+func (h *Handler) writeWebSocketDialError(w http.ResponseWriter, r *http.Request, resp *http.Response) {
+	if resp != nil {
+		_ = resp.Body.Close()
+		status, code, message := mapWebSocketUpstreamStatus(resp.StatusCode)
+		writeJSONError(w, r.Method, status, code, message)
+		return
+	}
+	writeJSONError(w, r.Method, http.StatusBadGateway, codeUpstreamError, "无法连接实例工作台，请确认实例仍在运行。")
+}
+
+// validWebSocketHandshake validates the parts of the browser handshake that
+// gorilla.Upgrade would check (method, version and challenge key). Running it
+// before the upstream dial keeps every client-facing failure in the unified
+// JSON error model.
+func validWebSocketHandshake(r *http.Request) bool {
+	if r.Method != http.MethodGet {
+		return false
+	}
+	if !headerContainsToken(r.Header, "Connection", "upgrade") ||
+		!headerContainsToken(r.Header, "Upgrade", "websocket") {
+		return false
+	}
+	if !headerContainsToken(r.Header, "Sec-Websocket-Version", "13") {
+		return false
+	}
+	challengeKey := r.Header.Get("Sec-Websocket-Key")
+	decoded, err := base64.StdEncoding.DecodeString(challengeKey)
+	return err == nil && len(decoded) == 16
+}
+
+// headerContainsToken reports whether a comma-separated header contains token
+// (case-insensitive).
+func headerContainsToken(header http.Header, name, token string) bool {
+	for _, value := range header.Values(name) {
+		for _, part := range strings.Split(value, ",") {
+			if strings.EqualFold(strings.TrimSpace(part), token) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// mapWebSocketUpstreamStatus maps a non-101 upstream handshake status to the
+// /workbench error model (docs/M2_INTERFACES.md §4); anything else is a bad
+// gateway.
+func mapWebSocketUpstreamStatus(status int) (int, string, string) {
+	switch status {
+	case http.StatusBadRequest:
+		return http.StatusBadRequest, codeBadRequest, "WebSocket 握手请求无效。"
+	case http.StatusUnauthorized:
+		return http.StatusUnauthorized, codeUnauthorized, "请先登录。"
+	case http.StatusForbidden:
+		return http.StatusForbidden, codeForbidden, "WebSocket 握手被拒绝。"
+	case http.StatusNotFound:
+		return http.StatusNotFound, codeInstanceNotFound, "实例不存在。"
+	case http.StatusConflict:
+		return http.StatusConflict, codeInstanceNotReady, "网页服务尚未确认就绪，请等待启动完成或检查实例日志。"
+	default:
+		return http.StatusBadGateway, codeUpstreamError, "无法连接实例工作台，请确认实例仍在运行。"
+	}
 }
 
 // relayWebSocket copies text/binary frames in both directions until one side
@@ -228,94 +301,9 @@ func normalizeCloseText(text string) string {
 	return string(trimmed)
 }
 
-// closeClientAfterUpstreamFailure closes an already upgraded client connection
-// with a close code that mirrors the HTTP failure semantics (502/409): the
-// client was upgraded before the upstream dial, so a JSON error is impossible.
-func closeClientAfterUpstreamFailure(client *websocket.Conn, resp *http.Response) {
-	code, reason := websocket.CloseTryAgainLater, "upstream unavailable"
-	if resp != nil {
-		switch resp.StatusCode {
-		case http.StatusUnauthorized, http.StatusForbidden:
-			code, reason = websocket.ClosePolicyViolation, "upstream rejected the session"
-		case http.StatusNotFound:
-			code, reason = websocket.CloseInternalServerErr, "upstream not found"
-		case http.StatusConflict:
-			code, reason = websocket.CloseTryAgainLater, "upstream not ready"
-		case http.StatusBadRequest:
-			code, reason = websocket.CloseInternalServerErr, "upstream rejected the handshake"
-		default:
-			if resp.StatusCode >= 500 {
-				code, reason = websocket.CloseInternalServerErr, "upstream error"
-			}
-		}
-	}
-	_ = client.WriteControl(websocket.CloseMessage,
-		websocket.FormatCloseMessage(code, reason), time.Now().Add(wsControlTimeout))
-}
-
 func responseStatusCode(resp *http.Response) int {
 	if resp == nil {
 		return 0
 	}
 	return resp.StatusCode
-}
-
-// sameOriginWebSocket enforces Origin/Host same-origin for browser WebSocket
-// handshakes (DSH_INTEGRATION §6.3). Default ports are normalized (http→80,
-// https→443); a Host header without a port uses the origin scheme's default
-// port. Requests without an Origin header (non-browser clients) are accepted:
-// they are not subject to browser cross-site WebSocket hijacking.
-func sameOriginWebSocket(r *http.Request) bool {
-	origin := r.Header.Get("Origin")
-	if origin == "" {
-		return true
-	}
-	parsed, err := url.Parse(origin)
-	if err != nil || parsed.User != nil || parsed.Hostname() == "" {
-		return false
-	}
-	var defaultPort int
-	switch strings.ToLower(parsed.Scheme) {
-	case "http":
-		defaultPort = 80
-	case "https":
-		defaultPort = 443
-	default:
-		return false
-	}
-	originPort := defaultPort
-	if rawPort := parsed.Port(); rawPort != "" {
-		port, convErr := strconv.Atoi(rawPort)
-		if convErr != nil || port < 1 || port > 65535 {
-			return false
-		}
-		originPort = port
-	}
-	host, port, ok := splitHostHeader(r.Host, defaultPort)
-	if !ok {
-		return false
-	}
-	return strings.EqualFold(host, parsed.Hostname()) && port == originPort
-}
-
-// splitHostHeader splits a Host header into host and port, falling back to
-// defaultPort when the header carries no port.
-func splitHostHeader(hostHeader string, defaultPort int) (host string, port int, ok bool) {
-	if hostHeader == "" {
-		return "", 0, false
-	}
-	if parsedHost, rawPort, err := net.SplitHostPort(hostHeader); err == nil {
-		parsedPort, convErr := strconv.Atoi(rawPort)
-		if convErr != nil || parsedPort < 1 || parsedPort > 65535 {
-			return "", 0, false
-		}
-		return parsedHost, parsedPort, true
-	}
-	if strings.HasPrefix(hostHeader, "[") && strings.HasSuffix(hostHeader, "]") {
-		return hostHeader[1 : len(hostHeader)-1], defaultPort, true
-	}
-	if strings.Contains(hostHeader, ":") {
-		return "", 0, false
-	}
-	return hostHeader, defaultPort, true
 }

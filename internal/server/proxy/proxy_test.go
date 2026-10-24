@@ -134,6 +134,28 @@ func sendRequest(t *testing.T, client *http.Client, method, url string, body io.
 	return response
 }
 
+// sendRequestWithHost is sendRequest with an overridden Host header (used to
+// exercise default-port Origin normalization without changing the dial target).
+func sendRequestWithHost(t *testing.T, client *http.Client, method, url string, body io.Reader, header http.Header, host string) *http.Response {
+	t.Helper()
+	request, err := http.NewRequest(method, url, body)
+	if err != nil {
+		t.Fatalf("new request %s %s: %v", method, url, err)
+	}
+	request.Host = host
+	for name, values := range header {
+		for _, value := range values {
+			request.Header.Add(name, value)
+		}
+	}
+	response, err := client.Do(request)
+	if err != nil {
+		t.Fatalf("%s %s: %v", method, url, err)
+	}
+	t.Cleanup(func() { response.Body.Close() })
+	return response
+}
+
 func bodyString(t *testing.T, response *http.Response) string {
 	t.Helper()
 	data, err := io.ReadAll(response.Body)
@@ -169,6 +191,9 @@ func assertProxyError(t *testing.T, response *http.Response, wantStatus int, wan
 	}
 	if parsed.Message == "" {
 		t.Fatal("error message must not be empty")
+	}
+	if parsed.Details == nil || len(parsed.Details) != 0 {
+		t.Fatalf("details = %v, want an empty object", parsed.Details)
 	}
 }
 
@@ -414,8 +439,8 @@ func TestHTTPForwarding(t *testing.T) {
 
 	header := http.Header{}
 	header.Set("Cookie", "JSESSIONID=console-session; XSRF-TOKEN=console-csrf; dsh-auth-a=1; theme=dark")
-	header.Set("Origin", "http://console.example")
-	header.Set("Referer", "http://console.example/")
+	header.Set("Origin", proxyServer.URL) // same-origin write request
+	header.Set("Referer", proxyServer.URL+"/")
 	header.Set("X-XSRF-TOKEN", "console-csrf")
 	header.Set("Forwarded", "for=1.2.3.4")
 	header.Set("X-Forwarded-For", "1.2.3.4")
@@ -633,6 +658,9 @@ func TestSSEStreaming(t *testing.T) {
 	}
 	if got := response.Header.Get("Cache-Control"); got != "no-store" {
 		t.Fatalf("Cache-Control = %q, want no-store", got)
+	}
+	if got := response.Header.Get("X-Accel-Buffering"); got != "no" {
+		t.Fatalf("X-Accel-Buffering = %q, want no", got)
 	}
 	reader := bufio.NewReader(response.Body)
 	lines := make(chan string, 16)
@@ -902,5 +930,500 @@ func TestLogsDoNotContainSecrets(t *testing.T) {
 		if strings.Contains(logs, secret) {
 			t.Fatalf("log output leaked secret %q:\n%s", secret, logs)
 		}
+	}
+}
+
+// httpCRLF is used by the raw-socket tests below to build HTTP requests and
+// responses without relying on net/http rewriting the headers under test.
+const httpCRLF = "\r\n"
+
+func TestOriginSameOriginForWriteMethods(t *testing.T) {
+	tests := []struct {
+		name       string
+		method     string
+		origin     string
+		sameOrigin bool
+		host       string
+		wantStatus int
+		wantCode   string
+		wantHit    bool
+	}{
+		{name: "same-origin POST is forwarded", method: http.MethodPost, sameOrigin: true, wantStatus: http.StatusOK, wantHit: true},
+		{name: "same-origin PUT is forwarded", method: http.MethodPut, sameOrigin: true, wantStatus: http.StatusOK, wantHit: true},
+		{name: "cross-origin POST is rejected", method: http.MethodPost, origin: "http://evil.example", wantStatus: http.StatusForbidden, wantCode: codeForbidden},
+		{name: "cross-origin PUT is rejected", method: http.MethodPut, origin: "http://evil.example", wantStatus: http.StatusForbidden, wantCode: codeForbidden},
+		{name: "cross-origin PATCH is rejected", method: http.MethodPatch, origin: "http://evil.example", wantStatus: http.StatusForbidden, wantCode: codeForbidden},
+		{name: "cross-origin DELETE is rejected", method: http.MethodDelete, origin: "http://evil.example", wantStatus: http.StatusForbidden, wantCode: codeForbidden},
+		{name: "null origin is rejected", method: http.MethodPost, origin: "null", wantStatus: http.StatusForbidden, wantCode: codeForbidden},
+		{name: "same host different port is rejected", method: http.MethodPost, host: "console.example", origin: "http://console.example:8080", wantStatus: http.StatusForbidden, wantCode: codeForbidden},
+		{name: "http default port is normalized", method: http.MethodPost, host: "console.example", origin: "http://console.example", wantStatus: http.StatusOK, wantHit: true},
+		{name: "https default port is normalized", method: http.MethodPost, host: "console.example", origin: "https://console.example", wantStatus: http.StatusOK, wantHit: true},
+		{name: "no origin is allowed", method: http.MethodPost, wantStatus: http.StatusOK, wantHit: true},
+		{name: "cross-origin GET is not gated", method: http.MethodGet, origin: "http://evil.example", wantStatus: http.StatusOK, wantHit: true},
+		{name: "cross-origin HEAD is not gated", method: http.MethodHead, origin: "http://evil.example", wantStatus: http.StatusOK, wantHit: true},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			recorder := &requestRecorder{}
+			upstream := newUpstream(t, http.HandlerFunc(recorder.handler))
+			_, proxyServer := newProxyHandler(t, staticResolver(upstreamTarget(t, upstream), nil), nil)
+			header := http.Header{}
+			header.Set("Cookie", "dsh-auth-route=1")
+			origin := test.origin
+			if test.sameOrigin {
+				origin = proxyServer.URL
+			}
+			if origin != "" {
+				header.Set("Origin", origin)
+			}
+			var response *http.Response
+			if test.host != "" {
+				response = sendRequestWithHost(t, noRedirectClient(), test.method,
+					proxyServer.URL+"/workbench/i-test/page", nil, header, test.host)
+			} else {
+				response = sendRequest(t, noRedirectClient(), test.method,
+					proxyServer.URL+"/workbench/i-test/page", nil, header)
+			}
+			if test.wantHit {
+				if response.StatusCode != test.wantStatus {
+					t.Fatalf("status = %d, want %d", response.StatusCode, test.wantStatus)
+				}
+				if recorder.count() != 1 {
+					t.Fatalf("upstream requests = %d, want 1", recorder.count())
+				}
+				return
+			}
+			assertProxyError(t, response, test.wantStatus, test.wantCode)
+			if recorder.count() != 0 {
+				t.Fatalf("upstream must not be reached, got %d requests", recorder.count())
+			}
+		})
+	}
+}
+
+func TestDynamicHopByHopRequestHeaders(t *testing.T) {
+	recorder := &requestRecorder{}
+	upstream := newUpstream(t, http.HandlerFunc(recorder.handler))
+	_, proxyServer := newProxyHandler(t, staticResolver(upstreamTarget(t, upstream), nil), nil)
+
+	conn, err := net.Dial("tcp", proxyServer.Listener.Addr().String())
+	if err != nil {
+		t.Fatalf("dial proxy: %v", err)
+	}
+	t.Cleanup(func() { conn.Close() })
+	requestLines := []string{
+		"GET /workbench/i-test/page HTTP/1.1",
+		"Host: " + proxyServer.Listener.Addr().String(),
+		"Cookie: dsh-auth-route=1",
+		"Connection: X-Hop-Header, X-Second-Hop",
+		"X-Hop-Header: secret-one",
+		"X-Second-Hop: secret-two",
+		"X-Kept: yes",
+		"",
+		"",
+	}
+	if _, err := conn.Write([]byte(strings.Join(requestLines, httpCRLF))); err != nil {
+		t.Fatalf("write raw request: %v", err)
+	}
+	response, err := http.ReadResponse(bufio.NewReader(conn), nil)
+	if err != nil {
+		t.Fatalf("read proxy response: %v", err)
+	}
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, want 200", response.StatusCode)
+	}
+	_, _ = io.ReadAll(response.Body)
+	response.Body.Close()
+
+	recorded := recorder.last(t)
+	for _, name := range []string{"Connection", "X-Hop-Header", "X-Second-Hop"} {
+		if got := recorded.Header.Get(name); got != "" {
+			t.Fatalf("connection-nominated header %s leaked upstream: %q", name, got)
+		}
+	}
+	if got := recorded.Header.Get("X-Kept"); got != "yes" {
+		t.Fatalf("X-Kept = %q, want yes", got)
+	}
+}
+
+func TestDynamicHopByHopResponseHeaders(t *testing.T) {
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+	t.Cleanup(func() { listener.Close() })
+	serverErr := make(chan error, 1)
+	go func() {
+		conn, err := listener.Accept()
+		if err != nil {
+			serverErr <- err
+			return
+		}
+		defer conn.Close()
+		reader := bufio.NewReader(conn)
+		for {
+			line, err := reader.ReadString('\n')
+			if err != nil {
+				serverErr <- err
+				return
+			}
+			if line == httpCRLF {
+				break
+			}
+		}
+		rawResponse := strings.Join([]string{
+			"HTTP/1.1 200 OK",
+			"Content-Type: text/plain",
+			"Content-Length: 2",
+			"Connection: X-Hop-Response",
+			"X-Hop-Response: secret",
+			"X-Kept: yes",
+			"",
+			"ok",
+		}, httpCRLF)
+		_, err = conn.Write([]byte(rawResponse))
+		serverErr <- err
+	}()
+	port := listener.Addr().(*net.TCPAddr).Port
+	_, proxyServer := newProxyHandler(t, staticResolver(Target{InstanceID: "i-test", Port: port}, nil), nil)
+	response := sendRequest(t, noRedirectClient(), http.MethodGet,
+		proxyServer.URL+"/workbench/i-test/page", nil, dshAuthHeader())
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, want 200", response.StatusCode)
+	}
+	if got := bodyString(t, response); got != "ok" {
+		t.Fatalf("body = %q, want ok", got)
+	}
+	for _, name := range []string{"Connection", "X-Hop-Response"} {
+		if got := response.Header.Get(name); got != "" {
+			t.Fatalf("connection-nominated response header %s leaked to the browser: %q", name, got)
+		}
+	}
+	if got := response.Header.Get("X-Kept"); got != "yes" {
+		t.Fatalf("X-Kept = %q, want yes", got)
+	}
+	if err := <-serverErr; err != nil {
+		t.Fatalf("raw upstream: %v", err)
+	}
+}
+
+func TestErrorJSONUnifiedFields(t *testing.T) {
+	const traceID = "abc123def456"
+	slowUpstream := newUpstream(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(200 * time.Millisecond)
+		w.WriteHeader(http.StatusOK)
+	}))
+	closedListener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen: %v", err)
+	}
+	closedPort := closedListener.Addr().(*net.TCPAddr).Port
+	closedListener.Close()
+
+	tests := []struct {
+		name       string
+		wantStatus int
+		wantCode   string
+		setup      func(t *testing.T) (*Handler, string)
+	}{
+		{
+			name: "bad request", wantStatus: http.StatusBadRequest, wantCode: codeBadRequest,
+			setup: func(t *testing.T) (*Handler, string) {
+				return New(slog.New(slog.DiscardHandler), staticResolver(Target{Port: 3080}, nil), nil),
+					"/workbench/i-test/a%00b"
+			},
+		},
+		{
+			name: "unauthorized", wantStatus: http.StatusUnauthorized, wantCode: codeUnauthorized,
+			setup: func(t *testing.T) (*Handler, string) {
+				authorize := func(*http.Request) error { return errors.New("no session") }
+				return New(slog.New(slog.DiscardHandler), staticResolver(Target{Port: 3080}, nil), authorize),
+					"/workbench/i-test/"
+			},
+		},
+		{
+			name: "forbidden", wantStatus: http.StatusForbidden, wantCode: codeForbidden,
+			setup: func(t *testing.T) (*Handler, string) {
+				authorize := func(*http.Request) error { return ErrForbidden }
+				return New(slog.New(slog.DiscardHandler), staticResolver(Target{Port: 3080}, nil), authorize),
+					"/workbench/i-test/"
+			},
+		},
+		{
+			name: "instance not found", wantStatus: http.StatusNotFound, wantCode: codeInstanceNotFound,
+			setup: func(t *testing.T) (*Handler, string) {
+				return New(slog.New(slog.DiscardHandler), staticResolver(Target{}, ErrInstanceNotFound), nil),
+					"/workbench/i-test/"
+			},
+		},
+		{
+			name: "instance not ready", wantStatus: http.StatusConflict, wantCode: codeInstanceNotReady,
+			setup: func(t *testing.T) (*Handler, string) {
+				return New(slog.New(slog.DiscardHandler), staticResolver(Target{}, ErrInstanceNotReady), nil),
+					"/workbench/i-test/"
+			},
+		},
+		{
+			name: "upstream error", wantStatus: http.StatusBadGateway, wantCode: codeUpstreamError,
+			setup: func(t *testing.T) (*Handler, string) {
+				return New(slog.New(slog.DiscardHandler), staticResolver(Target{InstanceID: "i-test", Port: closedPort}, nil), nil),
+					"/workbench/i-test/"
+			},
+		},
+		{
+			name: "upstream timeout", wantStatus: http.StatusGatewayTimeout, wantCode: codeUpstreamTimeout,
+			setup: func(t *testing.T) (*Handler, string) {
+				handler := New(slog.New(slog.DiscardHandler), staticResolver(upstreamTarget(t, slowUpstream), nil), nil)
+				handler.SetUpstreamTimeout(20 * time.Millisecond)
+				return handler, "/workbench/i-test/slow"
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			handler, path := test.setup(t)
+			withTrace := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set(traceIDHeader, traceID)
+				handler.ServeHTTP(w, r)
+			})
+			proxyServer := httptest.NewServer(withTrace)
+			t.Cleanup(proxyServer.Close)
+			response := sendRequest(t, noRedirectClient(), http.MethodGet, proxyServer.URL+path, nil, dshAuthHeader())
+			if response.StatusCode != test.wantStatus {
+				t.Fatalf("status = %d, want %d", response.StatusCode, test.wantStatus)
+			}
+			rawBody := bodyString(t, response)
+			var fields map[string]json.RawMessage
+			if err := json.Unmarshal([]byte(rawBody), &fields); err != nil {
+				t.Fatalf("decode error body %q: %v", rawBody, err)
+			}
+			if len(fields) != 4 {
+				t.Fatalf("error body has %d fields, want 4: %s", len(fields), rawBody)
+			}
+			for _, key := range []string{"code", "message", "details", "traceId"} {
+				if _, ok := fields[key]; !ok {
+					t.Fatalf("error body field %q missing: %s", key, rawBody)
+				}
+			}
+			var code, message, gotTrace string
+			_ = json.Unmarshal(fields["code"], &code)
+			_ = json.Unmarshal(fields["message"], &message)
+			_ = json.Unmarshal(fields["traceId"], &gotTrace)
+			if code != test.wantCode {
+				t.Fatalf("code = %q, want %q", code, test.wantCode)
+			}
+			if message == "" {
+				t.Fatal("message must not be empty")
+			}
+			if details := string(fields["details"]); details != "{}" {
+				t.Fatalf("details = %s, want {}", details)
+			}
+			if gotTrace != traceID {
+				t.Fatalf("traceId = %q, want %q", gotTrace, traceID)
+			}
+		})
+	}
+}
+
+func TestErrorJSONEmptyTraceIDWithoutHeader(t *testing.T) {
+	// Standalone handlers (unit tests, custom muxes) have no X-Trace-Id response
+	// header: the field must still exist as an empty string, never be omitted.
+	authorize := func(*http.Request) error { return errors.New("no session") }
+	_, proxyServer := newProxyHandler(t, staticResolver(Target{Port: 3080}, nil), authorize)
+	response := sendRequest(t, noRedirectClient(), http.MethodGet, proxyServer.URL+"/workbench/i-test/", nil, nil)
+	if response.StatusCode != http.StatusUnauthorized {
+		t.Fatalf("status = %d, want 401", response.StatusCode)
+	}
+	rawBody := bodyString(t, response)
+	var parsed errorResponse
+	if err := json.Unmarshal([]byte(rawBody), &parsed); err != nil {
+		t.Fatalf("decode body %q: %v", rawBody, err)
+	}
+	if parsed.TraceID != "" {
+		t.Fatalf("traceId = %q, want empty", parsed.TraceID)
+	}
+	if parsed.Details == nil || len(parsed.Details) != 0 {
+		t.Fatalf("details = %v, want an empty object", parsed.Details)
+	}
+}
+
+func TestSSEClientDisconnectCancelsUpstream(t *testing.T) {
+	upstreamCanceled := make(chan struct{}, 1)
+	upstream := newUpstream(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+		w.WriteHeader(http.StatusOK)
+		if flusher, ok := w.(http.Flusher); ok {
+			flusher.Flush()
+		}
+		<-r.Context().Done()
+		select {
+		case upstreamCanceled <- struct{}{}:
+		default:
+		}
+	}))
+	_, proxyServer := newProxyHandler(t, staticResolver(upstreamTarget(t, upstream), nil), nil)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet,
+		proxyServer.URL+"/workbench/i-test/plugins/events", nil)
+	if err != nil {
+		t.Fatalf("new request: %v", err)
+	}
+	request.Header.Set("Cookie", "dsh-auth-route=1")
+	response, err := noRedirectClient().Do(request)
+	if err != nil {
+		t.Fatalf("GET SSE: %v", err)
+	}
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, want 200", response.StatusCode)
+	}
+	if got := response.Header.Get("X-Accel-Buffering"); got != "no" {
+		t.Fatalf("X-Accel-Buffering = %q, want no", got)
+	}
+	// Simulate the browser going away: cancel the request context and drop the
+	// body. The proxy must cancel the upstream request instead of leaking it.
+	cancel()
+	response.Body.Close()
+	select {
+	case <-upstreamCanceled:
+	case <-time.After(5 * time.Second):
+		t.Fatal("client disconnect did not cancel the upstream request")
+	}
+}
+
+func TestLargeRequestBodyStreaming(t *testing.T) {
+	const bodySize = 10 << 20 // 10 MiB, per docs/M2_INTERFACES.md §3.5
+	firstRead := make(chan struct{})
+	var firstReadOnce sync.Once
+	upstreamTotal := make(chan int64, 1)
+	upstream := newUpstream(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var total int64
+		buffer := make([]byte, 128<<10)
+		for {
+			read, err := r.Body.Read(buffer)
+			if read > 0 {
+				total += int64(read)
+				firstReadOnce.Do(func() { close(firstRead) })
+			}
+			if err != nil {
+				break
+			}
+		}
+		upstreamTotal <- total
+		w.WriteHeader(http.StatusOK)
+		_, _ = io.WriteString(w, "ok")
+	}))
+	_, proxyServer := newProxyHandler(t, staticResolver(upstreamTarget(t, upstream), nil), nil)
+
+	reader, writer := io.Pipe()
+	release := make(chan struct{})
+	var releaseOnce sync.Once
+	releaseWriter := func() { releaseOnce.Do(func() { close(release) }) }
+	writerErr := make(chan error, 1)
+	go func() {
+		chunk := bytes.Repeat([]byte("x"), 256<<10)
+		written := 0
+		for written < bodySize {
+			size := len(chunk)
+			if remaining := bodySize - written; remaining < size {
+				size = remaining
+			}
+			if _, err := writer.Write(chunk[:size]); err != nil {
+				writerErr <- err
+				return
+			}
+			written += size
+			if written >= 2<<20 {
+				// Hold the remaining body until the upstream has already seen
+				// streamed data: a buffering proxy would deadlock here.
+				<-release
+			}
+		}
+		_ = writer.Close()
+		writerErr <- nil
+	}()
+	t.Cleanup(func() {
+		releaseWriter()
+		_ = writer.CloseWithError(errors.New("test cleanup"))
+	})
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost,
+		proxyServer.URL+"/workbench/i-test/upload", reader)
+	if err != nil {
+		t.Fatalf("new request: %v", err)
+	}
+	request.Header.Set("Cookie", "dsh-auth-route=1")
+	client := noRedirectClient()
+	responseCh := make(chan *http.Response, 1)
+	requestErr := make(chan error, 1)
+	go func() {
+		response, err := client.Do(request)
+		if err != nil {
+			requestErr <- err
+			return
+		}
+		responseCh <- response
+	}()
+
+	select {
+	case <-firstRead:
+	case err := <-requestErr:
+		t.Fatalf("request failed before streaming: %v", err)
+	case <-time.After(10 * time.Second):
+		t.Fatal("upstream received no body chunk before the client finished sending (proxy buffered the body)")
+	}
+	releaseWriter()
+
+	var response *http.Response
+	select {
+	case response = <-responseCh:
+	case err := <-requestErr:
+		t.Fatalf("request failed: %v", err)
+	case <-time.After(20 * time.Second):
+		t.Fatal("request did not complete after the body was released")
+	}
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, want 200", response.StatusCode)
+	}
+	if got := bodyString(t, response); got != "ok" {
+		t.Fatalf("body = %q, want ok", got)
+	}
+	select {
+	case total := <-upstreamTotal:
+		if total != bodySize {
+			t.Fatalf("upstream received %d bytes, want %d", total, bodySize)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("upstream did not finish reading the body")
+	}
+	if err := <-writerErr; err != nil {
+		t.Fatalf("client body writer: %v", err)
+	}
+}
+
+func TestHEADContentLength(t *testing.T) {
+	const contentLength = "12345"
+	upstream := newUpstream(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		w.Header().Set("Content-Length", contentLength)
+		w.WriteHeader(http.StatusOK)
+		if r.Method != http.MethodHead {
+			_, _ = io.WriteString(w, "hello")
+		}
+	}))
+	_, proxyServer := newProxyHandler(t, staticResolver(upstreamTarget(t, upstream), nil), nil)
+	response := sendRequest(t, noRedirectClient(), http.MethodHead,
+		proxyServer.URL+"/workbench/i-test/page", nil, dshAuthHeader())
+	if response.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, want 200", response.StatusCode)
+	}
+	if response.ContentLength != 12345 {
+		t.Fatalf("ContentLength = %d, want 12345", response.ContentLength)
+	}
+	if body := bodyString(t, response); body != "" {
+		t.Fatalf("HEAD body = %q, want empty", body)
 	}
 }

@@ -3,8 +3,10 @@
 package proxy
 
 import (
+	"bufio"
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -370,6 +372,8 @@ func TestWebSocketClientMessageTooLarge(t *testing.T) {
 }
 
 func TestWebSocketUpstreamUnavailable(t *testing.T) {
+	// Dial-first: an unreachable upstream rejects the browser handshake with a
+	// normal HTTP 502 JSON error instead of an upgraded-then-closed connection.
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatalf("listen: %v", err)
@@ -377,19 +381,28 @@ func TestWebSocketUpstreamUnavailable(t *testing.T) {
 	closedPort := listener.Addr().(*net.TCPAddr).Port
 	listener.Close()
 	_, proxyServer := newProxyHandler(t, staticResolver(Target{InstanceID: "i-test", Port: closedPort}, nil), nil)
-	conn, _, err := dialProxyWebSocket(t, proxyServer, "/workbench/i-test/api/remote.mux", nil)
-	if err != nil {
-		t.Fatalf("client handshake should succeed before the upstream dial: %v", err)
+	conn, response, err := dialProxyWebSocket(t, proxyServer, "/workbench/i-test/api/remote.mux", nil)
+	if err == nil {
+		conn.Close()
+		t.Fatal("browser handshake must be rejected when the upstream is unreachable")
 	}
-	t.Cleanup(func() { conn.Close() })
-	conn.SetReadDeadline(time.Now().Add(5 * time.Second))
-	_, _, err = conn.ReadMessage()
-	var closeErr *websocket.CloseError
-	if !errors.As(err, &closeErr) {
-		t.Fatalf("read error = %v, want a close error", err)
+	if response == nil {
+		t.Fatalf("expected an HTTP error response, got %v", err)
 	}
-	if closeErr.Code != websocket.CloseTryAgainLater && closeErr.Code != websocket.CloseInternalServerErr {
-		t.Fatalf("close code = %d, want 1013 or 1011", closeErr.Code)
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusBadGateway {
+		t.Fatalf("status = %d, want 502", response.StatusCode)
+	}
+	body, _ := io.ReadAll(response.Body)
+	var parsed errorResponse
+	if err := json.Unmarshal(body, &parsed); err != nil {
+		t.Fatalf("decode 502 body %q: %v", body, err)
+	}
+	if parsed.Code != codeUpstreamError {
+		t.Fatalf("code = %q, want %q", parsed.Code, codeUpstreamError)
+	}
+	if parsed.Details == nil || len(parsed.Details) != 0 {
+		t.Fatalf("details = %v, want an empty object", parsed.Details)
 	}
 }
 
@@ -477,5 +490,223 @@ func TestWebSocketPingKeepAlive(t *testing.T) {
 	case <-pingReceived:
 	case <-time.After(3 * time.Second):
 		t.Fatal("proxy did not send a keepalive ping")
+	}
+}
+
+func TestWebSocketUpstreamStatusMapping(t *testing.T) {
+	tests := []struct {
+		upstreamStatus int
+		wantStatus     int
+		wantCode       string
+	}{
+		{upstreamStatus: http.StatusBadRequest, wantStatus: http.StatusBadRequest, wantCode: codeBadRequest},
+		{upstreamStatus: http.StatusUnauthorized, wantStatus: http.StatusUnauthorized, wantCode: codeUnauthorized},
+		{upstreamStatus: http.StatusForbidden, wantStatus: http.StatusForbidden, wantCode: codeForbidden},
+		{upstreamStatus: http.StatusNotFound, wantStatus: http.StatusNotFound, wantCode: codeInstanceNotFound},
+		{upstreamStatus: http.StatusConflict, wantStatus: http.StatusConflict, wantCode: codeInstanceNotReady},
+		{upstreamStatus: http.StatusInternalServerError, wantStatus: http.StatusBadGateway, wantCode: codeUpstreamError},
+		{upstreamStatus: http.StatusBadGateway, wantStatus: http.StatusBadGateway, wantCode: codeUpstreamError},
+		{upstreamStatus: http.StatusServiceUnavailable, wantStatus: http.StatusBadGateway, wantCode: codeUpstreamError},
+	}
+	for _, test := range tests {
+		t.Run(fmt.Sprintf("upstream_%d", test.upstreamStatus), func(t *testing.T) {
+			upstream := newUpstream(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(test.upstreamStatus)
+				_, _ = io.WriteString(w, "rejected")
+			}))
+			_, proxyServer := newProxyHandler(t, staticResolver(upstreamTarget(t, upstream), nil), nil)
+			conn, response, err := dialProxyWebSocket(t, proxyServer, "/workbench/i-test/api/remote.mux", nil)
+			if err == nil {
+				conn.Close()
+				t.Fatalf("handshake must be rejected for upstream status %d", test.upstreamStatus)
+			}
+			if response == nil {
+				t.Fatalf("expected an HTTP error response, got %v", err)
+			}
+			defer response.Body.Close()
+			if response.StatusCode != test.wantStatus {
+				t.Fatalf("status = %d, want %d", response.StatusCode, test.wantStatus)
+			}
+			body, _ := io.ReadAll(response.Body)
+			var parsed errorResponse
+			if err := json.Unmarshal(body, &parsed); err != nil {
+				t.Fatalf("decode body %q: %v", body, err)
+			}
+			if parsed.Code != test.wantCode {
+				t.Fatalf("code = %q, want %q", parsed.Code, test.wantCode)
+			}
+			if parsed.Details == nil || len(parsed.Details) != 0 {
+				t.Fatalf("details = %v, want an empty object", parsed.Details)
+			}
+		})
+	}
+}
+
+func TestWebSocketSubprotocolSelectionDifference(t *testing.T) {
+	// Client offers "first" then "second"; the upstream only supports "second".
+	// The browser handshake must echo "second" (the upstream selection), not the
+	// client's first offer "first".
+	upstream, observation := newWSEchoUpstream(t, testWebSocketUpgrader("second"), nil)
+	_, proxyServer := newProxyHandler(t, staticResolver(upstreamTarget(t, upstream), nil), nil)
+	conn, _, err := dialProxyWebSocket(t, proxyServer, "/workbench/i-test/api/remote.mux", nil, "first", "second")
+	if err != nil {
+		t.Fatalf("dial: %v", err)
+	}
+	t.Cleanup(func() { conn.Close() })
+	if got := conn.Subprotocol(); got != "second" {
+		t.Fatalf("browser subprotocol = %q, want the upstream selection %q", got, "second")
+	}
+	waitForCondition(t, 5*time.Second, func() bool {
+		return observation.snapshot().protocol == "second"
+	})
+	if err := conn.WriteMessage(websocket.TextMessage, []byte("sp")); err != nil {
+		t.Fatalf("write: %v", err)
+	}
+	conn.SetReadDeadline(time.Now().Add(5 * time.Second))
+	if _, payload, err := conn.ReadMessage(); err != nil || string(payload) != "sp" {
+		t.Fatalf("echo = %q, %v", payload, err)
+	}
+}
+
+func TestWebSocketNoSubprotocol(t *testing.T) {
+	upstream, observation := newWSEchoUpstream(t, testWebSocketUpgrader(), nil)
+	_, proxyServer := newProxyHandler(t, staticResolver(upstreamTarget(t, upstream), nil), nil)
+	conn, _, err := dialProxyWebSocket(t, proxyServer, "/workbench/i-test/api/remote.mux", nil)
+	if err != nil {
+		t.Fatalf("dial: %v", err)
+	}
+	t.Cleanup(func() { conn.Close() })
+	if got := conn.Subprotocol(); got != "" {
+		t.Fatalf("browser subprotocol = %q, want empty", got)
+	}
+	waitForCondition(t, 5*time.Second, func() bool { return observation.snapshot().upgraded })
+	if err := conn.WriteMessage(websocket.TextMessage, []byte("plain")); err != nil {
+		t.Fatalf("write: %v", err)
+	}
+	conn.SetReadDeadline(time.Now().Add(5 * time.Second))
+	if _, payload, err := conn.ReadMessage(); err != nil || string(payload) != "plain" {
+		t.Fatalf("echo = %q, %v", payload, err)
+	}
+}
+
+func TestWebSocketClientDisconnectClosesUpstream(t *testing.T) {
+	upstreamRead := make(chan error, 1)
+	upgrader := testWebSocketUpgrader()
+	upstream := newUpstream(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		conn, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			upstreamRead <- err
+			return
+		}
+		defer conn.Close()
+		_, _, err = conn.ReadMessage()
+		upstreamRead <- err
+	}))
+	_, proxyServer := newProxyHandler(t, staticResolver(upstreamTarget(t, upstream), nil), nil)
+	conn, _, err := dialProxyWebSocket(t, proxyServer, "/workbench/i-test/api/remote.mux", nil)
+	if err != nil {
+		t.Fatalf("dial: %v", err)
+	}
+	// Abrupt client disconnect (no close frame): the proxy must tear down the
+	// upstream connection as well.
+	conn.Close()
+	select {
+	case err := <-upstreamRead:
+		if err == nil {
+			t.Fatal("upstream connection should have been closed")
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("upstream connection was not closed after the client disconnected")
+	}
+}
+
+func TestWebSocketUpstreamDisconnectClosesClient(t *testing.T) {
+	upgrader := testWebSocketUpgrader()
+	upstream := newUpstream(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		conn, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			return
+		}
+		// Abrupt upstream disconnect after the 101 handshake.
+		_ = conn.Close()
+	}))
+	_, proxyServer := newProxyHandler(t, staticResolver(upstreamTarget(t, upstream), nil), nil)
+	conn, _, err := dialProxyWebSocket(t, proxyServer, "/workbench/i-test/api/remote.mux", nil)
+	if err != nil {
+		t.Fatalf("dial: %v", err)
+	}
+	t.Cleanup(func() { conn.Close() })
+	conn.SetReadDeadline(time.Now().Add(5 * time.Second))
+	if _, _, err := conn.ReadMessage(); err == nil {
+		t.Fatal("client connection should have been closed after the upstream disconnected")
+	}
+}
+
+func TestWebSocketMalformedHandshakeJSON400(t *testing.T) {
+	recorder := &requestRecorder{}
+	upstream := newUpstream(t, http.HandlerFunc(recorder.handler))
+	_, proxyServer := newProxyHandler(t, staticResolver(upstreamTarget(t, upstream), nil), nil)
+	conn, err := net.Dial("tcp", proxyServer.Listener.Addr().String())
+	if err != nil {
+		t.Fatalf("dial proxy: %v", err)
+	}
+	t.Cleanup(func() { conn.Close() })
+	requestLines := []string{
+		"GET /workbench/i-test/api/remote.mux HTTP/1.1",
+		"Host: " + proxyServer.Listener.Addr().String(),
+		"Cookie: dsh-auth-route=1",
+		"Connection: Upgrade",
+		"Upgrade: websocket",
+		"",
+		"",
+	}
+	if _, err := conn.Write([]byte(strings.Join(requestLines, httpCRLF))); err != nil {
+		t.Fatalf("write raw handshake: %v", err)
+	}
+	response, err := http.ReadResponse(bufio.NewReader(conn), nil)
+	if err != nil {
+		t.Fatalf("read response: %v", err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusBadRequest {
+		t.Fatalf("status = %d, want 400", response.StatusCode)
+	}
+	body, _ := io.ReadAll(response.Body)
+	var parsed errorResponse
+	if err := json.Unmarshal(body, &parsed); err != nil {
+		t.Fatalf("decode body %q: %v", body, err)
+	}
+	if parsed.Code != codeBadRequest {
+		t.Fatalf("code = %q, want %q", parsed.Code, codeBadRequest)
+	}
+	if parsed.Details == nil || len(parsed.Details) != 0 {
+		t.Fatalf("details = %v, want an empty object", parsed.Details)
+	}
+	if recorder.count() != 0 {
+		t.Fatalf("upstream must not be dialed for a malformed handshake, got %d requests", recorder.count())
+	}
+}
+
+func TestWebSocketNoStatusCloseNormalized(t *testing.T) {
+	// An empty close frame arrives as CloseNoStatusReceived (1005), which must
+	// never be forwarded on the wire: the peer must see a normal closure (1000).
+	onConnect := func(conn *websocket.Conn) {
+		_ = conn.WriteControl(websocket.CloseMessage, nil, time.Now().Add(time.Second))
+	}
+	upstream, _ := newWSEchoUpstream(t, testWebSocketUpgrader(), onConnect)
+	_, proxyServer := newProxyHandler(t, staticResolver(upstreamTarget(t, upstream), nil), nil)
+	conn, _, err := dialProxyWebSocket(t, proxyServer, "/workbench/i-test/api/remote.mux", nil)
+	if err != nil {
+		t.Fatalf("dial: %v", err)
+	}
+	t.Cleanup(func() { conn.Close() })
+	conn.SetReadDeadline(time.Now().Add(5 * time.Second))
+	_, _, err = conn.ReadMessage()
+	var closeErr *websocket.CloseError
+	if !errors.As(err, &closeErr) {
+		t.Fatalf("read error = %v, want a close error", err)
+	}
+	if closeErr.Code != websocket.CloseNormalClosure {
+		t.Fatalf("close code = %d, want %d", closeErr.Code, websocket.CloseNormalClosure)
 	}
 }

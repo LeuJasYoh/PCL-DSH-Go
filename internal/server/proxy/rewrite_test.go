@@ -311,9 +311,18 @@ func TestRewriteResponseHeaders(t *testing.T) {
 	if got := res.Header.Get("Location"); got != "/workbench/i-abc/next?x=1" {
 		t.Fatalf("Location = %q", got)
 	}
+	if got := res.Header.Get("X-Accel-Buffering"); got != "" {
+		t.Fatalf("non-SSE X-Accel-Buffering = %q, want empty", got)
+	}
+
+	sse := &http.Response{Header: http.Header{"Content-Type": {"text/event-stream; charset=utf-8"}}}
+	rewriteResponseHeaders(sse, "i-abc", 3080)
+	if got := sse.Header.Get("X-Accel-Buffering"); got != "no" {
+		t.Fatalf("SSE X-Accel-Buffering = %q, want no", got)
+	}
 }
 
-func TestSameOriginWebSocket(t *testing.T) {
+func TestSameOriginRequest(t *testing.T) {
 	tests := []struct {
 		name   string
 		host   string
@@ -342,8 +351,8 @@ func TestSameOriginWebSocket(t *testing.T) {
 			if test.origin != "" {
 				request.Header.Set("Origin", test.origin)
 			}
-			if got := sameOriginWebSocket(request); got != test.want {
-				t.Fatalf("sameOriginWebSocket(host=%q, origin=%q) = %v, want %v",
+			if got := sameOriginRequest(request); got != test.want {
+				t.Fatalf("sameOriginRequest(host=%q, origin=%q) = %v, want %v",
 					test.host, test.origin, got, test.want)
 			}
 		})
@@ -406,9 +415,11 @@ func TestFilteredRequestHeaders(t *testing.T) {
 	request.Header.Set("Forwarded", "for=1.2.3.4")
 	request.Header.Set("X-Forwarded-For", "1.2.3.4")
 	request.Header.Set("X-Forwarded-Proto", "https")
-	request.Header.Set("Connection", "keep-alive")
+	request.Header.Set("Connection", "keep-alive, X-Hop-One, X-Hop-Two")
 	request.Header.Set("Upgrade", "h2c")
 	request.Header.Set("Content-Length", "10")
+	request.Header.Set("X-Hop-One", "secret-one")
+	request.Header.Set("X-Hop-Two", "secret-two")
 	request.Header.Set("Accept", "application/json")
 	request.Header.Set("Authorization", "Bearer test")
 	request.Header.Set("X-Custom", "value")
@@ -422,7 +433,8 @@ func TestFilteredRequestHeaders(t *testing.T) {
 		t.Fatalf("Origin = %q", got)
 	}
 	for _, name := range []string{"Referer", "X-XSRF-TOKEN", "X-CSRF-Token", "Forwarded",
-		"X-Forwarded-For", "X-Forwarded-Proto", "Connection", "Upgrade", "Content-Length"} {
+		"X-Forwarded-For", "X-Forwarded-Proto", "Connection", "Upgrade", "Content-Length",
+		"X-Hop-One", "X-Hop-Two"} {
 		if _, ok := filtered[name]; ok {
 			t.Errorf("header %q must not be forwarded", name)
 		}
@@ -494,5 +506,18 @@ func TestValidUpstreamURL(t *testing.T) {
 	withUser := &url.URL{Scheme: "http", Host: "127.0.0.1:3080", User: url.User("u")}
 	if validUpstreamURL(withUser, "http", 3080) {
 		t.Fatal("URL with userinfo must be rejected")
+	}
+}
+
+func TestRequiresOriginCheck(t *testing.T) {
+	for _, method := range []string{http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete} {
+		if !requiresOriginCheck(method) {
+			t.Errorf("requiresOriginCheck(%q) = false, want true", method)
+		}
+	}
+	for _, method := range []string{http.MethodGet, http.MethodHead} {
+		if requiresOriginCheck(method) {
+			t.Errorf("requiresOriginCheck(%q) = true, want false", method)
+		}
 	}
 }

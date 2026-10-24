@@ -180,12 +180,5 @@ func (r *statusRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 // Unwrap lets http.ResponseController reach the underlying writer.
 func (r *statusRecorder) Unwrap() http.ResponseWriter { return r.ResponseWriter }
 
-// clientIP returns the client address of r for login rate limiting and audit
-// events. Proxies are not trusted in M1 (loopback deployment), so RemoteAddr is
-// used as-is; the security manager normalizes "ip:port" values.
-func clientIP(r *http.Request) string {
-	if r == nil {
-		return ""
-	}
-	return r.RemoteAddr
-}
+// clientIP lives in clientip.go: RemoteAddr by default, with the trusted
+// Nginx X-Real-IP override for loopback peers (docs/M2_INTERFACES.md 2).

@@ -4,7 +4,10 @@
 // running DSH instance (loopback port) to the console for HTTP, SSE and
 // WebSocket traffic.
 //
-// Contract: docs/DSH_INTEGRATION.md §6 and docs/M0_INTERFACES.md §8.
+// Contract: docs/DSH_INTEGRATION.md §6, docs/M0_INTERFACES.md §8 and the M2
+// hardening decisions in docs/M2_INTERFACES.md §3/§4 (Origin same-origin checks,
+// dynamic hop-by-hop headers, unified four-field error bodies, SSE buffering /
+// cancellation, streaming request bodies and the dial-first WebSocket flow).
 //
 // The package depends only on the standard library and gorilla/websocket. Its
 // upstream host is always 127.0.0.1 and its upstream port is always the port
@@ -129,8 +132,8 @@ func New(logger *slog.Logger, resolver Resolver, authorize Authorizer) *Handler 
 		upgrader: websocket.Upgrader{
 			ReadBufferSize:  4096,
 			WriteBufferSize: 4096,
-			// Origin is validated by the proxy (sameOriginWebSocket) before the
-			// upgrade, so gorilla's own check must not reject valid requests.
+			// Origin is validated by the proxy (sameOriginRequest) before the
+			// upstream dial, so gorilla's own check must not reject valid requests.
 			CheckOrigin: func(*http.Request) bool { return true },
 		},
 		dialer: &websocket.Dialer{
@@ -196,6 +199,14 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 			return
 		}
+	}
+	if requiresOriginCheck(r.Method) && !sameOriginRequest(r) {
+		// Cross-site write requests are rejected even when a session cookie is
+		// present (CSRF hardening, docs/M2_INTERFACES.md §3.1). GET/HEAD and
+		// requests without an Origin header are not gated.
+		h.logger.Warn("workbench cross-origin write rejected", "instance", route.instanceID, "method", r.Method)
+		writeJSONError(w, r.Method, http.StatusForbidden, codeForbidden, "跨源请求被拒绝。")
+		return
 	}
 	if route.remainder == "" {
 		// Missing trailing slash breaks the HTML base href of the workbench, so

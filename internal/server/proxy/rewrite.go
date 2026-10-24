@@ -3,6 +3,7 @@
 package proxy
 
 import (
+	"mime"
 	"net"
 	"net/http"
 	"net/url"
@@ -63,6 +64,23 @@ func blockedRequestHeader(name string) bool {
 		return true
 	}
 	return strings.HasPrefix(name, "x-forwarded-")
+}
+
+// connectionNominatedHeaders returns the header names listed in the request's
+// Connection header (RFC 7230 §6.1), lower-cased. A proxy MUST remove those
+// headers in addition to the fixed hop-by-hop set; Go's http.Server preserves
+// the Connection header, so the proxy has to do this itself.
+func connectionNominatedHeaders(header http.Header) map[string]struct{} {
+	nominated := make(map[string]struct{})
+	for _, value := range header.Values("Connection") {
+		for _, option := range strings.Split(value, ",") {
+			name := strings.ToLower(strings.TrimSpace(option))
+			if name != "" {
+				nominated[name] = struct{}{}
+			}
+		}
+	}
+	return nominated
 }
 
 // parseWorkbenchPath splits a request path into its {instanceID} and remainder.
@@ -196,9 +214,14 @@ func isConsoleCookieName(name string) bool {
 // rebuilt from DSH cookies only and a browser Origin is rewritten to the
 // loopback instance origin.
 func filteredRequestHeaders(in *http.Request, upstreamOrigin string) http.Header {
+	nominated := connectionNominatedHeaders(in.Header)
 	out := make(http.Header, len(in.Header))
 	for name, values := range in.Header {
-		if blockedRequestHeader(strings.ToLower(name)) {
+		lower := strings.ToLower(name)
+		if blockedRequestHeader(lower) {
+			continue
+		}
+		if _, dynamic := nominated[lower]; dynamic {
 			continue
 		}
 		for _, value := range values {
@@ -360,6 +383,20 @@ func rewriteResponseHeaders(res *http.Response, instanceID string, port int) {
 		}
 	}
 	header.Set("Cache-Control", "no-store")
+	if isEventStream(header.Get("Content-Type")) {
+		// Nginx buffers proxied responses by default; SSE must bypass buffering
+		// even though the proxy flushes every chunk (docs/M2_INTERFACES.md §3.4).
+		header.Set("X-Accel-Buffering", "no")
+	}
+}
+
+// isEventStream reports whether the response Content-Type is text/event-stream.
+func isEventStream(contentType string) bool {
+	mediaType, _, err := mime.ParseMediaType(contentType)
+	if err != nil {
+		mediaType = strings.TrimSpace(strings.SplitN(contentType, ";", 2)[0])
+	}
+	return strings.EqualFold(mediaType, "text/event-stream")
 }
 
 // loopbackEndpoint returns the only host:port the proxy will ever dial.
@@ -381,4 +418,77 @@ func validUpstreamURL(parsed *url.URL, scheme string, port int) bool {
 		return false
 	}
 	return parsed.Port() == strconv.Itoa(port)
+}
+
+// requiresOriginCheck reports whether the method must pass the same-origin
+// check when a browser Origin header is present. GET/HEAD are safe methods and
+// are not gated (docs/M2_INTERFACES.md §3.1).
+func requiresOriginCheck(method string) bool {
+	switch method {
+	case http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
+		return true
+	default:
+		return false
+	}
+}
+
+// sameOriginRequest enforces Origin/Host same-origin for browser requests,
+// with default-port normalization (http→80, https→443). A Host header without
+// a port uses the Origin scheme's default port. Requests without an Origin
+// header (non-browser clients) are accepted; GET/HEAD callers are expected to
+// skip the check entirely. This is shared by HTTP write-method CSRF hardening
+// and the WebSocket handshake (DSH_INTEGRATION §6.3, M2_INTERFACES §3.1/§4).
+func sameOriginRequest(r *http.Request) bool {
+	origin := r.Header.Get("Origin")
+	if origin == "" {
+		return true
+	}
+	parsed, err := url.Parse(origin)
+	if err != nil || parsed.User != nil || parsed.Hostname() == "" {
+		return false
+	}
+	var defaultPort int
+	switch strings.ToLower(parsed.Scheme) {
+	case "http":
+		defaultPort = 80
+	case "https":
+		defaultPort = 443
+	default:
+		return false
+	}
+	originPort := defaultPort
+	if rawPort := parsed.Port(); rawPort != "" {
+		port, convErr := strconv.Atoi(rawPort)
+		if convErr != nil || port < 1 || port > 65535 {
+			return false
+		}
+		originPort = port
+	}
+	host, port, ok := splitHostHeader(r.Host, defaultPort)
+	if !ok {
+		return false
+	}
+	return strings.EqualFold(host, parsed.Hostname()) && port == originPort
+}
+
+// splitHostHeader splits a Host header into host and port, falling back to
+// defaultPort when the header carries no port.
+func splitHostHeader(hostHeader string, defaultPort int) (host string, port int, ok bool) {
+	if hostHeader == "" {
+		return "", 0, false
+	}
+	if parsedHost, rawPort, err := net.SplitHostPort(hostHeader); err == nil {
+		parsedPort, convErr := strconv.Atoi(rawPort)
+		if convErr != nil || parsedPort < 1 || parsedPort > 65535 {
+			return "", 0, false
+		}
+		return parsedHost, parsedPort, true
+	}
+	if strings.HasPrefix(hostHeader, "[") && strings.HasSuffix(hostHeader, "]") {
+		return hostHeader[1 : len(hostHeader)-1], defaultPort, true
+	}
+	if strings.Contains(hostHeader, ":") {
+		return "", 0, false
+	}
+	return hostHeader, defaultPort, true
 }

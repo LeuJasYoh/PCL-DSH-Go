@@ -7,8 +7,13 @@ import (
 	"net/http"
 )
 
+// traceIDHeader is set by the server middleware on every response; proxy error
+// bodies echo it so a client can correlate the failure with the access log.
+const traceIDHeader = "X-Trace-Id"
+
 // Error codes returned by the /workbench proxy. They follow the frozen
-// interface in docs/M0_INTERFACES.md §8 and docs/IMPLEMENTATION_SPEC.md §4.4.
+// interface in docs/M0_INTERFACES.md §8, docs/IMPLEMENTATION_SPEC.md §4.4 and
+// docs/M2_INTERFACES.md §3.3.
 const (
 	codeBadRequest       = "BAD_REQUEST"
 	codeUnauthorized     = "UNAUTHORIZED"
@@ -23,15 +28,21 @@ const (
 	codeInternal         = "INTERNAL"
 )
 
-// errorResponse is the JSON body used for proxy failures: {"code","message"}.
+// errorResponse is the unified JSON body for proxy failures (M2 hardening):
+// {code,message,details,traceId}. Details is always an empty object so clients
+// can rely on the shape; traceId comes from the X-Trace-Id response header set
+// by the server middleware and is "" when the handler is used standalone.
 type errorResponse struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
+	Code    string         `json:"code"`
+	Message string         `json:"message"`
+	Details map[string]any `json:"details"`
+	TraceID string         `json:"traceId"`
 }
 
-// writeJSONError writes a JSON error body. The caller must not have written a
-// response before. HEAD responses never carry a body.
+// writeJSONError writes the unified JSON error body. The caller must not have
+// written a response before. HEAD responses never carry a body.
 func writeJSONError(w http.ResponseWriter, method string, status int, code, message string) {
+	traceID := w.Header().Get(traceIDHeader)
 	header := w.Header()
 	header.Del("Content-Length")
 	header.Set("Content-Type", "application/json; charset=utf-8")
@@ -41,7 +52,12 @@ func writeJSONError(w http.ResponseWriter, method string, status int, code, mess
 	if method == http.MethodHead {
 		return
 	}
-	_ = json.NewEncoder(w).Encode(errorResponse{Code: code, Message: message})
+	_ = json.NewEncoder(w).Encode(errorResponse{
+		Code:    code,
+		Message: message,
+		Details: map[string]any{},
+		TraceID: traceID,
+	})
 }
 
 // writeRedirect writes a 302 response that is never cached: both the trailing
