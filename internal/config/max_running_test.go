@@ -13,7 +13,7 @@ func TestMaxRunningInstancesConfig(t *testing.T) {
 		args []string
 		want int
 	}{
-		{name: "默认 1", args: nil, want: DefaultMaxRunningInstances},
+		{name: "默认 0（不限制）", args: nil, want: DefaultMaxRunningInstances},
 		{name: "显式 1", args: []string{"--pcl.max-running-instances=1"}, want: 1},
 		{name: "可调大", args: []string{"--pcl.max-running-instances=3"}, want: 3},
 		{name: "0 表示不限制", args: []string{"--pcl.max-running-instances=0"}, want: 0},

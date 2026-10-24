@@ -3,7 +3,7 @@
 > 状态：M5 启动冻结（2026-10-24）。范围：release 打包、install/uninstall/reset、systemd、Nginx、干净环境验收（G9/G10）、CI/文档收尾。
 > 部署目标：用户指定的 **WSL 实际部署**（Nginx 监听 `:80`，Windows 浏览器 http://localhost/ 可访问）。
 
-## 1. Release 布局（版本 1.0.0）
+## 1. Release 布局（版本 1.1.0）
 
 ```
 pcl-dsh-go-1.0.0-linux-amd64/
@@ -74,7 +74,7 @@ SHA256SUMS                       # 包文件校验（tar.gz 与目录清单）
 - 已知环境差异：Windows .NET `Invoke-WebRequest http://localhost/` 因 IPv6 首选可能超时；Edge/curl 正常，备用 `http://127.0.0.1/`。
 ## 8. M5.1 增补契约（2026-10-24）
 
-- 配置：`--pcl.max-running-instances int`，默认 1；0=不限制；负数启动失败；其他不变。
+- 配置：`--pcl.max-running-instances int`，默认 **0（不限制）**；正数为显式上限；负数启动失败；其他不变。
 - launch：同步预检与 app 共用上限；达到上限时 409 `CONFLICT_RUNNING_INSTANCE`，message 包含当前上限与参数名；同实例已运行仍 `CONFLICT_BUSY`，端口冲突/未安装 runtime 语义不变。
-- 安装：`install.sh --max-running-instances N` 渲染 systemd `ExecStart --pcl.max-running-instances=N`；默认 1；修改后 `systemctl daemon-reload && systemctl restart pcl-dsh-go` 生效。
+- 安装：`install.sh --max-running-instances N` 渲染 systemd `ExecStart --pcl.max-running-instances=N`；默认 0（不限制）；修改后 `systemctl daemon-reload && systemctl restart pcl-dsh-go` 生效。
 - 错误码/事件/其它 API 不变；实例数据 schema 不变；单管理器进程锁（flock）不变。

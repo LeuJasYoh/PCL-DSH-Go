@@ -315,7 +315,9 @@ func TestLaunchInstanceSuccess(t *testing.T) {
 }
 
 func TestLaunchInstancePrechecks(t *testing.T) {
-	application, fakeRT, fakeProc, _ := newTestApp(t)
+	// Explicit limit 1 keeps the legacy prechecks; the production default is now
+	// 0 (unlimited), covered by TestLaunchInstanceDefaultUnlimitedAllowsSecond.
+	application, fakeRT, fakeProc, _ := newTestAppWithLimit(t, intPtr(1))
 	ctx := context.Background()
 
 	_, err := application.LaunchInstance(ctx, "i-000000000000", nil)

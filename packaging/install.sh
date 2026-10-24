@@ -10,7 +10,7 @@ LISTEN_PORT="80"
 SERVICE="pcl-dsh-go"
 SERVICE_USER="pcl-dsh"
 NO_SERVICE="0"
-MAX_RUNNING="1"
+MAX_RUNNING="0"
 
 usage() {
   cat <<'EOF'
@@ -20,7 +20,7 @@ Usage: sudo ./packaging/install.sh [options]
   --data-dir <dir>     Data root (default: /var/lib/pcl-dsh-go)
   --port <port>        Manager loopback port (default: 8080)
   --listen-port <port> Nginx public port (default: 80)
-  --max-running-instances <n>  Max simultaneously running DSH instances (default: 1; 0 = unlimited)
+  --max-running-instances <n>  Max simultaneously running DSH instances (default: 0 = unlimited; set 1 on small servers)
   --no-service         Only install the release tree + data dir (no systemd/Nginx; for isolated tests)
   -h, --help           Show this help
 

@@ -17,7 +17,7 @@ M5 发行/部署资产（由 `scripts/build-release.sh` 打进 release，`packag
 ```bash
 sudo ./packaging/install.sh                 # 默认 /opt/pcl-dsh-go + /var/lib/pcl-dsh-go + :80
 sudo ./packaging/install.sh --prefix /tmp/pcl --data-dir /tmp/pcl-data --listen-port 18089  # 隔离验证
-sudo ./packaging/install.sh --max-running-instances 2   # 允许同时运行 2 个实例（0=不限；默认 1）
+sudo ./packaging/install.sh --max-running-instances 1   # 小内存服务器（2C/1.6G）建议显式限制 1 个（默认 0=不限）
 ```
 
 首次启动生成 `/var/lib/pcl-dsh-go/initial-password`（0600），登录后必须改密。升级：安装新 release 后 `current` 软链切换，数据不动；回滚：把 `current` 指回旧 `releases/<ver>` 并重启服务。

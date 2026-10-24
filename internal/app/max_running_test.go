@@ -38,8 +38,8 @@ func intPtr(value int) *int { return &value }
 
 func TestMaxRunningInstancesResolution(t *testing.T) {
 	application, _, _, _ := newTestApp(t)
-	if got := application.MaxRunningInstances(); got != 1 {
-		t.Fatalf("默认 MaxRunningInstances = %d，期望 1", got)
+	if got := application.MaxRunningInstances(); got != 0 {
+		t.Fatalf("默认 MaxRunningInstances = %d，期望 0（不限制）", got)
 	}
 
 	two := 2
@@ -54,8 +54,8 @@ func TestMaxRunningInstancesResolution(t *testing.T) {
 	}
 
 	negative, _, _, _ := newTestAppWithLimit(t, intPtr(-3))
-	if got := negative.MaxRunningInstances(); got != 1 {
-		t.Fatalf("负数应回退默认 1，实际 %d", got)
+	if got := negative.MaxRunningInstances(); got != 0 {
+		t.Fatalf("负数应回退默认 0（不限制），实际 %d", got)
 	}
 }
 
@@ -97,8 +97,20 @@ func TestLaunchInstanceLimitZeroMeansUnlimited(t *testing.T) {
 	}
 }
 
-func TestLaunchInstanceDefaultLimitMessage(t *testing.T) {
+func TestLaunchInstanceDefaultUnlimitedAllowsSecond(t *testing.T) {
 	application, fakeRT, fakeProc, _ := newTestApp(t)
+	first := mustCreateInstance(t, application, "实例一", freeLoopbackPort(t))
+	second := mustCreateInstance(t, application, "实例二", freeLoopbackPortExcept(t, first.Port))
+	fakeRT.installed[second.Version] = true
+	fakeProc.add(newRunningFakeHandle(first.ID, first.Port))
+
+	if _, err := application.LaunchInstance(context.Background(), second.ID, nil); err != nil {
+		t.Fatalf("默认 0（不限制）时第二个实例应可启动: %v", err)
+	}
+}
+
+func TestLaunchInstanceExplicitLimitMessage(t *testing.T) {
+	application, fakeRT, fakeProc, _ := newTestAppWithLimit(t, intPtr(1))
 	first := mustCreateInstance(t, application, "实例一", freeLoopbackPort(t))
 	second := mustCreateInstance(t, application, "实例二", freeLoopbackPortExcept(t, first.Port))
 	fakeRT.installed[second.Version] = true

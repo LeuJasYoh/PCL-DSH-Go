@@ -57,7 +57,7 @@ jobs:
           GOOS: linux
           GOARCH: amd64
           CGO_ENABLED: "0"
-        run: go build -trimpath -ldflags "-s -w -X main.version=1.0.0-ci" -o bin/pcl-dsh-go ./cmd/pcl-dsh-go
+        run: go build -trimpath -ldflags "-s -w -X main.version=0.2.1-ci" -o bin/pcl-dsh-go ./cmd/pcl-dsh-go
 
       - name: verify binary
         run: |
@@ -168,9 +168,9 @@ jobs:
           printf '# fake pnpm (CI layout smoke only)\n' > "$FAKE_TOOLS/pnpm/README"
 
           OUT="$RUNNER_TEMP/release"
-          bash scripts/build-release.sh --version 1.0.0 --tools "$FAKE_TOOLS" --out "$OUT"
+          bash scripts/build-release.sh --version 0.2.1 --tools "$FAKE_TOOLS" --out "$OUT"
 
-          PKG="$OUT/pcl-dsh-go-1.0.0-linux-amd64"
+          PKG="$OUT/pcl-dsh-go-0.2.1-linux-amd64"
           # 发行包必须包含安装器运行所需的全部文件（install.sh 会读取 systemd/nginx 模板）。
           for item in \
             VERSION BUILD_INFO \
@@ -179,7 +179,8 @@ jobs:
             packaging/install.sh packaging/uninstall.sh packaging/reset.sh \
             packaging/systemd/pcl-dsh-go.service \
             packaging/nginx/pcl-dsh-go-site.conf \
-            docs/M5_DEPLOY.md \
+            docs/DEPLOYMENT.md docs/USER_GUIDE.md docs/CONFIGURATION.md \
+            CONTRIBUTING.md SECURITY.md \
             README.md LICENSE THIRD_PARTY_NOTICES.md SHA256SUMS; do
             test -e "$PKG/$item" || { echo "::error::release 缺少 $item"; exit 1; }
           done
@@ -194,9 +195,9 @@ jobs:
           file "$PKG/bin/pcl-dsh-go" | grep -q 'ELF 64-bit.*x86-64'
           ( cd "$PKG" && sha256sum -c SHA256SUMS >/dev/null )
 
-          TAR="$OUT/pcl-dsh-go-1.0.0-linux-amd64.tar.gz"
+          TAR="$OUT/pcl-dsh-go-0.2.1-linux-amd64.tar.gz"
           test -f "$TAR"
-          ( cd "$OUT" && sha256sum -c "pcl-dsh-go-1.0.0-linux-amd64.tar.gz.sha256" >/dev/null )
+          ( cd "$OUT" && sha256sum -c "pcl-dsh-go-0.2.1-linux-amd64.tar.gz.sha256" >/dev/null )
           tar -tzf "$TAR" >/dev/null
           echo "release layout smoke OK"
           find "$PKG" -maxdepth 1 -mindepth 1 -printf '%f\n' | sort

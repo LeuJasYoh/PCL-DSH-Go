@@ -13,7 +13,8 @@ import (
 )
 
 // TestLaunchPrecheckSharesRunningLimit verifies the API synchronous precheck
-// uses app.MaxRunningInstances (default 1, 0 = unlimited) and returns the same
+// uses app.MaxRunningInstances (production default 0 = unlimited; this fake
+// starts at 1 to assert the 409 path) and returns the same
 // message/code as app.LaunchInstance.
 func TestLaunchPrecheckSharesRunningLimit(t *testing.T) {
 	env := newTestEnv(t, false)

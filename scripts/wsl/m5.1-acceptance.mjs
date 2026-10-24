@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const REPO = path.resolve(HERE, '..', '..')
-const RELEASE = path.join(REPO, 'release', 'pcl-dsh-go-1.0.1-linux-amd64')
+const RELEASE = process.env.M52_RELEASE || path.join(REPO, 'release', 'pcl-dsh-go-0.2.1-linux-amd64')
 const BIN = path.join(RELEASE, 'bin', 'pcl-dsh-go')
 const TOOLS = path.join(RELEASE, 'tools')
 const STATIC = path.join(RELEASE, 'static')
@@ -13,9 +13,9 @@ const NODE = path.join(TOOLS, 'node', 'bin', 'node')
 const VERSION = '0.2.1-rc.3'
 const RUNTIME_SRC = '/var/lib/pcl-dsh-go/runtimes/' + VERSION
 const stamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14)
-const SCENARIO = '/tmp/pcl-dsh-go-test/m5.1-scenario-' + stamp
+const SCENARIO = '/tmp/pcl-dsh-go-test/m5.2-scenario-' + stamp
 const EVIDENCE = path.join(REPO, 'docs', 'evidence', 'm5')
-const LOG = path.join(EVIDENCE, 'm5.1-acceptance-' + stamp + '.log.txt')
+const LOG = path.join(EVIDENCE, 'm5.2-acceptance-' + stamp + '.log.txt')
 const managers = []
 let pass = 0
 let fail = 0
@@ -107,7 +107,7 @@ async function instanceField(base, jar, csrf, id, fieldName) {
   const item = Array.isArray(response.json) ? response.json.find((entry) => entry.id === id) : null
   return item ? item[fieldName] : ''
 }
-async function runFlow(port, data, extra, label, expectDefault) {
+async function runFlow(port, data, extra, label, mode) {
   prepareData(data)
   const base = 'http://127.0.0.1:' + port
   const jar = new Jar()
@@ -159,56 +159,53 @@ async function runFlow(port, data, extra, label, expectDefault) {
     check(label + ' ' + title + ' workbench 200', final.status === 200, 'status=' + final.status)
     check(label + ' ' + title + ' workbench title DSH', text.toLowerCase().includes('<title>deepseek harness</title>'))
   }
-  if (expectDefault) {
-    // Baseline: default limit=1; second launch must stay 409.
-    const b1 = await create('M5.1 基线甲', 3290)
-    const b2 = await create('M5.1 基线乙', 3291)
-    await launch(b1, '基线甲(default1)')
-    const message = await launch(b2, '基线乙(default1)', 409)
-    check(label + ' default limit=1 message contains 1', String(message).includes('1'), 'message=' + message)
-    await stopInstance(b1, '基线甲')
+  if (mode === 'limit1') {
+    // Explicit --pcl.max-running-instances=1 keeps the upper-bound semantics.
+    const b1 = await create('M5.2 上限1 甲', 3290)
+    const b2 = await create('M5.2 上限1 乙', 3291)
+    await launch(b1, 'limit1-甲')
+    const message = await launch(b2, 'limit1-乙', 409)
+    check(label + ' explicit limit=1 second launch 409 message contains 1', String(message).includes('1'), 'message=' + message)
+    await stopInstance(b1, 'limit1-甲')
     return
   }
-  const id1 = await create('M5.1 实例甲', 3280)
-  const id2 = await create('M5.1 实例乙', 3281)
-  await launch(id1, '实例甲')
-  await launch(id2, '实例乙')
-  const status1 = await instanceField(base, jar, csrf, id1, 'status')
-  const status2 = await instanceField(base, jar, csrf, id2, 'status')
-  check(label + ' 实例甲 运行中', String(status1).includes('运行中'), 'status=' + status1)
-  check(label + ' 实例乙 运行中', String(status2).includes('运行中'), 'status=' + status2)
-  await workbench(id1, '实例甲')
-  await workbench(id2, '实例乙')
+  // Default (no flag): --pcl.max-running-instances defaults to 0 (unlimited) in M5.2.
+  const id1 = await create('M5.2 默认甲', 3280)
+  const id2 = await create('M5.2 默认乙', 3281)
+  const id3 = await create('M5.2 默认丙', 3282)
+  await launch(id1, '默认甲')
+  await launch(id2, '默认乙')
+  await launch(id3, '默认丙')
+  const statuses = []
+  for (const id of [id1, id2, id3]) statuses.push(await instanceField(base, jar, csrf, id, 'status'))
+  check(label + ' 默认甲 运行中', String(statuses[0]).includes('运行中'), 'status=' + statuses[0])
+  check(label + ' 默认乙 运行中', String(statuses[1]).includes('运行中'), 'status=' + statuses[1])
+  check(label + ' 默认丙 运行中', String(statuses[2]).includes('运行中'), 'status=' + statuses[2])
+  await workbench(id1, '默认甲')
+  await workbench(id2, '默认乙')
   const ps = await new Promise((resolve) => { const child = spawn('ps', ['-eo', 'pid,rss,args']); let out = ''; child.stdout.on('data', (chunk) => { out += chunk }); child.on('close', () => resolve(out)) })
   log('rss snapshot:\n' + ps.split('\n').filter((line) => line.includes('pcl-dsh-go') || line.includes('dsh/lib/bin')).slice(0, 8).join('\n'))
   const shotScript = path.join(REPO, 'scripts', 'wsl', 'm5-shot.cjs')
   const winNode = '/mnt/d/DevelopSoftware/nodejs/node.exe'
   if (fs.existsSync(winNode)) {
     const winPath = (p) => p.replace(/^\/mnt\/d\//, 'D:/')
-    await new Promise((resolve) => { const child = spawn(winNode, [winPath(shotScript), base, auth.password, winPath(path.join(EVIDENCE, 'm5.1-two-instances.png'))], { stdio: ['ignore', fs.openSync(path.join(SCENARIO, 'shot.log'), 'a'), fs.openSync(path.join(SCENARIO, 'shot.log'), 'a')] }); child.on('close', resolve) })
-    check(label + ' two-instances screenshot', fs.existsSync(path.join(EVIDENCE, 'm5.1-two-instances.png')))
+    await new Promise((resolve) => { const child = spawn(winNode, [winPath(shotScript), base, auth.password, winPath(path.join(EVIDENCE, 'm5.2-two-instances.png'))], { stdio: ['ignore', fs.openSync(path.join(SCENARIO, 'shot.log'), 'a'), fs.openSync(path.join(SCENARIO, 'shot.log'), 'a')] }); child.on('close', resolve) })
+    check(label + ' default-unlimited two-instances screenshot', fs.existsSync(path.join(EVIDENCE, 'm5.2-two-instances.png')))
   } else { log('INFO  Windows node missing; screenshot skipped') }
-  const id3 = await create('M5.1 实例丙', 3282)
-  const message = await launch(id3, '实例丙', 409)
-  check(label + ' 409 message contains limit 2', String(message).includes('2'), 'message=' + message)
-  await stopInstance(id1, '实例甲')
-  await launch(id3, '实例丙-after-stop')
-  const status3 = await instanceField(base, jar, csrf, id3, 'status')
-  check(label + ' 实例丙 运行中 after stopping 甲', String(status3).includes('运行中'), 'status=' + status3)
-  // Final instances are cleaned up by stopping the isolated manager (no live impact).
 }
+
 async function main() {
   fs.mkdirSync(EVIDENCE, { recursive: true })
   fs.mkdirSync(SCENARIO, { recursive: true })
-  log('=== M5.1 multi-instance acceptance ' + stamp + ' ===')
+  log('=== M5.2 multi-instance acceptance (default unlimited) ' + stamp + ' ===')
   log('release=' + RELEASE + ' version=' + fs.readFileSync(path.join(RELEASE, 'VERSION'), 'utf8').trim())
   log('bin_sha256=' + (await import('node:crypto')).createHash('sha256').update(fs.readFileSync(BIN)).digest('hex'))
   log('runtime=' + RUNTIME_SRC)
   try {
-    await runFlow(18086, path.join(SCENARIO, 'data-max2'), ['--pcl.max-running-instances', '2'], 'max2', false)
+    await runFlow(18086, path.join(SCENARIO, 'data-unlimited'), [], 'default-unlimited', 'unlimited')
     await stopManagers()
     await sleep(1000)
-    await runFlow(18087, path.join(SCENARIO, 'data-default1'), [], 'default1', true)
+    await runFlow(18087, path.join(SCENARIO, 'data-limit1'), ['--pcl.max-running-instances', '1'], 'explicit-limit1', 'limit1')
   } catch (error) {
     console.error(error)
     log('FATAL: ' + (error && error.message ? error.message : String(error)))
@@ -222,7 +219,7 @@ async function main() {
       for (const file of fs.readdirSync(SCENARIO)) {
         if (!file.startsWith('manager-')) continue
         const raw = fs.readFileSync(path.join(SCENARIO, file), 'utf8')
-        fs.writeFileSync(path.join(EVIDENCE, 'm5.1-acceptance-' + stamp + '-' + file) + '.txt', san(raw))
+        fs.writeFileSync(path.join(EVIDENCE, 'm5.2-acceptance-' + stamp + '-' + file) + '.txt', san(raw))
       }
     }
   }

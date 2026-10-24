@@ -1,0 +1,23 @@
+=== M5 acceptance selfcheck 20261024-205122 ===
+PASS  bash -n m5-acceptance.sh  
+FAIL  input exists: docs/M5_INTERFACES.md  
+FAIL  input exists: docs/IMPLEMENTATION_SPEC.md  
+FAIL  input exists: docs/ACCEPTANCE.md  
+PASS  input exists: packaging/nginx/pcl-dsh-go.conf  
+PASS  tool available: curl  
+PASS  tool available: sha256sum  
+PASS  tool available: tar  
+PASS  tool available: ss  
+PASS  tool available: nginx  
+PASS  tool available: python3  
+PASS  tool available: systemctl  
+PASS  bash -n scripts/build-release.sh  
+PASS  nginx -t packaging template (adapted to isolated ports/root)  nginx: configuration file /tmp/pcl-dsh-go-test/m5/m5-scenario-20261024-205122/nginx/conf/nginx.conf test is successful
+INFO  release candidate detected: /mnt/d/Projects/DSHL/PCL-DSH-Go/release/pcl-dsh-go-0.2.1-linux-amd64 (isolated mode can validate it)
+INFO  live deployment looks present at http://127.0.0.1 (run --live for read-only checks)
+
+selfcheck: pass=11 fail=3 info=2
+SELFCHECK=FAIL
+
+RESULT=FAIL scenario=/tmp/pcl-dsh-go-test/m5/m5-scenario-20261024-205122
+EXIT_CODE=1 scenario=/tmp/pcl-dsh-go-test/m5/m5-scenario-20261024-205122

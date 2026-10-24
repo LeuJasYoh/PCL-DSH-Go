@@ -42,7 +42,7 @@
 - 启动：202 Job；成功 /api/state 状态“运行中”；重复启动/达到运行实例上限 409（默认上限 1，可配置）；失败有中文原因和任务日志。
 - 停止：停止后进程树无残留、端口释放（ss -ltnp 无监听）、状态“未启动”。
 - 运行时：available 查询成功；安装 202+Job；安装后 /api/runtimes installed=true；删除被实例引用 409 CONFLICT_IN_USE；删除未被引用 → trash；探测失败给原因。
-- 运行实例上限：`--pcl.max-running-instances` 默认 1、0=不限制、负数启动报错；默认上限下已有实例运行中再启动另一个必须 409 CONFLICT_RUNNING_INSTANCE，message 含当前上限与配置项；limit=2 时允许第二个实例启动；limit=0 时不限制（仍只有一个管理器进程）。
+- 运行实例上限：`--pcl.max-running-instances` 默认 **0（不限制）**、1/N 为显式上限、负数启动报错；显式 limit=1 时已有实例运行中再启动另一个必须 409 CONFLICT_RUNNING_INSTANCE，message 含当前上限与配置项；limit=2 时允许第二个实例启动；limit=0 时不限制（仍只有一个管理器进程）。2C/1.6GiB 基线建议显式设为 1。
 
 ---
 

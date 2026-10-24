@@ -27,7 +27,7 @@ ISO_PORT=18085
 LIVE_URL="${M5_LIVE_URL:-http://127.0.0.1}"
 LIVE_DATA="${M5_LIVE_DATA:-/var/lib/pcl-dsh-go}"
 LIVE_PREFIX="${M5_LIVE_PREFIX:-/opt/pcl-dsh-go}"
-EXPECTED_VERSION="${M5_VERSION:-1.0.0}"
+EXPECTED_VERSION="${M5_VERSION:-0.2.1}"
 NGINX_CONFIG=""
 
 san() {
@@ -115,7 +115,7 @@ find_packaging_file() { # <name> -> path from release packaging or repo packagin
 selfcheck() {
   log "=== M5 acceptance selfcheck $STAMP ==="
   bash -n "$0" && check "bash -n m5-acceptance.sh" 1 || check "bash -n m5-acceptance.sh" 0
-  for doc in docs/M5_INTERFACES.md docs/IMPLEMENTATION_SPEC.md docs/ACCEPTANCE.md packaging/nginx/pcl-dsh-go.conf; do
+  for doc in docs/README.md docs/DEPLOYMENT.md docs/CONFIGURATION.md packaging/nginx/pcl-dsh-go.conf; do
     check "input exists: $doc" "$([ -f "$REPO_ROOT/$doc" ] && echo 1 || echo 0)"
   done
   for tool in curl sha256sum tar ss nginx python3 systemctl; do

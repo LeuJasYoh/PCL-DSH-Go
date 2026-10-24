@@ -1,0 +1,43 @@
+[e2e] starting disposable Go manager + built web/dist stack...
+E2E stack is ready: http://127.0.0.1:18080 (pid 157233)
+  data root: /tmp/pcl-dsh-go-test/m4-data
+  log: /mnt/d/Projects/DSHL/PCL-DSH-Go/web/.e2e-data/logs/manager.log
+[e2e] authenticated storage state written: D:\Projects\DSHL\PCL-DSH-Go\web\.e2e-data\auth.json
+
+Running 19 tests using 1 worker
+
+(node:5696) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:5696) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  1 [auth] › e2e\01-auth.spec.ts:9:1 › 未登录访问首页会跳转到登录页且不轮询 /api/state (3.3s)
+  ok  2 [auth] › e2e\01-auth.spec.ts:27:1 › 错误密码显示中文提示 (918ms)
+  ok  3 [auth] › e2e\01-auth.spec.ts:35:1 › 修改后的密码可登录并进入首页 (1.1s)
+(node:16096) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:16096) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  4 [msedge] › e2e\10-home-layout.spec.ts:2:1 › 首页布局：40px 页头 / 200px 侧栏 / 7 个导航 / 200x55 启动按钮 / 960x650 无横向溢出 (1.2s)
+  ok  5 [msedge] › e2e\20-instances.spec.ts:15:1 › 创建实例校验、创建成功、选择当前实例与删除确认 (1.8s)
+  ok  6 [msedge] › e2e\21-version-picker.spec.ts:4:1 › 版本下拉：展开/选择更新字段/关闭列表，手输自定义版本仍可提交 (1.3s)
+  ok  7 [msedge] › e2e\30-runtimes.spec.ts:4:1 › 运行时版本刷新与安装任务卡/日志（202 + SSE mock） (965ms)
+  ok  8 [msedge] › e2e\40-settings.spec.ts:3:1 › 设置页保存代理/SSH 用户，且轮询不覆盖未保存编辑 (3.4s)
+  ok  9 [msedge] › e2e\50-logs.spec.ts:4:1 › 日志页 tail、SSE 实时日志、复制回退与取消任务 (1.4s)
+  ok 10 [msedge] › e2e\60-about.spec.ts:2:1 › 关于页可查看 GPL 全文与 HMCL 附加条款 (1.0s)
+  ok 11 [msedge] › e2e\80-packs.spec.ts:34:1 › 整合包：上传预览与导入任务（202 + SSE mock） (886ms)
+  ok 12 [msedge] › e2e\80-packs.spec.ts:97:1 › 整合包预览错误显示 400 中文消息 (791ms)
+  ok 13 [msedge] › e2e\80-packs.spec.ts:119:1 › 整合包：导出实例为 artifact（202 + SSE + 下载提示） (5.8s)
+  ok 14 [msedge] › e2e\90-plugins.spec.ts:35:1 › 插件：列表与安装任务（202 + SSE mock） (1.0s)
+  ok 15 [msedge] › e2e\90-plugins.spec.ts:106:1 › 插件错误：忙 409 / 校验 400 / 任务 VALIDATION 提示 (868ms)
+  ok 16 [msedge] › e2e\95-direct-access.spec.ts:34:1 › 直连对话框展示 tunnelCommand/directUrl/sshUser 与未就绪提示 (893ms)
+  ok 17 [msedge] › e2e\95-direct-access.spec.ts:53:1 › 直连未就绪时展示提示 (872ms)
+  ok 18 [msedge] › e2e\98-m4-evidence.spec.ts:15:1 › G8 页面巡检 + console 无错误 + 无账户/目录/背景请求 + 截图 (4.1s)
+  ok 19 [msedge] › e2e\98-m4-evidence.spec.ts:80:1 › 工作台入口：点击打开 /workbench/{id}/ 新窗口 (1.1s)
+E2E stack stopped.
+
+  19 passed (43.6s)
+
+To open last HTML report run:
+[36m[39m
+[36m  npx playwright show-report[39m
+[36m[39m

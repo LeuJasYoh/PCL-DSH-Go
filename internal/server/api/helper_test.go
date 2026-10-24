@@ -99,7 +99,9 @@ type fakeApp struct {
 	logsTailSeen []int
 	live         map[string]app.LiveStatus
 	running      []app.InstanceRuntimeStatus
-	// maxRunning mirrors app.App.MaxRunningInstances; newTestEnv sets the
+	// maxRunning mirrors app.App.MaxRunningInstances; the fake defaults to 1 so
+	// existing 409 tests keep exercising the limit path (production default is 0).
+	// newTestEnv sets the
 	// production default (1) and tests may override it (0 = unlimited).
 	maxRunning int
 

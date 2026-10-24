@@ -12,7 +12,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-VERSION="1.0.0"
+VERSION="0.2.1"
 TOOLS_DIR="${PCL_DSH_TOOLS_DIR:-/opt/pcl-dsh-go/tools}"
 OUT_DIR="${PCL_DSH_RELEASE_DIR:-$REPO_ROOT/release}"
 
@@ -71,8 +71,9 @@ cp -a "$TOOLS_DIR/pnpm" "$PKG/tools/pnpm"
 cp -a "$REPO_ROOT/packaging/." "$PKG/packaging/"
 find "$PKG/packaging" -name '*.sh' -exec chmod 0755 {} + 2>/dev/null || true
 cp -a "$REPO_ROOT/README.md" "$PKG/README.md" 2>/dev/null || true
-[ -f "$REPO_ROOT/docs/M5_DEPLOY.md" ] && cp -a "$REPO_ROOT/docs/M5_DEPLOY.md" "$PKG/docs/"
-[ -f "$REPO_ROOT/docs/ACCEPTANCE.md" ] && cp -a "$REPO_ROOT/docs/ACCEPTANCE.md" "$PKG/docs/"
+cp -a "$REPO_ROOT/CONTRIBUTING.md" "$REPO_ROOT/SECURITY.md" "$PKG/" 2>/dev/null || true
+cp -a "$REPO_ROOT/docs/"*.md "$PKG/docs/" 2>/dev/null || true
+[ -d "$REPO_ROOT/docs/images" ] && cp -a "$REPO_ROOT/docs/images" "$PKG/docs/"
 cp -a "$REPO_ROOT/LICENSE" "$PKG/LICENSE"
 cp -a "$REPO_ROOT/LICENSES" "$PKG/LICENSES"
 cp -a "$REPO_ROOT/THIRD_PARTY_NOTICES.md" "$PKG/THIRD_PARTY_NOTICES.md"

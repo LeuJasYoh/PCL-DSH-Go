@@ -1,0 +1,48 @@
+=== M5.2 multi-instance acceptance (default unlimited) 20261024125251 ===
+release=/tmp/pcl-dsh-go-test/m5.2-release-0.2.1/pcl-dsh-go-0.2.1-linux-amd64 version=0.2.1
+bin_sha256=af140dd19550abb41fdec430d0e2b3a7a1f80571d668cbdb060a051855e49fd3
+runtime=/var/lib/pcl-dsh-go/runtimes/0.2.1-rc.3
+manager port=18086 pid=157011 args=[]
+PASS  login initial 204  status=204
+PASS  first-login change password 204  status=204
+PASS  login new password 204  status=204
+PASS  default-unlimited create M5.2 默认甲 port 3280  status=201 code=undefined message=undefined
+PASS  default-unlimited create M5.2 默认乙 port 3281  status=201 code=undefined message=undefined
+PASS  default-unlimited create M5.2 默认丙 port 3282  status=201 code=undefined message=undefined
+PASS  default-unlimited 默认甲 launch 202  status=202
+PASS  default-unlimited 默认甲 launch job SUCCEEDED  state=SUCCEEDED
+PASS  default-unlimited 默认乙 launch 202  status=202
+PASS  default-unlimited 默认乙 launch job SUCCEEDED  state=SUCCEEDED
+PASS  default-unlimited 默认丙 launch 202  status=202
+PASS  default-unlimited 默认丙 launch job SUCCEEDED  state=SUCCEEDED
+PASS  default-unlimited 默认甲 运行中  status=运行中
+PASS  default-unlimited 默认乙 运行中  status=运行中
+PASS  default-unlimited 默认丙 运行中  status=运行中
+PASS  default-unlimited 默认甲 workbench 200  status=200
+PASS  default-unlimited 默认甲 workbench title DSH  
+PASS  default-unlimited 默认乙 workbench 200  status=200
+PASS  default-unlimited 默认乙 workbench title DSH  
+rss snapshot:
+ 155497  9196 /opt/pcl-dsh-go/current/bin/pcl-dsh-go --server.address=127.0.0.1 --server.port=8080 --pcl.data-root=/var/lib/pcl-dsh-go --pcl.tool-root=/opt/pcl-dsh-go/current/tools --server.static-dir=/opt/pcl-dsh-go/current/static --pcl.max-running-instances=0
+ 155830  3884 bash -lc  set -u cd /mnt/d/Projects/DSHL/PCL-DSH-Go bash scripts/build-release.sh --version 0.2.1 --tools /opt/pcl-dsh-go/tools > /tmp/final-021-build.log 2>&1 || { tail -20 /tmp/final-021-build.log; exit 1; } tail -4 /tmp/final-021-build.log cd release/pcl-dsh-go-0.2.1-linux-amd64 ./packaging/install.sh 2>&1 | tail -6 echo "--- verify ---" systemctl is-active pcl-dsh-go; readlink -f /opt/pcl-dsh-go/current grep -o "max-running-instances=[0-9]*" /etc/systemd/system/pcl-dsh-go.service curl -s http://127.0.0.1/api/health; echo curl -s -o /dev/null -w "root=%{http_code}\n" http://127.0.0.1/ 
+ 155839  3736 bash scripts/build-release.sh --version 0.2.1 --tools /opt/pcl-dsh-go/tools
+ 156095  2560 cp -a /opt/pcl-dsh-go/tools/node /mnt/d/Projects/DSHL/PCL-DSH-Go/release/pcl-dsh-go-0.2.1-linux-amd64/tools-node
+ 156990  3832 bash -lc cd /mnt/d/Projects/DSHL/PCL-DSH-Go && M52_RELEASE=/tmp/pcl-dsh-go-test/m5.2-release-0.2.1/pcl-dsh-go-0.2.1-linux-amd64 /tmp/pcl-dsh-go-test/m5.2-release-0.2.1/pcl-dsh-go-0.2.1-linux-amd64/tools/node/bin/node scripts/wsl/m5.1-acceptance.mjs 2>&1 | tee docs/evidence/m5/m5.2-live-run.log
+ 157000 96544 /tmp/pcl-dsh-go-test/m5.2-release-0.2.1/pcl-dsh-go-0.2.1-linux-amd64/tools/node/bin/node scripts/wsl/m5.1-acceptance.mjs
+ 157011 15860 /tmp/pcl-dsh-go-test/m5.2-release-0.2.1/pcl-dsh-go-0.2.1-linux-amd64/bin/pcl-dsh-go --pcl.data-root=/tmp/pcl-dsh-go-test/m5.2-scenario-20261024125251/data-unlimited --pcl.tool-root=/tmp/pcl-dsh-go-test/m5.2-release-0.2.1/pcl-dsh-go-0.2.1-linux-amd64/tools --server.address=127.0.0.1 --server.port=18086 --server.static-dir=/tmp/pcl-dsh-go-test/m5.2-release-0.2.1/pcl-dsh-go-0.2.1-linux-amd64/static
+ 157056 320948 /tmp/pcl-dsh-go-test/m5.2-release-0.2.1/pcl-dsh-go-0.2.1-linux-amd64/tools/node/bin/node /tmp/pcl-dsh-go-test/m5.2-scenario-20261024125251/data-unlimited/runtimes/0.2.1-rc.3/node_modules/@deepseek-ai/dsh/lib/bin.js --profile web --port 3280 --host 127.0.0.1 --no-open
+PASS  default-unlimited default-unlimited two-instances screenshot  
+manager port=18087 pid=157112 args=["--pcl.max-running-instances","1"]
+PASS  login initial 204  status=204
+PASS  first-login change password 204  status=204
+PASS  login new password 204  status=204
+PASS  explicit-limit1 create M5.2 上限1 甲 port 3290  status=201 code=undefined message=undefined
+PASS  explicit-limit1 create M5.2 上限1 乙 port 3291  status=201 code=undefined message=undefined
+PASS  explicit-limit1 limit1-甲 launch 202  status=202
+PASS  explicit-limit1 limit1-甲 launch job SUCCEEDED  state=SUCCEEDED
+PASS  explicit-limit1 limit1-乙 409 CONFLICT_RUNNING_INSTANCE  status=409 code=CONFLICT_RUNNING_INSTANCE message=当前最多允许同时运行 1 个 DSH 实例（--pcl.max-running-instances），请先停止其它实例。
+PASS  explicit-limit1 explicit limit=1 second launch 409 message contains 1  message=当前最多允许同时运行 1 个 DSH 实例（--pcl.max-running-instances），请先停止其它实例。
+PASS  explicit-limit1 limit1-甲 stop 200  status=200
+PASS  explicit-limit1 limit1-甲 stopped  status=未启动
+checks_passed=31 checks_failed=0 scenario=/tmp/pcl-dsh-go-test/m5.2-scenario-20261024125251
+EXIT_CODE=0

@@ -30,3 +30,14 @@
 | m5.1-acceptance-20261024120146.log.txt | 隔离 release 1.0.1 多实例验收：35 PASS/0 FAIL/EXIT_CODE=0（max2：两实例运行中 + /workbench 200、第 3 个 409 message 含 2、停一个后可启动第 3 个；默认 limit=1 第二个仍 409） |
 | m5.1-acceptance-20261024120146-manager-18086.log.txt / -18087.log.txt | max2 / default1 隔离 manager 日志（脱敏） |
 | m5.1-two-instances.png | 两实例“运行中”截图 |
+
+
+## M5.2（默认不限制实例数 / release 0.2.1）
+
+| 文件 | 内容 |
+| --- | --- |
+| m5-acceptance-20261024-205228.log.txt | M5 full on release 0.2.1（final tar 解包目录）：71 PASS/0 FAIL/2 INFO/EXIT_CODE=0（live version=0.2.1、systemd max-running=0） |
+| m5.2-acceptance-20261024125251.log.txt | M5.2 多实例：默认不传 flag 3 实例真实 DSH 均运行中 + 前两实例 /workbench 200；显式 limit=1 第二个 409（31 PASS/0 FAIL/EXIT_CODE=0） |
+| m5.2-acceptance-20261024125251-manager-18086.log.txt / -18087.log.txt | 默认不限制 / 显式 limit=1 隔离 manager 日志（脱敏） |
+| m5.2-e2e-run2.log.txt | Playwright 全量 19/19 PASS（Edge，版本下拉/实例页回归） |
+| m5.2-two-instances.png | 默认不限制下多实例“运行中”截图 |

@@ -1,0 +1,73 @@
+=== M5 acceptance selfcheck 20261024-205137 ===
+PASS  bash -n m5-acceptance.sh  
+PASS  input exists: docs/README.md  
+PASS  input exists: docs/DEPLOYMENT.md  
+PASS  input exists: docs/CONFIGURATION.md  
+PASS  input exists: packaging/nginx/pcl-dsh-go.conf  
+PASS  tool available: curl  
+PASS  tool available: sha256sum  
+PASS  tool available: tar  
+PASS  tool available: ss  
+PASS  tool available: nginx  
+PASS  tool available: python3  
+PASS  tool available: systemctl  
+PASS  bash -n scripts/build-release.sh  
+PASS  nginx -t packaging template (adapted to isolated ports/root)  nginx: configuration file /tmp/pcl-dsh-go-test/m5/m5-scenario-20261024-205137/nginx/conf/nginx.conf test is successful
+INFO  release candidate detected: /mnt/d/Projects/DSHL/PCL-DSH-Go/release/pcl-dsh-go-0.2.1-linux-amd64 (isolated mode can validate it)
+INFO  live deployment looks present at http://127.0.0.1 (run --live for read-only checks)
+
+selfcheck: pass=14 fail=0 info=2
+SELFCHECK=OK
+=== M5 isolated clean-install smoke 20261024-205137 ===
+release input: /mnt/d/Projects/DSHL/PCL-DSH-Go/release/pcl-dsh-go-0.2.1-linux-amd64
+FAIL  release has bin/pcl-dsh-go  
+FAIL  release has static/index.html  
+FAIL  release has tools/node/bin/node  
+PASS  release has embedded pnpm  
+PASS  release has VERSION  value=0.2.1
+PASS  packaging script present: install.sh  
+PASS  packaging script present: uninstall.sh  
+PASS  packaging script present: reset.sh  
+PASS  packaging script present: pcl-dsh-go.service  
+INFO  release has no SHA256SUMS (expected for directory payload)
+PASS  release payload contains no runtime data/secrets  found=
+INFO  release install.sh missing; falling back to extracted tree smoke
+FAIL  isolated release manager /api/health 200  
+PASS  isolated manager port released  
+PASS  isolated manager logs ERROR count 0  errors=0
+PASS  isolated evidence/logs no raw token/cookie  matches=0
+=== M5 live WSL deployment read-only checks 20261024-205137 ===
+PASS  live :80 GET / 200  status=200
+PASS  live page title PCL-DSH-Go  
+PASS  live SPA fallback /instances 200  status=200
+PASS  live /api/health via Nginx 200  status=200
+PASS  live health version=0.2.1  value=0.2.1
+PASS  live /api/state unauthenticated 401  status=401
+PASS  live removed /api/accounts -> 404 (or 401 fail-closed when anonymous)  status=401 (anonymous 401 = auth-before-routing; authenticated 404 covered by M1/M4 tests)
+PASS  live /workbench unauthenticated 401  status=401
+PASS  live Nginx server_tokens off  value=Server: nginx
+PASS  systemd unit pcl-dsh-go active  state=active
+PASS  systemd unit sandbox: NoNewPrivileges/PrivateTmp  
+PASS  live nginx -t  nginx: configuration file /etc/nginx/nginx.conf test is successful
+PASS  port :80 listening  
+PASS  manager 127.0.0.1:8080 listening (behind Nginx)  
+PASS  live prefix current -> releases/0.2.1  current=0.2.1
+PASS  live data dir mode 0700  mode=700
+PASS  live initial-password state (present 0600 OR removed after first-login)  state=already_initialized_removed admin_mode=600
+PASS  Nginx site config present  path=/etc/nginx/sites-available/pcl-dsh-go.conf
+PASS  Nginx access_log off on /api and /workbench  
+PASS  Nginx config proxy_buffering off for SSE  
+PASS  live manager logs no raw token/cookie  matches=0
+PASS  live manager logs ERROR count 0  errors=0
+
+=== RESULT ===
+checks_passed=46 checks_failed=4 info=4 scenario=/tmp/pcl-dsh-go-test/m5/m5-scenario-20261024-205137
+
+FAIL  release has bin/pcl-dsh-go  
+FAIL  release has static/index.html  
+FAIL  release has tools/node/bin/node  
+FAIL  isolated release manager /api/health 200  
+RESULT=FAIL
+
+RESULT=FAIL scenario=/tmp/pcl-dsh-go-test/m5/m5-scenario-20261024-205137
+EXIT_CODE=1 scenario=/tmp/pcl-dsh-go-test/m5/m5-scenario-20261024-205137

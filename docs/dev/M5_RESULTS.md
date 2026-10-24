@@ -76,7 +76,7 @@
 ## 8. M5.1 增补（2026-10-24，release 1.0.1）
 
 - **版本选择器修复**：创建实例的 Harness 版本从原生 `<input list>`/`<datalist>`（Edge 单击不展开）改为显式下拉（点击展开、37 项可滚动、点选/键盘/手写均可用）；Playwright 全量 **19/19 PASS**（含新增 21-version-picker）。
-- **运行实例上限可配置**：`--pcl.max-running-instances`（默认 1；0=不限；负数报错）；app 与 API 预检共用上限，409 `CONFLICT_RUNNING_INSTANCE` message 含当前上限；`install.sh --max-running-instances` 写入 systemd `ExecStart`。默认 1 保持 2C/1.6GiB 基线，强服务器可调大/不限。
-- **验证**：QA 隔离多实例验收 **35/35 PASS**——limit=2 时两个实例同时运行且 `/workbench` 各 200，第三个 409（含“最多允许同时运行 2 个”），停掉一个后第三个可启动；默认 limit=1 时第二个仍 409（基线语义保留）；测试后进程/data-root 清理。证据：`docs/evidence/m5/m5.1-acceptance-20261024120146.log.txt`、`m5.1-e2e-run1.log.txt`、`m5.1-version-dropdown.png`、`m5.1-two-instances.png`。
+- **运行实例上限可配置**：`--pcl.max-running-instances`（M5.1 默认 1；**M5.2 起默认 0=不限制**；负数报错）；app 与 API 预检共用上限，409 `CONFLICT_RUNNING_INSTANCE` message 含当前上限；`install.sh --max-running-instances` 写入 systemd `ExecStart`。2C/1.6GiB 基线建议显式设 1。
+- **验证**：QA 隔离多实例验收 **35/35 PASS**——limit=2 时两个实例同时运行且 `/workbench` 各 200，第三个 409（含“最多允许同时运行 2 个”），停掉一个后第三个可启动；显式 limit=1 时第二个仍 409（基线语义保留）；测试后进程/data-root 清理。**M5.2 起默认 0（不限制）**，默认场景两个实例可同时启动（见 M5.2 证据）。证据：`docs/evidence/m5/m5.1-acceptance-20261024120146.log.txt`、`m5.1-e2e-run1.log.txt`、`m5.1-version-dropdown.png`、`m5.1-two-instances.png`。
 - **最终 live 验收（2026-10-24 20:13）**：release **1.0.1**（final tar sha256 `86c5abb1d520932eeec83794301c1f3341fe8b301509e3392cbc837a329c3258`）重装后 `m5-acceptance.sh --full` **71/71 PASS**（selfcheck 14 + isolated 35 + live 22，EXIT_CODE=0）；为匹配真实用户已首登改密（initial-password 按设计删除），验收脚本将 live 检查修正为“文件 0600 或 admin.json 已初始化且 0600 均 PASS”。证据：`docs/evidence/m5/m5-acceptance-20261024-201351.log.txt`。
 - **交付**：release **1.0.1** 已重建并重装 live（数据/管理员密码保留，`/opt/pcl-dsh-go/current -> releases/1.0.1`；systemd 上限=1）；Go 全仓测试全绿（含修复 Windows 端口区间导致的 pack 测试抖动）。

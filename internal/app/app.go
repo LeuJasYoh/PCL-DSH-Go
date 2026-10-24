@@ -47,9 +47,9 @@ const (
 	availableVersionsTTL = 60 * time.Second
 	// toolchainVerifyTimeout bounds the startup node/pnpm version probe.
 	toolchainVerifyTimeout = 40 * time.Second
-	// defaultMaxRunningInstances is used when Deps.MaxRunningInstances is nil
+	// defaultMaxRunningInstances (0 = unlimited) is used when Deps.MaxRunningInstances is nil
 	// (docs/IMPLEMENTATION_SPEC.md; 2C/1.6GiB baseline).
-	defaultMaxRunningInstances = 1
+	defaultMaxRunningInstances = 0
 )
 
 // Deps are the application dependencies. Tools may be nil: the manager then
@@ -62,7 +62,7 @@ type Deps struct {
 	Store  *store.Store
 	Tools  *tools.Tools
 	// MaxRunningInstances is the concurrent running-instance limit: nil means
-	// defaultMaxRunningInstances (1); 0 means unlimited. Negative values fall
+	// defaultMaxRunningInstances (0 = unlimited); negative values fall
 	// back to the default (config.Load already rejects them).
 	MaxRunningInstances *int
 }
@@ -158,7 +158,7 @@ type App struct {
 	runtime runtimeBackend
 	process processBackend
 	// maxRunningInstances is resolved at construction: >0 is the limit, 0 means
-	// unlimited (Deps.MaxRunningInstances == nil resolves to the default 1).
+	// unlimited (Deps.MaxRunningInstances == nil resolves to the default 0).
 	maxRunningInstances int
 
 	// installer runs pnpm for RestoreProfileDependencies; tests replace it so

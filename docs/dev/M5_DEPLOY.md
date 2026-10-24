@@ -19,14 +19,14 @@ pcl-dsh-go 管理器 127.0.0.1:8080（systemd: pcl-dsh-go.service，用户 pcl-d
   ├─ 数据：/var/lib/pcl-dsh-go（config/instances/runtimes/cache/logs/trash/initial-password）
   ├─ 版本化发行：/opt/pcl-dsh-go/releases/<version> + current 软链
   ├─ 内置工具链：/opt/pcl-dsh-go/current/tools/{node,pnpm}
-  └─ spawn（运行实例上限默认 1，可用 --pcl.max-running-instances 调整）：DSH 127.0.0.1:3080+
+  └─ spawn（运行实例上限默认 0=不限制，可用 --pcl.max-running-instances 调整；2C/1.6G 建议显式 1）：DSH 127.0.0.1:3080+
 ```
 
 关键设计：
 
 - **release 不可变、数据独立**：升级 = 新增 `releases/<newver>` 并切换 `current` 软链；`data-root` 不在 release 内，升级/回滚不动数据。
 - **管理器只监听回环**：`127.0.0.1:8080`；公网只暴露 Nginx :80。不要改 `--server.address` 为 0.0.0.0，也不要对公网开放 8080。
-- **单管理器进程 + 可配置运行实例上限**：data-root 下 `.lock` flock 保证同一 data-root 只有一个管理器进程；产品层同时运行的 DSH 实例数由 `--pcl.max-running-instances` 控制（默认 1，0=不限制，见第 6.1 节）。
+- **单管理器进程 + 可配置运行实例上限**：data-root 下 `.lock` flock 保证同一 data-root 只有一个管理器进程；产品层同时运行的 DSH 实例数由 `--pcl.max-running-instances` 控制（默认 0=不限制，见第 6.1 节）。
 - **无系统依赖**：运行期只用随包 Node 24.22.1 + pnpm 11.28.5，不需要系统 node/npm/pnpm/JDK。
 - WSL 部署仅用于本机演示/验收；生产建议独立 Linux 主机，做法相同。
 
@@ -130,7 +130,7 @@ sudo ./packaging/install.sh
 | `--data-dir <dir>` | `/var/lib/pcl-dsh-go` | 数据根（持久化，权限 0700，属主 pcl-dsh） |
 | `--port <port>` | `8080` | 管理器回环端口（Nginx 反代到该端口） |
 | `--listen-port <port>` | `80` | Nginx 对外监听端口 |
-| `--max-running-instances <n>` | `1` | 传入 systemd unit 的 DSH 运行实例上限（非负整数；0=不限制，见第 6.1 节） |
+| `--max-running-instances <n>` | `0` | 传入 systemd unit 的 DSH 运行实例上限（非负整数；0=不限制，见第 6.1 节） |
 | `--no-service` | 关 | 仅安装 release 树 + 数据目录，不写 systemd/Nginx、不启动也不等待 health（隔离安装/测试用；仍要求 root 以创建用户与目录） |
 
 安装脚本执行的动作（与 `packaging/install.sh` 一一对应）：
@@ -234,7 +234,7 @@ initial-password
 
 管理器默认只允许**同时运行 1 个 DSH 实例**（2 vCPU / 1.6 GiB 基线）。未来强服务器可通过启动参数调整：
 
-- `--pcl.max-running-instances N`：N>0 为上限；`0` 表示不限制；负数启动直接报错（`config.Load` 校验）。默认 `1`。
+- `--pcl.max-running-instances N`：N>0 为上限；`0` 表示不限制；负数启动直接报错（`config.Load` 校验）。默认 `0`（不限制）；2C/1.6GiB 基线建议显式设 `1`。
 - 达到上限时 `POST /api/instances/{id}/launch` 返回 `409 CONFLICT_RUNNING_INSTANCE`，message 含“当前最多允许同时运行 N 个 DSH 实例（--pcl.max-running-instances），请先停止其它实例。”
 - 每个 DSH 实例的 Node 进程常驻约 300–400 MiB（M0 实测 RSS 283–379 MiB），另加 manager/缓存/探测临时内存。建议：
 
@@ -247,7 +247,7 @@ initial-password
 
 设置方式（推荐用安装脚本参数，systemd unit 会一并渲染）：
 
-1. **安装/升级时**：`sudo ./packaging/install.sh --max-running-instances 2`（0=不限制；默认 1；脚本会校验非负整数并写入 systemd unit 的 `--pcl.max-running-instances=@MAX_RUNNING@`）；
+1. **安装/升级时**：`sudo ./packaging/install.sh --max-running-instances 2`（0=不限制；默认 0；脚本会校验非负整数并写入 systemd unit 的 `--pcl.max-running-instances=@MAX_RUNNING@`）；
 2. **已安装环境**：`sudo systemctl edit --full pcl-dsh-go` 在 `ExecStart=...` 末尾把 `--pcl.max-running-instances` 改为目标值（或直接重跑 `install.sh --max-running-instances N`），然后 `sudo systemctl daemon-reload && sudo systemctl restart pcl-dsh-go`；
 3. **临时前台运行**：`/opt/pcl-dsh-go/current/bin/pcl-dsh-go ... --pcl.max-running-instances=2`；
 4. 不写该参数时默认 `1`。
@@ -538,7 +538,7 @@ runtime 安装在 `data/runtimes`，走 npm registry + 内置 pnpm；检查服�
 
 ### 15.13 如何同时运行多个 DSH 实例？
 
-默认上限为 1（2C/1.6GiB 基线）。强服务器可调大：安装/升级时加 `sudo ./packaging/install.sh --max-running-instances 2`（或 `0` 不限制，systemd unit 会写入该参数），或手动改 unit 的 `ExecStart` 后 `daemon-reload` + `restart`；容量建议见第 6.1 节。达到上限时启动会返回 409 并提示当前上限。
+默认上限为 0（不限制）；2C/1.6GiB 基线建议显式设 1。调整方式：安装/升级时加 `sudo ./packaging/install.sh --max-running-instances 2`（或 `0` 不限制，systemd unit 会写入该参数），或手动改 unit 的 `ExecStart` 后 `daemon-reload` + `restart`；容量建议见第 6.1 节。达到上限时启动会返回 409 并提示当前上限。
 
 ## 16. 附录
 
@@ -593,7 +593,7 @@ ExecStart=/opt/pcl-dsh-go/current/bin/pcl-dsh-go \
   --pcl.data-root=/var/lib/pcl-dsh-go \
   --pcl.tool-root=/opt/pcl-dsh-go/current/tools \
   --server.static-dir=/opt/pcl-dsh-go/current/static \
-  --pcl.max-running-instances=1
+  --pcl.max-running-instances=0
 Restart=on-failure
 RestartSec=3
 TimeoutStopSec=45
@@ -605,7 +605,7 @@ ProtectHome=yes
 ReadWritePaths=/var/lib/pcl-dsh-go
 ```
 
-> 运行实例上限由 `install.sh --max-running-instances N` 渲染进 unit（默认 `1`）；手工改 `ExecStart` 中的 `--pcl.max-running-instances` 时需同步 `daemon-reload`（0=不限制，见第 6.1 节）。
+> 运行实例上限由 `install.sh --max-running-instances N` 渲染进 unit（默认 `0`）；手工改 `ExecStart` 中的 `--pcl.max-running-instances` 时需同步 `daemon-reload`（0=不限制，见第 6.1 节）。
 
 ### 16.4 变更记录
 
@@ -614,3 +614,4 @@ ReadWritePaths=/var/lib/pcl-dsh-go
 | 2026-10-24 | M5-D 初稿 | 随 release 1.0.0 发布：安装/升级/回滚/卸载/重置、systemd/Nginx、初始密码、CI 与打包说明 |
 | 2026-10-24 | M5-D 修订 | 对齐最终脚本：`--no-service` 隔离安装、Nginx default 站备份路径改为 `sites-available/default.pcl-dsh-go-disabled`、release 布局含 `packaging/systemd/`、`release/` 已 gitignore、补充 WSL :80 实际部署证据 |
 | 2026-10-24 | M5.1 修订 | 新增运行实例上限 `--pcl.max-running-instances`（默认 1，0=不限制）：第 6.1 节用法/内存建议、FAQ 15.13、`install.sh --max-running-instances` 与 systemd `@MAX_RUNNING@` 渲染说明 |
+| 2026-10-24 | M5.2 修订 | 默认实例上限改为 **0（不限制）**；显式 1/N 仍可用；2C/1.6GiB 基线建议显式 1；文档/安装脚本/验收同步 |
