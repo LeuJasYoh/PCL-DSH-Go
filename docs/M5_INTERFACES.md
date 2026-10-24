@@ -72,3 +72,9 @@ SHA256SUMS                       # 包文件校验（tar.gz 与目录清单）
 - 访问：Windows Edge `http://localhost/` 与 `http://127.0.0.1/` 均 200（登录页 title=登录 · PCL-DSH-Go、0 console error）；`/api/health` version=1.0.0；匿名 `/api/state` 401；登录（初始密码）204 且 `/api/state` 403 PASSWORD_CHANGE_REQUIRED（首登门槛）；未代用户改密。
 - 持久化：`systemctl restart pcl-dsh-go` 后 active、health/首页 200、initial-password 哈希不变（数据保留）。
 - 已知环境差异：Windows .NET `Invoke-WebRequest http://localhost/` 因 IPv6 首选可能超时；Edge/curl 正常，备用 `http://127.0.0.1/`。
+## 8. M5.1 增补契约（2026-10-24）
+
+- 配置：`--pcl.max-running-instances int`，默认 1；0=不限制；负数启动失败；其他不变。
+- launch：同步预检与 app 共用上限；达到上限时 409 `CONFLICT_RUNNING_INSTANCE`，message 包含当前上限与参数名；同实例已运行仍 `CONFLICT_BUSY`，端口冲突/未安装 runtime 语义不变。
+- 安装：`install.sh --max-running-instances N` 渲染 systemd `ExecStart --pcl.max-running-instances=N`；默认 1；修改后 `systemctl daemon-reload && systemctl restart pcl-dsh-go` 生效。
+- 错误码/事件/其它 API 不变；实例数据 schema 不变；单管理器进程锁（flock）不变。

@@ -1,0 +1,50 @@
+=== M5.1 multi-instance acceptance 20261024120146 ===
+release=/mnt/d/Projects/DSHL/PCL-DSH-Go/release/pcl-dsh-go-1.0.1-linux-amd64 version=1.0.1
+bin_sha256=8a8c84861d19d7c58b86324f575b1dca589a69c298417b5455fb88ebb8736816
+runtime=/var/lib/pcl-dsh-go/runtimes/0.2.1-rc.3
+manager port=18086 pid=151714 args=["--pcl.max-running-instances","2"]
+PASS  login initial 204  status=204
+PASS  first-login change password 204  status=204
+PASS  login new password 204  status=204
+PASS  max2 create M5.1 实例甲 port 3280  status=201 code=undefined message=undefined
+PASS  max2 create M5.1 实例乙 port 3281  status=201 code=undefined message=undefined
+PASS  max2 实例甲 launch 202  status=202
+PASS  max2 实例甲 launch job SUCCEEDED  state=SUCCEEDED
+PASS  max2 实例乙 launch 202  status=202
+PASS  max2 实例乙 launch job SUCCEEDED  state=SUCCEEDED
+PASS  max2 实例甲 运行中  status=运行中
+PASS  max2 实例乙 运行中  status=运行中
+PASS  max2 实例甲 workbench 200  status=200
+PASS  max2 实例甲 workbench title DSH  
+PASS  max2 实例乙 workbench 200  status=200
+PASS  max2 实例乙 workbench title DSH  
+rss snapshot:
+ 150559  7856 /opt/pcl-dsh-go/current/bin/pcl-dsh-go --server.address=127.0.0.1 --server.port=8080 --pcl.data-root=/var/lib/pcl-dsh-go --pcl.tool-root=/opt/pcl-dsh-go/current/tools --server.static-dir=/opt/pcl-dsh-go/current/static --pcl.max-running-instances=1
+ 151698  3852 bash -lc cd /mnt/d/Projects/DSHL/PCL-DSH-Go && /mnt/d/Projects/DSHL/PCL-DSH-Go/release/pcl-dsh-go-1.0.1-linux-amd64/tools/node/bin/node scripts/wsl/m5.1-acceptance.mjs 2>&1 | tee docs/evidence/m5/m5.1-live-run.log
+ 151706 71416 /mnt/d/Projects/DSHL/PCL-DSH-Go/release/pcl-dsh-go-1.0.1-linux-amd64/tools/node/bin/node scripts/wsl/m5.1-acceptance.mjs
+ 151714 13700 /mnt/d/Projects/DSHL/PCL-DSH-Go/release/pcl-dsh-go-1.0.1-linux-amd64/bin/pcl-dsh-go --pcl.data-root=/tmp/pcl-dsh-go-test/m5.1-scenario-20261024120146/data-max2 --pcl.tool-root=/mnt/d/Projects/DSHL/PCL-DSH-Go/release/pcl-dsh-go-1.0.1-linux-amd64/tools --server.address=127.0.0.1 --server.port=18086 --server.static-dir=/mnt/d/Projects/DSHL/PCL-DSH-Go/release/pcl-dsh-go-1.0.1-linux-amd64/static --pcl.max-running-instances 2
+ 151760 316964 /mnt/d/Projects/DSHL/PCL-DSH-Go/release/pcl-dsh-go-1.0.1-linux-amd64/tools/node/bin/node /tmp/pcl-dsh-go-test/m5.1-scenario-20261024120146/data-max2/runtimes/0.2.1-rc.3/node_modules/@deepseek-ai/dsh/lib/bin.js --profile web --port 3280 --host 127.0.0.1 --no-open
+ 151772 312940 /mnt/d/Projects/DSHL/PCL-DSH-Go/release/pcl-dsh-go-1.0.1-linux-amd64/tools/node/bin/node /tmp/pcl-dsh-go-test/m5.1-scenario-20261024120146/data-max2/runtimes/0.2.1-rc.3/node_modules/@deepseek-ai/dsh/lib/bin.js --profile web --port 3281 --host 127.0.0.1 --no-open
+PASS  max2 two-instances screenshot  
+PASS  max2 create M5.1 实例丙 port 3282  status=201 code=undefined message=undefined
+PASS  max2 实例丙 409 CONFLICT_RUNNING_INSTANCE  status=409 code=CONFLICT_RUNNING_INSTANCE message=当前最多允许同时运行 2 个 DSH 实例（--pcl.max-running-instances），请先停止其它实例。
+PASS  max2 409 message contains limit 2  message=当前最多允许同时运行 2 个 DSH 实例（--pcl.max-running-instances），请先停止其它实例。
+PASS  max2 实例甲 stop 200  status=200
+PASS  max2 实例甲 stopped  status=未启动
+PASS  max2 实例丙-after-stop launch 202  status=202
+PASS  max2 实例丙-after-stop launch job SUCCEEDED  state=SUCCEEDED
+PASS  max2 实例丙 运行中 after stopping 甲  status=运行中
+manager port=18087 pid=151811 args=[]
+PASS  login initial 204  status=204
+PASS  first-login change password 204  status=204
+PASS  login new password 204  status=204
+PASS  default1 create M5.1 基线甲 port 3290  status=201 code=undefined message=undefined
+PASS  default1 create M5.1 基线乙 port 3291  status=201 code=undefined message=undefined
+PASS  default1 基线甲(default1) launch 202  status=202
+PASS  default1 基线甲(default1) launch job SUCCEEDED  state=SUCCEEDED
+PASS  default1 基线乙(default1) 409 CONFLICT_RUNNING_INSTANCE  status=409 code=CONFLICT_RUNNING_INSTANCE message=当前最多允许同时运行 1 个 DSH 实例（--pcl.max-running-instances），请先停止其它实例。
+PASS  default1 default limit=1 message contains 1  message=当前最多允许同时运行 1 个 DSH 实例（--pcl.max-running-instances），请先停止其它实例。
+PASS  default1 基线甲 stop 200  status=200
+PASS  default1 基线甲 stopped  status=未启动
+checks_passed=35 checks_failed=0 scenario=/tmp/pcl-dsh-go-test/m5.1-scenario-20261024120146
+EXIT_CODE=0

@@ -169,12 +169,19 @@ func (a *API) handleLaunchInstance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Frozen precheck order (docs/M1_INTERFACES.md 10 + Lead 2026-10-24):
-	// busy job, another instance running, this instance active, port in use,
-	// runtime missing.
-	for _, running := range a.app.Running() {
-		if running.InstanceID != instance.ID {
+	// busy job, running-instance limit, this instance active, port in use,
+	// runtime missing. The limit is shared with app.LaunchInstance
+	// (--pcl.max-running-instances; default 1, 0 = unlimited).
+	if limit := a.app.MaxRunningInstances(); limit > 0 {
+		runningOthers := 0
+		for _, running := range a.app.Running() {
+			if running.InstanceID != instance.ID {
+				runningOthers++
+			}
+		}
+		if runningOthers >= limit {
 			a.writeError(w, r, apierr.New(http.StatusConflict, apierr.CodeConflictRunningInstance,
-				"已有其他实例在运行；当前版本只允许同时运行一个 DSH 实例。"))
+				fmt.Sprintf("当前最多允许同时运行 %d 个 DSH 实例（--pcl.max-running-instances），请先停止其它实例。", limit)))
 			return
 		}
 	}

@@ -39,10 +39,10 @@
 - 编辑：名称/端口可改；改 version/profile 返回 409 CONFLICT_UNSUPPORTED_CHANGE；运行中改端口/删除拒绝。
 - 删除：停止状态 → 200 trashedPath 且目录进入 trash；运行中 → 409。
 - 选择：PUT selection 持久化，重启后 /api/state currentInstanceId 正确。
-- 启动：202 Job；成功 /api/state 状态“运行中”；重复启动/多实例 409；失败有中文原因和任务日志。
+- 启动：202 Job；成功 /api/state 状态“运行中”；重复启动/达到运行实例上限 409（默认上限 1，可配置）；失败有中文原因和任务日志。
 - 停止：停止后进程树无残留、端口释放（ss -ltnp 无监听）、状态“未启动”。
 - 运行时：available 查询成功；安装 202+Job；安装后 /api/runtimes installed=true；删除被实例引用 409 CONFLICT_IN_USE；删除未被引用 → trash；探测失败给原因。
-- 单实例：已有实例运行中，启动另一个必须 409 CONFLICT_RUNNING_INSTANCE。
+- 运行实例上限：`--pcl.max-running-instances` 默认 1、0=不限制、负数启动报错；默认上限下已有实例运行中再启动另一个必须 409 CONFLICT_RUNNING_INSTANCE，message 含当前上限与配置项；limit=2 时允许第二个实例启动；limit=0 时不限制（仍只有一个管理器进程）。
 
 ---
 

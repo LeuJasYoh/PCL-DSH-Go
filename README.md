@@ -14,13 +14,17 @@ PCL-DSH-Go 是 [PCL-DSH-Linux](https://github.com/LeuJasYoh/pcl-dsh-linux) 的 G
 
 ## M5 状态（2026-10-24）
 
-M5 发布/部署已完成：**release 1.0.0**（Go 二进制 + `web/dist` + 内置 Node 24.22.1/pnpm 11.28.5 + systemd/Nginx/install 脚本 + 许可），`SHA256SUMS` 校验；`scripts/wsl/m5-acceptance.sh --full` **71/71 PASS**（QA 与 Lead 独立复跑）。
+M5 发布/部署已完成：**release 1.0.1**（Go 二进制 + `web/dist` + 内置 Node 24.22.1/pnpm 11.28.5 + systemd/Nginx/install 脚本 + 许可），`SHA256SUMS` 校验；`scripts/wsl/m5-acceptance.sh --full` **71/71 PASS**（QA 与 Lead 独立复跑）。
 
-- **WSL 实际部署**：`/opt/pcl-dsh-go/current -> releases/1.0.0`，数据 `/var/lib/pcl-dsh-go`（0700），systemd `pcl-dsh-go.service`（沙箱/NoNewPrivileges），Nginx 监听 `:80`（API/工作台反代、SSE/WS、2G body、access_log off）；Windows 浏览器访问 **http://localhost/**（备用 `http://127.0.0.1/`）。
+- **WSL 实际部署**：`/opt/pcl-dsh-go/current -> releases/1.0.1`，数据 `/var/lib/pcl-dsh-go`（0700），systemd `pcl-dsh-go.service`（沙箱/NoNewPrivileges，运行上限默认 1），Nginx 监听 `:80`（API/工作台反代、SSE/WS、2G body、access_log off）；Windows 浏览器访问 **http://localhost/**（备用 `http://127.0.0.1/`）。
 - **首次登录**：初始密码在 `/var/lib/pcl-dsh-go/initial-password`（0600），登录后强制改密；随后在「下载」页安装 DSH `0.2.1-rc.3`、创建并启动实例、「打开 Web 界面」进入工作台。
 - **运维**：安装/升级/回滚/卸载/重置/排障见 [docs/M5_DEPLOY.md](docs/M5_DEPLOY.md)；服务 `systemctl {status,restart,stop} pcl-dsh-go`；Nginx site `/etc/nginx/sites-available/pcl-dsh-go.conf`。
-- **构建发布包**：Windows 构建前端（`scripts/frontend-build.ps1`）+ linux/amd64 二进制后，在 WSL 运行 `bash scripts/build-release.sh` → `release/pcl-dsh-go-1.0.0-linux-amd64.tar.gz` + SHA256（`release/` 已 gitignore）。
+- **构建发布包**：Windows 构建前端（`scripts/frontend-build.ps1`）+ linux/amd64 二进制后，在 WSL 运行 `bash scripts/build-release.sh` → `release/pcl-dsh-go-<version>-linux-amd64.tar.gz` + SHA256（`release/` 已 gitignore）。
 
+### M5.1 增补（2026-10-24）
+
+- 创建实例的 Harness 版本选择从原生 datalist 改为**显式下拉**（点击展开、可滚动、键盘可选、保留手动输入）；Playwright 19/19 PASS。
+- 运行实例上限改为可配置：`--pcl.max-running-instances N`（默认 1，`0`=不限制；负数启动报错）；`install.sh --max-running-instances N` 写入 systemd；达到上限返回 409 `CONFLICT_RUNNING_INSTANCE`（message 含当前上限）。多实例真实 E2E：limit=2 两实例同时运行 + 第三个被拒，默认 1 基线保留（35/35 PASS）。
 已知限制：本里程碑未覆盖 TLS（由运维在 Nginx 终止）、高并发/压测、跨版本 schema 升级；live 验收为只读（Lead 已做一次 systemd 重启持久化验证）。
 
 ## M4 状态（2026-10-24）

@@ -99,6 +99,9 @@ type fakeApp struct {
 	logsTailSeen []int
 	live         map[string]app.LiveStatus
 	running      []app.InstanceRuntimeStatus
+	// maxRunning mirrors app.App.MaxRunningInstances; newTestEnv sets the
+	// production default (1) and tests may override it (0 = unlimited).
+	maxRunning int
 
 	launchHook  func(ctx context.Context, id string, logf func(string)) (app.LaunchResult, error)
 	installHook func(ctx context.Context, version string, logf func(string)) (runtime.InstallResult, error)
@@ -221,6 +224,12 @@ func (f *fakeApp) Running() []app.InstanceRuntimeStatus {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	return append([]app.InstanceRuntimeStatus(nil), f.running...)
+}
+
+func (f *fakeApp) MaxRunningInstances() int {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.maxRunning
 }
 
 func (f *fakeApp) InstallRuntime(ctx context.Context, version string, logf func(string)) (runtime.InstallResult, error) {
@@ -522,7 +531,7 @@ func newTestEnv(t *testing.T, pending bool, configure ...func(*Deps)) *testEnv {
 	jobs := job.NewManager(logger, job.Options{})
 	t.Cleanup(jobs.Shutdown)
 	workbench := &workbenchRecorder{}
-	fake := &fakeApp{st: st, dirs: dirs, live: map[string]app.LiveStatus{}}
+	fake := &fakeApp{st: st, dirs: dirs, live: map[string]app.LiveStatus{}, maxRunning: 1}
 	fakePackService := &fakePack{}
 	fakePluginService := &fakePlugins{}
 	artifactStore, err := artifact.Open(filepath.Join(dirs.CacheDir, "exports"))

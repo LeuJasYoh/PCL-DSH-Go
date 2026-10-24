@@ -134,7 +134,7 @@ dangerouslyAllowAllBuilds: true
 
 ### 5.1 启动前检查
 1. 实例存在、未运行；端口空闲（尝试连接 127.0.0.1:端口，能连接即视为占用）。
-2. 最多同时 1 个运行实例（后端硬限制；返回 409 CONFLICT_RUNNING_INSTANCE）。
+2. 运行实例上限：`--pcl.max-running-instances`（默认 1，0=不限制；2C/1.6GiB 基线建议 1）；达到上限返回 409 CONFLICT_RUNNING_INSTANCE（M5.1 起可配置）。
 3. 运行时已安装且入口校验通过；能力探测已缓存；端口在 1–65535。
 4. staging 写入启动锁定（内存状态），失败清理。
 
@@ -307,7 +307,7 @@ dangerouslyAllowAllBuilds: true
 - 运行时：runtimes/<semver>/；安装临时目录 runtimes/.install-*；删除进 trash。
 - 缓存：pnpm-store、npm、registry-metadata、probes、uploads、exports、pack-staging。
 - 日志：manager-YYYY-MM-DD.log、audit-YYYY-MM-DD.log；单行、脱敏。
-- 端口：3080–65535 自动分配；启动前检查 127.0.0.1:port 不可连接；单实例限制。
+- 端口：3080–65535 自动分配；启动前检查 127.0.0.1:port 不可连接；运行实例上限由 `--pcl.max-running-instances` 控制（默认 1）。
 - 文件权限：data 0700；config/secret 类 0600；临时上传/解包目录 0700。
 
 ---

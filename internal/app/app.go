@@ -5,8 +5,9 @@
 // manager (docs/M1_INTERFACES.md §7).
 //
 // The M0 process semantics are preserved: DSH bootstrap tokens stay in memory,
-// readiness/stop/port behaviour is unchanged and only one instance may run at a
-// time. Blocking operations accept a logf callback so the job manager can
+// readiness/stop/port behaviour is unchanged. The number of concurrently
+// running instances is configurable (default 1; 0 = unlimited) via
+// Deps.MaxRunningInstances. Blocking operations accept a logf callback so the job manager can
 // stream progress lines; every line is redacted before it leaves this package
 // and bootstrap tokens never reach logs or job results.
 //
@@ -46,6 +47,9 @@ const (
 	availableVersionsTTL = 60 * time.Second
 	// toolchainVerifyTimeout bounds the startup node/pnpm version probe.
 	toolchainVerifyTimeout = 40 * time.Second
+	// defaultMaxRunningInstances is used when Deps.MaxRunningInstances is nil
+	// (docs/IMPLEMENTATION_SPEC.md; 2C/1.6GiB baseline).
+	defaultMaxRunningInstances = 1
 )
 
 // Deps are the application dependencies. Tools may be nil: the manager then
@@ -57,6 +61,10 @@ type Deps struct {
 	Logger *slog.Logger
 	Store  *store.Store
 	Tools  *tools.Tools
+	// MaxRunningInstances is the concurrent running-instance limit: nil means
+	// defaultMaxRunningInstances (1); 0 means unlimited. Negative values fall
+	// back to the default (config.Load already rejects them).
+	MaxRunningInstances *int
 }
 
 // LaunchResult is returned once an instance is ready.
@@ -149,6 +157,9 @@ type App struct {
 	tools   *tools.Tools
 	runtime runtimeBackend
 	process processBackend
+	// maxRunningInstances is resolved at construction: >0 is the limit, 0 means
+	// unlimited (Deps.MaxRunningInstances == nil resolves to the default 1).
+	maxRunningInstances int
 
 	// installer runs pnpm for RestoreProfileDependencies; tests replace it so
 	// no real pnpm is needed.
@@ -195,15 +206,23 @@ func New(deps Deps) (*App, error) {
 
 // newApp assembles an App with explicit backends (used by New and tests).
 func newApp(deps Deps, rt runtimeBackend, proc processBackend) *App {
+	maxRunning := defaultMaxRunningInstances
+	if deps.MaxRunningInstances != nil {
+		maxRunning = *deps.MaxRunningInstances
+	}
+	if maxRunning < 0 {
+		maxRunning = defaultMaxRunningInstances
+	}
 	return &App{
-		cfg:       deps.Config,
-		dirs:      deps.Dirs,
-		logger:    deps.Logger,
-		store:     deps.Store,
-		tools:     deps.Tools,
-		runtime:   rt,
-		process:   proc,
-		installer: newExecProfileInstaller(deps.Tools),
+		cfg:                 deps.Config,
+		dirs:                deps.Dirs,
+		logger:              deps.Logger,
+		store:               deps.Store,
+		tools:               deps.Tools,
+		runtime:             rt,
+		process:             proc,
+		maxRunningInstances: maxRunning,
+		installer:           newExecProfileInstaller(deps.Tools),
 	}
 }
 
@@ -248,6 +267,12 @@ func (m managerProcess) StopAll(ctx context.Context) error {
 // capability cache and proxy configuration instead of creating a second runtime
 // service. Test Apps built with fake backends return nil.
 func (a *App) RuntimeService() *runtime.Service { return a.runtimeService }
+
+// MaxRunningInstances returns the concurrent running-instance limit: 0 means
+// unlimited, otherwise LaunchInstance rejects once that many instances run
+// (docs/IMPLEMENTATION_SPEC.md; default 1). The API layer uses the same value
+// for its synchronous precheck.
+func (a *App) MaxRunningInstances() int { return a.maxRunningInstances }
 
 func (a *App) tryLock() bool { return a.mu.TryLock() }
 

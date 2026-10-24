@@ -12,6 +12,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -61,11 +62,13 @@ type fakeImportApp struct {
 	restoreErr   error
 	entryPathErr error
 	createdDirs  bool
+	// portCursor is the next candidate instance port (>= 3080).
+	portCursor int
 }
 
 func (f *fakeImportApp) CreateInstance(_ context.Context, in store.CreateInstanceInput) (store.Instance, error) {
 	if in.Port == 0 {
-		in.Port = testFreePort(f.t)
+		in.Port = f.nextFreePort()
 	}
 	instance, err := f.store.CreateInstance(in)
 	if err != nil {
@@ -174,15 +177,31 @@ func newImportHarness(t *testing.T) (*Service, config.Dirs, *fakeImportRuntime, 
 	return service, dirs, fakeRuntime, fakeApp, fakeArtifacts
 }
 
-func testFreePort(t *testing.T) int {
-	t.Helper()
-	listener, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatalf("监听临时端口失败: %v", err)
+// nextFreePort returns a free loopback instance port >= 3080.
+//
+// Tests must not derive instance ports from "127.0.0.1:0": Windows' dynamic
+// port range is 1024-15000, so the OS may hand out a port below the manager's
+// automatic-allocation floor (3080) and the import test would fail on Windows
+// only. Explicitly probing from 3080 upwards keeps Windows and Linux stable;
+// the cursor avoids reusing a port already assigned to an instance in the same
+// test store (the store enforces unique instance ports).
+func (f *fakeImportApp) nextFreePort() int {
+	f.t.Helper()
+	start := f.portCursor
+	if start < 3080 {
+		start = 3080
 	}
-	port := listener.Addr().(*net.TCPAddr).Port
-	_ = listener.Close()
-	return port
+	for port := start; port <= 65535; port++ {
+		listener, err := net.Listen("tcp", net.JoinHostPort("127.0.0.1", strconv.Itoa(port)))
+		if err != nil {
+			continue
+		}
+		_ = listener.Close()
+		f.portCursor = port + 1
+		return port
+	}
+	f.t.Fatalf("无法分配 >=3080 的空闲回环端口")
+	return 0
 }
 
 func importProfileFixture() map[string][]byte {
@@ -231,7 +250,10 @@ func TestImportProfilePackage(t *testing.T) {
 	if !ok {
 		t.Fatal("实例未写入 store")
 	}
-	if instance.Version != "0.2.1-rc.3" || instance.Profile != "demo" || instance.Port < 3080 {
+	// The fake app above must assign an explicit valid instance port (>= 3080)
+	// instead of relying on the OS ephemeral range (1024-15000 on Windows).
+	if instance.Version != "0.2.1-rc.3" || instance.Profile != "demo" ||
+		instance.Port < 3080 || instance.Port > 65535 {
 		t.Fatalf("实例字段不符: %+v", instance)
 	}
 	if len(fakeRuntime.installs) != 0 {

@@ -20,3 +20,13 @@
 - 不 commit；不修改用户密码；不碰 live `/opt`、systemd、Nginx 配置（live 仅读）。
 - isolated 使用独立临时 prefix/data-root（/tmp/pcl-dsh-go-test/m5/...），完成后清理 secrets/进程。
 - token/密码/会话不写入证据；日志脱敏 `***`。
+
+## M5.1（版本下拉 + 多实例）
+
+| 文件 | 内容 |
+| --- | --- |
+| m5.1-e2e-run1.log.txt | Playwright 全量 19/19 PASS（含 21-version-picker：展开/选择/关闭/手输自定义版本），Edge channel |
+| m5.1-version-dropdown.png | 创建实例对话框版本下拉展开截图 |
+| m5.1-acceptance-20261024120146.log.txt | 隔离 release 1.0.1 多实例验收：35 PASS/0 FAIL/EXIT_CODE=0（max2：两实例运行中 + /workbench 200、第 3 个 409 message 含 2、停一个后可启动第 3 个；默认 limit=1 第二个仍 409） |
+| m5.1-acceptance-20261024120146-manager-18086.log.txt / -18087.log.txt | max2 / default1 隔离 manager 日志（脱敏） |
+| m5.1-two-instances.png | 两实例“运行中”截图 |

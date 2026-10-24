@@ -50,7 +50,7 @@
 | --- | --- |
 | 开发机 | Windows 11 + PowerShell；Go 1.27.3；Git；Node/pnpm 仅用于构建前端，不用于管理器运行 |
 | 验证环境 | WSL2 Ubuntu 26.04.1；Node v24.22.1（`/opt/pcl-dsh-go/tools/node`）；pnpm 11.28.5（`/opt/pcl-dsh-go/tools/pnpm`）；Nginx 1.28.3；Go 可在 Windows 交叉编译 |
-| 目标部署 | Linux x86_64，HTTP + Nginx + systemd，单用户，最多 1 个 DSH 实例 |
+| 目标部署 | Linux x86_64，HTTP + Nginx + systemd，单用户；**运行实例上限可配置**：`--pcl.max-running-instances`（默认 1，0=不限制，负数启动报错；2 vCPU/1.6 GiB 基线建议 1） |
 | DSH 基线 | `@deepseek-ai/dsh@0.2.1-rc.3`（若 npm 无此版本，回退最近可用版本并在验收记录中注明） |
 | Node | 24.22.1（来自 `D:\Projects\DSHL\node-v24.22.1-linux-x64.tar.xz`） |
 | pnpm | 11.28.5（单一版本；若 rc.3 不兼容再回退 10.34.0，不双版本） |
@@ -224,6 +224,8 @@ packaging/                  # install/uninstall/reset/systemd/Nginx 模板
 | DELETE /api/instances/{id}/plugins/{*name} | 登录/必需 | — | 202 JobView | 同上 |
 | ANY /workbench/{id}/** | 登录/— | 原始请求 | 反代流 | 404/409/502/504 |
 | WS /workbench/{id}/** | 登录/— | Upgrade + Cookie + 子协议 | 双向 | 401/404/409/502 |
+
+- launch 的同步预检与 `app.LaunchInstance` **共用同一运行实例上限**：`--pcl.max-running-instances`（默认 1，0=不限制，负数启动报错）。运行实例数达到上限时返回 `409 CONFLICT_RUNNING_INSTANCE`，message 形如“当前最多允许同时运行 N 个 DSH 实例（--pcl.max-running-instances），请先停止其它实例。”；limit=2 时允许第二个实例，0 时不做并发上限限制。
 
 **明确不实现**：`/api/accounts*`、`/api/accounts/providers`、`/api/instances/{id}/account`、`/api/instances/{id}/copy`、`/api/plugin-catalog*`、`/api/settings/background`、`/api/assets/backgrounds/*`。前端必须删除相应入口。
 
@@ -419,7 +421,7 @@ wsl -d Ubuntu -- bash -lc '/path/to/bin/pcl-dsh-go --server.address=127.0.0.1 --
 
 必须全绿的门禁：
 - **G1 认证/安全**：未登录 401、CSRF 403、首登 403、登录锁定 423、日志脱敏。
-- **G2 实例/运行时**：CRUD、端口/单实例限制、安装/探测/删除引用保护。
+- **G2 实例/运行时**：CRUD、端口、运行实例上限（`--pcl.max-running-instances`，默认 1，0=不限制）、安装/探测/删除引用保护。
 - **G3 Job/SSE**：202+Job、事件顺序、Last-Event-ID、心跳、取消/超时、忙 409。
 - **G4 反代**：真实 DSH rc.3 下 token 302、Cookie/Location/Origin、SSE、WS、409/502/504。
 - **G5 直连登录**：运行中/就绪返回隧道命令+URL；sshUser 来自设置；token 不入日志；未登录不可调。

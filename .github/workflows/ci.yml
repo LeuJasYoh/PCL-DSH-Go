@@ -188,6 +188,7 @@ jobs:
           # 安装/卸载/重置脚本可在非 root 下显示帮助（参数需与文档一致）。
           ( cd "$PKG" && bash packaging/install.sh --help | grep -q -- '--no-service' )
           ( cd "$PKG" && bash packaging/install.sh --help | grep -q -- '--listen-port' )
+          ( cd "$PKG" && bash packaging/install.sh --help | grep -q -- '--max-running-instances' )
           ( cd "$PKG" && bash packaging/uninstall.sh --help | grep -q -- '--purge-data' )
           ( cd "$PKG" && bash packaging/reset.sh --help | grep -q -- '--yes' )
           file "$PKG/bin/pcl-dsh-go" | grep -q 'ELF 64-bit.*x86-64'

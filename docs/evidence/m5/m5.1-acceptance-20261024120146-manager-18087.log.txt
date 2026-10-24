@@ -1,0 +1,41 @@
+{"time":"2026-10-24T20:02:01.401152647+08:00","level":"INFO","msg":"pcl-dsh-go 正在启动","service":"pcl-dsh-go","version":"1.0.1","address":"127.0.0.1","port":18087,"dataRoot":"/tmp/pcl-dsh-go-test/m5.1-scenario-20261024120146/data-default1","toolRoot":"/mnt/d/Projects/DSHL/PCL-DSH-Go/release/pcl-dsh-go-1.0.1-linux-amd64/tools","pid":151811}
+{"time":"2026-10-24T20:02:01.450236513+08:00","level":"WARN","msg":"管理员仍使用初始密码，请登录后立即修改","service":"pcl-dsh-go","version":"1.0.1","initialPasswordFile":"/tmp/pcl-dsh-go-test/m5.1-scenario-20261024120146/data-default1/initial-password"}
+{"time":"2026-10-24T20:02:02.211398377+08:00","level":"INFO","msg":"内置 Node/pnpm 工具链已就绪","service":"pcl-dsh-go","version":"1.0.1","node":"24.22.1","pnpm":"11.28.5","toolRoot":"/mnt/d/Projects/DSHL/PCL-DSH-Go/release/pcl-dsh-go-1.0.1-linux-amd64/tools"}
+{"time":"2026-10-24T20:02:02.264729128+08:00","level":"INFO","msg":"HTTP 服务已就绪","service":"pcl-dsh-go","version":"1.0.1","address":"127.0.0.1:18087","health":"/api/health","startupMs":866}
+{"time":"2026-10-24T20:02:02.566144792+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"1.0.1","traceId":"a10289e9c142","method":"GET","path":"/api/health","status":200,"durationMs":1}
+{"time":"2026-10-24T20:02:02.615928505+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"1.0.1","traceId":"03bc316c1c5c","method":"POST","path":"/api/auth/login","status":204,"durationMs":46}
+{"time":"2026-10-24T20:02:02.617407468+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"1.0.1","traceId":"054cf2703f90","method":"GET","path":"/api/auth/me","status":200,"durationMs":0}
+{"time":"2026-10-24T20:02:02.707333823+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"1.0.1","traceId":"8dd3c2445deb","method":"PUT","path":"/api/auth/password","status":204,"durationMs":88}
+{"time":"2026-10-24T20:02:02.758090183+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"1.0.1","traceId":"aa5f2103cd41","method":"POST","path":"/api/auth/login","status":204,"durationMs":48}
+{"time":"2026-10-24T20:02:02.759595303+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"1.0.1","traceId":"f38ffad71ca4","method":"GET","path":"/api/auth/me","status":200,"durationMs":0}
+{"time":"2026-10-24T20:02:02.766301177+08:00","level":"INFO","msg":"实例已创建","service":"pcl-dsh-go","version":"1.0.1","instance":"i-df8a62019b50","name":"M5.1 基线甲","version":"0.2.1-rc.3","profile":"web","port":3290}
+{"time":"2026-10-24T20:02:02.766366288+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"1.0.1","traceId":"5f1c242640b9","method":"POST","path":"/api/instances","status":201,"durationMs":4}
+{"time":"2026-10-24T20:02:02.77054953+08:00","level":"INFO","msg":"实例已创建","service":"pcl-dsh-go","version":"1.0.1","instance":"i-b805febcb58d","name":"M5.1 基线乙","version":"0.2.1-rc.3","profile":"web","port":3291}
+{"time":"2026-10-24T20:02:02.770586699+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"1.0.1","traceId":"59ba22389548","method":"POST","path":"/api/instances","status":201,"durationMs":2}
+{"time":"2026-10-24T20:02:02.773233921+08:00","level":"INFO","msg":"job started","service":"pcl-dsh-go","version":"1.0.1","jobId":"j-a3da167bd765","type":"LAUNCH_INSTANCE","timeout":"20m0s"}
+{"time":"2026-10-24T20:02:02.773309372+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"1.0.1","traceId":"ea2a68fb2678","method":"POST","path":"/api/instances/i-df8a62019b50/launch","status":202,"durationMs":1}
+{"time":"2026-10-24T20:02:02.774321265+08:00","level":"INFO","msg":"正在探测 Harness 0.2.1-rc.3 的能力（profile=web）…","service":"pcl-dsh-go","version":"1.0.1","component":"app"}
+{"time":"2026-10-24T20:02:02.774756365+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"1.0.1","traceId":"da90906035bc","method":"GET","path":"/api/jobs/j-a3da167bd765","status":200,"durationMs":0}
+{"time":"2026-10-24T20:02:03.276650837+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"1.0.1","traceId":"dc4736561a34","method":"GET","path":"/api/jobs/j-a3da167bd765","status":200,"durationMs":0}
+{"time":"2026-10-24T20:02:03.77926184+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"1.0.1","traceId":"88b0a2301e52","method":"GET","path":"/api/jobs/j-a3da167bd765","status":200,"durationMs":0}
+{"time":"2026-10-24T20:02:03.860308658+08:00","level":"INFO","msg":"Harness 0.2.1-rc.3 · profile 启动 · 原生插件管理 · 可设端口","service":"pcl-dsh-go","version":"1.0.1","component":"runtime-probe","version":"0.2.1-rc.3"}
+{"time":"2026-10-24T20:02:03.860592206+08:00","level":"INFO","msg":"Harness 0.2.1-rc.3 · profile 启动 · 原生插件管理 · 可设端口","service":"pcl-dsh-go","version":"1.0.1","component":"app"}
+{"time":"2026-10-24T20:02:03.860812606+08:00","level":"INFO","msg":"正在启动进程（端口 3290）…","service":"pcl-dsh-go","version":"1.0.1","component":"app"}
+{"time":"2026-10-24T20:02:03.864323646+08:00","level":"INFO","msg":"DSH 实例进程已启动","service":"pcl-dsh-go","version":"1.0.1","instanceId":"i-df8a62019b50","pid":151853,"port":3290}
+{"time":"2026-10-24T20:02:04.282712178+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"1.0.1","traceId":"d4234d1ba583","method":"GET","path":"/api/jobs/j-a3da167bd765","status":200,"durationMs":0}
+{"time":"2026-10-24T20:02:04.786010449+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"1.0.1","traceId":"4f2c70b15a62","method":"GET","path":"/api/jobs/j-a3da167bd765","status":200,"durationMs":0}
+{"time":"2026-10-24T20:02:05.287346877+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"1.0.1","traceId":"d37c93f2c91e","method":"GET","path":"/api/jobs/j-a3da167bd765","status":200,"durationMs":0}
+{"time":"2026-10-24T20:02:05.505490207+08:00","level":"INFO","msg":"DSH 实例服务就绪","service":"pcl-dsh-go","version":"1.0.1","instanceId":"i-df8a62019b50","pid":151853,"port":3290}
+{"time":"2026-10-24T20:02:05.505611703+08:00","level":"INFO","msg":"服务已就绪（PID 151853，端口 3290）","service":"pcl-dsh-go","version":"1.0.1","component":"app"}
+{"time":"2026-10-24T20:02:05.50562049+08:00","level":"INFO","msg":"实例已就绪","service":"pcl-dsh-go","version":"1.0.1","instance":"i-df8a62019b50","pid":151853,"port":3290}
+{"time":"2026-10-24T20:02:05.505671956+08:00","level":"INFO","msg":"job succeeded","service":"pcl-dsh-go","version":"1.0.1","jobId":"j-a3da167bd765","type":"LAUNCH_INSTANCE","durationMs":2732}
+{"time":"2026-10-24T20:02:05.789000103+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"1.0.1","traceId":"f49ec29d0702","method":"GET","path":"/api/jobs/j-a3da167bd765","status":200,"durationMs":0}
+{"time":"2026-10-24T20:02:05.790921901+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"1.0.1","traceId":"f1221e8a9cb9","method":"POST","path":"/api/instances/i-b805febcb58d/launch","status":409,"durationMs":0}
+{"time":"2026-10-24T20:02:05.792530556+08:00","level":"INFO","msg":"正在停止 DSH 实例进程树","service":"pcl-dsh-go","version":"1.0.1","instanceId":"i-df8a62019b50","pid":151853}
+{"time":"2026-10-24T20:02:05.887442528+08:00","level":"INFO","msg":"DSH 实例进程已退出","service":"pcl-dsh-go","version":"1.0.1","instanceId":"i-df8a62019b50","pid":151853,"exitCode":0}
+{"time":"2026-10-24T20:02:05.888206761+08:00","level":"INFO","msg":"已停止 DSH 实例进程树","service":"pcl-dsh-go","version":"1.0.1","instanceId":"i-df8a62019b50","pid":151853,"port":3290}
+{"time":"2026-10-24T20:02:05.888219845+08:00","level":"INFO","msg":"实例已停止","service":"pcl-dsh-go","version":"1.0.1","instance":"i-df8a62019b50"}
+{"time":"2026-10-24T20:02:05.888276831+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"1.0.1","traceId":"7ed87feef427","method":"POST","path":"/api/instances/i-df8a62019b50/stop","status":200,"durationMs":95}
+{"time":"2026-10-24T20:02:06.391774268+08:00","level":"INFO","msg":"request","service":"pcl-dsh-go","version":"1.0.1","traceId":"a9232eee8b86","method":"GET","path":"/api/instances","status":200,"durationMs":0}
+{"time":"2026-10-24T20:02:06.392939918+08:00","level":"INFO","msg":"收到退出信号，开始优雅停机","service":"pcl-dsh-go","version":"1.0.1","httpTimeout":"5s"}
+{"time":"2026-10-24T20:02:06.393172381+08:00","level":"INFO","msg":"pcl-dsh-go 已停止","service":"pcl-dsh-go","version":"1.0.1"}

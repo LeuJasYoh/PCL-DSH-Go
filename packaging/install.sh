@@ -10,6 +10,7 @@ LISTEN_PORT="80"
 SERVICE="pcl-dsh-go"
 SERVICE_USER="pcl-dsh"
 NO_SERVICE="0"
+MAX_RUNNING="1"
 
 usage() {
   cat <<'EOF'
@@ -19,6 +20,7 @@ Usage: sudo ./packaging/install.sh [options]
   --data-dir <dir>     Data root (default: /var/lib/pcl-dsh-go)
   --port <port>        Manager loopback port (default: 8080)
   --listen-port <port> Nginx public port (default: 80)
+  --max-running-instances <n>  Max simultaneously running DSH instances (default: 1; 0 = unlimited)
   --no-service         Only install the release tree + data dir (no systemd/Nginx; for isolated tests)
   -h, --help           Show this help
 
@@ -36,6 +38,7 @@ while [ $# -gt 0 ]; do
     --data-dir) DATA_DIR="${2:?}"; shift 2;;
     --port) PORT="${2:?}"; shift 2;;
     --listen-port) LISTEN_PORT="${2:?}"; shift 2;;
+    --max-running-instances) MAX_RUNNING="${2:?}"; shift 2;;
     --no-service) NO_SERVICE="1"; shift;;
     -h|--help) usage; exit 0;;
     *) echo "未知参数: $1" >&2; usage >&2; exit 2;;
@@ -43,6 +46,10 @@ while [ $# -gt 0 ]; do
 done
 
 [ "$(id -u)" -eq 0 ] || fail "请使用 root 运行（sudo）"
+case "$MAX_RUNNING" in
+  ''|*[!0-9]*) fail "--max-running-instances 必须是非负整数（0 表示不限制）";;
+  *) : ;;
+esac
 if [ "$NO_SERVICE" = "0" ]; then
   command -v systemctl >/dev/null 2>&1 || fail "需要 systemd"
   command -v nginx >/dev/null 2>&1 || fail "需要 Nginx"
@@ -57,7 +64,7 @@ VERSION="$(tr -d '[:space:]' < "$SRC_DIR/VERSION")"
 [ -d "$SRC_DIR/tools/pnpm" ] || fail "缺少内置 pnpm：tools/pnpm"
 
 echo "==> 安装 PCL-DSH-Go $VERSION"
-echo "    prefix=$PREFIX data=$DATA_DIR manager=127.0.0.1:$PORT public=:$LISTEN_PORT"
+echo "    prefix=$PREFIX data=$DATA_DIR manager=127.0.0.1:$PORT public=:$LISTEN_PORT max_running=$MAX_RUNNING"
 
 # service user
 if ! id "$SERVICE_USER" >/dev/null 2>&1; then
@@ -78,7 +85,7 @@ ln -sfn "$TARGET" "$PREFIX/current"
 
 if [ "$NO_SERVICE" = "0" ]; then
 # systemd unit
-sed -e "s|@PREFIX@|$PREFIX|g"     -e "s|@DATA_DIR@|$DATA_DIR|g"     -e "s|@PORT@|$PORT|g"     "$TARGET/packaging/systemd/pcl-dsh-go.service" > "/etc/systemd/system/$SERVICE.service"
+sed -e "s|@PREFIX@|$PREFIX|g"     -e "s|@DATA_DIR@|$DATA_DIR|g"     -e "s|@PORT@|$PORT|g"     -e "s|@MAX_RUNNING@|$MAX_RUNNING|g"     "$TARGET/packaging/systemd/pcl-dsh-go.service" > "/etc/systemd/system/$SERVICE.service"
 chmod 0644 "/etc/systemd/system/$SERVICE.service"
 systemctl daemon-reload
 systemctl enable "$SERVICE" >/dev/null
@@ -125,7 +132,7 @@ PUBLIC_URL="http://localhost/"
 if [ "$LISTEN_PORT" != "80" ]; then PUBLIC_URL="http://localhost:$LISTEN_PORT/"; fi
 echo "==> 安装完成"
 if [ "$NO_SERVICE" = "1" ]; then
-  echo "mode=isolated（未安装 systemd/Nginx；手动启动：$PREFIX/current/bin/pcl-dsh-go --server.port=$PORT --pcl.data-root=$DATA_DIR --pcl.tool-root=$PREFIX/current/tools --server.static-dir=$PREFIX/current/static）"
+  echo "mode=isolated（未安装 systemd/Nginx；手动启动：$PREFIX/current/bin/pcl-dsh-go --server.port=$PORT --pcl.data-root=$DATA_DIR --pcl.tool-root=$PREFIX/current/tools --server.static-dir=$PREFIX/current/static --pcl.max-running-instances=$MAX_RUNNING）"
   echo "version=$VERSION"
   exit 0
 fi

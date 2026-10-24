@@ -155,11 +155,12 @@ func run(args []string) int {
 	}
 
 	application, err := app.New(app.Deps{
-		Config: cfg,
-		Dirs:   dirs,
-		Logger: logger,
-		Store:  instanceStore,
-		Tools:  toolchain,
+		Config:              cfg,
+		Dirs:                dirs,
+		Logger:              logger,
+		Store:               instanceStore,
+		Tools:               toolchain,
+		MaxRunningInstances: &cfg.MaxRunningInstances,
 	})
 	if err != nil {
 		logger.Error("初始化应用失败", "error", err)

@@ -24,6 +24,8 @@ const (
 	DefaultDataRoot = "./data"
 	// EnvDataRoot 是 data-root 的环境变量兜底名。
 	EnvDataRoot = "PCL_DSH_DATA"
+	// DefaultMaxRunningInstances 是同时运行的 DSH 实例默认上限（2C/1.6GiB 基线）。
+	DefaultMaxRunningInstances = 1
 )
 
 // Config 是管理器启动配置。
@@ -37,7 +39,9 @@ type Config struct {
 	// StaticDir is the optional absolute directory of the built WebUI
 	// (docs/M4_INTERFACES.md 2). Empty keeps the built-in placeholder page.
 	StaticDir string
-	DevMode   bool
+	// MaxRunningInstances 是同时运行的 DSH 实例上限：默认 1；0 表示不限制。
+	MaxRunningInstances int
+	DevMode             bool
 }
 
 // Load 解析命令行参数（args 不含 argv[0]），并应用 PCL_DSH_DATA 兜底与基础校验。
@@ -49,18 +53,20 @@ func Load(args []string, getenv func(string) string) (Config, error) {
 	fs := flag.NewFlagSet("pcl-dsh-go", flag.ContinueOnError)
 	fs.SetOutput(io.Discard) // 由调用方统一打印错误，避免重复输出
 	var (
-		address   string
-		port      int
-		dataRoot  string
-		toolRoot  string
-		staticDir string
-		devMode   bool
+		address    string
+		port       int
+		dataRoot   string
+		toolRoot   string
+		staticDir  string
+		maxRunning int
+		devMode    bool
 	)
 	fs.StringVar(&address, "server.address", DefaultServerAddress, "HTTP 监听地址")
 	fs.IntVar(&port, "server.port", DefaultServerPort, "HTTP 监听端口（1-65535）")
 	fs.StringVar(&dataRoot, "pcl.data-root", "", "数据目录（默认 ./data，环境变量 PCL_DSH_DATA 兜底）")
 	fs.StringVar(&toolRoot, "pcl.tool-root", "", "内置 Node/pnpm 的 tools 目录（空表示自动查找）")
 	fs.StringVar(&staticDir, "server.static-dir", "", "WebUI 静态资源目录（构建产物 dist；空表示使用内置占位页）")
+	fs.IntVar(&maxRunning, "pcl.max-running-instances", DefaultMaxRunningInstances, "同时运行的 DSH 实例上限（1-?；0 表示不限制）")
 	fs.BoolVar(&devMode, "pcl.dev-mode", false, "开发模式（M0 调试 API 开关）")
 	if err := fs.Parse(args); err != nil {
 		return Config{}, err
@@ -73,6 +79,9 @@ func Load(args []string, getenv func(string) string) (Config, error) {
 	}
 	if port < 1 || port > 65535 {
 		return Config{}, fmt.Errorf("--server.port 必须在 1-65535 之间（当前 %d）", port)
+	}
+	if maxRunning < 0 {
+		return Config{}, fmt.Errorf("--pcl.max-running-instances 不能为负数（0 表示不限制，默认 %d）", DefaultMaxRunningInstances)
 	}
 
 	dataRootSet := false
@@ -117,12 +126,13 @@ func Load(args []string, getenv func(string) string) (Config, error) {
 	}
 
 	return Config{
-		ServerAddress: address,
-		ServerPort:    port,
-		DataRoot:      dataRoot,
-		ToolRoot:      toolRoot,
-		StaticDir:     staticDir,
-		DevMode:       devMode,
+		ServerAddress:       address,
+		ServerPort:          port,
+		DataRoot:            dataRoot,
+		ToolRoot:            toolRoot,
+		StaticDir:           staticDir,
+		MaxRunningInstances: maxRunning,
+		DevMode:             devMode,
 	}, nil
 }
 
@@ -156,6 +166,7 @@ func UsageText() string {
 		"  --pcl.data-root string    数据目录（默认 ./data；环境变量 " + EnvDataRoot + " 兜底）",
 		"  --pcl.tool-root string    内置 Node/pnpm 的 tools 目录（空表示依次查找 tool-root、data-root/tools、PATH）",
 		"  --server.static-dir string WebUI 静态资源目录（构建产物 dist；空表示使用内置占位页，相对路径按当前目录解析）",
+		"  --pcl.max-running-instances int 同时运行的 DSH 实例上限（默认 " + fmt.Sprintf("%d", DefaultMaxRunningInstances) + "；0=不限制；负数非法）",
 		"  --pcl.dev-mode            M0 调试模式（默认 false）",
 		"  -h, --help                显示本帮助",
 		"",

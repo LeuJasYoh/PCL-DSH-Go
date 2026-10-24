@@ -293,7 +293,7 @@ isolated() {
       check "upgrade: login still works with existing data" "$([ "$code2" = "204" ] && echo 1 || echo 0)" "status=$code2"
     fi
     stop_iso_manager
-    cp -a "$install_prefix/releases/$EXPECTED_VERSION" "$install_prefix/releases/$EXPECTED_VERSION-prev"
+    cp -al "$install_prefix/releases/$EXPECTED_VERSION" "$install_prefix/releases/$EXPECTED_VERSION-prev"  # hard links: cheap rollback copy, no large duplicate
     ln -sfn "$install_prefix/releases/$EXPECTED_VERSION-prev" "$install_prefix/current"
     check "rollback: current switched to $EXPECTED_VERSION-prev" "$([ "$(readlink -f "$install_prefix/current" | xargs basename)" = "$EXPECTED_VERSION-prev" ] && echo 1 || echo 0)"
     ok=$(start_iso_manager)
@@ -355,7 +355,15 @@ live() {
   check "manager 127.0.0.1:8080 listening (behind Nginx)" "$(port_listening 8080)" ""
   check "live prefix current -> releases/$EXPECTED_VERSION" "$([ -L "$LIVE_PREFIX/current" ] && [ "$(readlink -f "$LIVE_PREFIX/current" | xargs -r basename)" = "$EXPECTED_VERSION" ] && echo 1 || echo 0)" "current=$(readlink -f "$LIVE_PREFIX/current" 2>/dev/null | xargs -r basename)"
   check "live data dir mode 0700" "$([ "$(file_mode "$LIVE_DATA")" = "700" ] && echo 1 || echo 0)" "mode=$(file_mode "$LIVE_DATA")"
-  check "live initial-password present mode 0600 (content not printed)" "$([ -f "$LIVE_DATA/initial-password" ] && [ "$(file_mode "$LIVE_DATA/initial-password")" = "600" ] && echo 1 || echo 0)" "mode=$(file_mode "$LIVE_DATA/initial-password")"
+  local ip_path="$LIVE_DATA/initial-password" admin_path="$LIVE_DATA/config/admin.json" ip_state="missing" ip_ok=0
+  if [ -f "$ip_path" ]; then
+    if [ "$(file_mode "$ip_path")" = "600" ]; then ip_state="present_0600"; ip_ok=1; else ip_state="present_bad_mode_$(file_mode "$ip_path")"; fi
+  elif [ -f "$admin_path" ] && [ "$(file_mode "$admin_path")" = "600" ]; then
+    ip_state="already_initialized_removed"; ip_ok=1
+  else
+    ip_state="missing"
+  fi
+  check "live initial-password state (present 0600 OR removed after first-login)" "$ip_ok" "state=$ip_state admin_mode=$(file_mode "$admin_path")"
   local cfg=""
   for cfg in /etc/nginx/sites-enabled/pcl-dsh-go /etc/nginx/sites-enabled/pcl-dsh-go.conf /etc/nginx/sites-available/pcl-dsh-go /etc/nginx/sites-available/pcl-dsh-go.conf /etc/nginx/conf.d/pcl-dsh-go.conf; do
     [ -f "$cfg" ] && { NGINX_CONFIG="$(readlink -f "$cfg")"; break; }

@@ -54,6 +54,9 @@ type App interface {
 	StopInstance(ctx context.Context, instanceID string) error
 	LiveInstance(instanceID string) (app.LiveStatus, bool)
 	Running() []app.InstanceRuntimeStatus
+	// MaxRunningInstances is the concurrent running-instance limit shared with
+	// app.LaunchInstance (0 = unlimited, default 1).
+	MaxRunningInstances() int
 	InstallRuntime(ctx context.Context, version string, logf func(string)) (runtime.InstallResult, error)
 	ProbeRuntime(ctx context.Context, version string, logf func(string)) (app.ProbeResult, error)
 	DeleteRuntime(ctx context.Context, version string) (string, error)

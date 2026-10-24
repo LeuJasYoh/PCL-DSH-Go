@@ -249,11 +249,10 @@ func (a *App) LaunchInstance(ctx context.Context, instanceID string, logf func(s
 	if a.instanceActive(instanceID) {
 		return LaunchResult{}, conflictError(apierr.CodeConflictRunningInstance, "该实例已在运行。")
 	}
-	for _, handle := range a.process.Running() {
-		if handle.InstanceID() != instanceID {
-			return LaunchResult{}, conflictError(apierr.CodeConflictRunningInstance,
-				"已有其他实例在运行；当前版本只允许同时运行一个 DSH 实例。")
-		}
+	running := len(a.process.Running())
+	if limit := a.maxRunningInstances; limit > 0 && running >= limit {
+		return LaunchResult{}, conflictError(apierr.CodeConflictRunningInstance,
+			fmt.Sprintf("当前最多允许同时运行 %d 个 DSH 实例（--pcl.max-running-instances），请先停止其它实例。", limit))
 	}
 	if a.tools == nil {
 		return LaunchResult{}, internalError("未定位到内置 Node/pnpm 工具链，无法启动实例；请检查 --pcl.tool-root。")
