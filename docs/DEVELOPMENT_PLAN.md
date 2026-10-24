@@ -21,6 +21,7 @@
 | 直连登录 | **一定要保留**（用户截图：SSH 隧道 + 一次性 token URL）；**SSH 用户可配置** | 恢复 `direct-access` API/UI；设置项 `directAccessSshUser`（默认 root）（§3.4/§3.6/§3.7/§4.7） |
 | 社区插件目录 | **暂时不做** | 仅保留已装插件管理 |
 | 新项目位置 | **`D:\Projects\DSHL\PCL-DSH-Go`，一切都是新的** | 代码/文档/构建全新；本计划迁入新仓库 |
+| 仓库/远端 | 本地已初始化并推送 GitHub：`https://github.com/LeuJasYoh/PCL-DSH-Go`（**私有**）；Go module 路径 `github.com/LeuJasYoh/PCL-DSH-Go` | 首个 commit：README/计划/许可/.gitignore；可见性可后续改公开 |
 | 运行时来源 | **默认 npm registry + pnpm；暂不做 GitHub clone/编译**（服务器资源太紧） | 未来可选“预构建 runtime 离线包/发布资产”（§3.8、§3.9），是否启用按服务器性能取舍 |
 | DSH 基线 | **源码快照 0.2.1-rc.3** | 以 rc.3 为验收基线；与 PCL 已验证的 rc.2 有差异，需测试 |
 | 发行包依赖 | Node 24.22.1 + **单一 pnpm 11.28.5**（rc.3 源码仓库同款；若验证不兼容再回退 10.34.0） | 部署无需系统 Node/npm；WSL 已安装并验证 11.28.5 |
@@ -449,18 +450,20 @@ web/（Vue 构建产物）                  —     由 release/static 提供
 - 新仓库：`D:\Projects\DSHL\PCL-DSH-Go` 已初始化，本计划已迁入。
 - 预构建 runtime：作为可选模式（按服务器性能取舍），不在当前阶段实现。
 
+已解决（补充）：
+- 仓库远端：已创建 GitHub 私有仓库 `LeuJasYoh/PCL-DSH-Go` 并推送 main；module 路径采用 `github.com/LeuJasYoh/PCL-DSH-Go`。
+- 仓库可见性：当前 **private**；如需公开可后续 `gh repo edit --visibility public`。
+
 仍待验证（进入 M0 前/中）：
 1. **DSH rc.3 在 npm registry 的可用性**：确认 0.2.1-rc.3 是否已发布；若未发布，基线回退到最近可用版本（首选 rc.2）。
 2. **pnpm 11.28.5 安装 rc.3 的兼容性**：WSL 内实测；失败回退 10.34.0。
-3. **仓库远端**：GitHub 仓库名 `PCL-DSH-Go` 与可见性（当前本地初始化；gh 登录账号 LeuJasYoh，可创建远端）。
-4. **Go module 路径**：确认使用 `github.com/LeuJasYoh/PCL-DSH-Go`（如需全小写可调整）。
-5. **预构建 runtime 的启用时机**：验证/发布阶段按服务器性能决定；当前不实现。
+3. **预构建 runtime 的启用时机**：验证/发布阶段按服务器性能决定；当前不实现。
 
 ---
 
 ## 9. 下一步
 
-1. **计划 v1.0 已定稿**，新仓库 `PCL-DSH-Go` 已初始化（README/计划/许可/gitignore）；本计划已迁入 `docs/DEVELOPMENT_PLAN.md`。
+1. **计划 v1.0 已定稿**，新仓库 `PCL-DSH-Go` 已初始化并推送 GitHub（private）：`https://github.com/LeuJasYoh/PCL-DSH-Go`；本计划在 `docs/DEVELOPMENT_PLAN.md`。
 2. **WSL 环境已就绪**（附录 A）：进入验证阶段后先做 rc.3 + pnpm 11.28.5 的安装/启动冒烟，确认基线。
 3. 你确认开始后进入 **M0**：Go 骨架 → 内置 Node/pnpm → 实例/进程/就绪 → 反代 HTTP/SSE/WS → 真实 DSH 验收。
 4. M0 通过后按 M1→M5 推进；每阶段可回滚。
@@ -484,7 +487,8 @@ web/（Vue 构建产物）                  —     由 release/static 提供
 
 ## 附录 B：仓库与许可
 
-- 本地仓库：`D:\Projects\DSHL\PCL-DSH-Go`
+- 本地仓库：`D:\Projects\DSHL\PCL-DSH-Go`（首个 commit `99dc13c`）
+- GitHub（私有）：`https://github.com/LeuJasYoh/PCL-DSH-Go`
 - 计划：`docs/DEVELOPMENT_PLAN.md`（本文）
 - 许可：`LICENSE`（GPL-3.0-or-later）、`LICENSES/HDSL-MIT.txt`、`LICENSES/HMCL-ADDITIONAL-TERMS.md`、`THIRD_PARTY_NOTICES.md`
 - 复用 PCL-DSH-Linux / HDSL 的界面与设计，版权/许可声明保留。
