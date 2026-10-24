@@ -95,6 +95,16 @@ sudo cat /var/lib/pcl-dsh-go/initial-password
 - 应用层只提供 HTTP；HTTPS 由 Nginx 或前置代理终止。
 - 不包含：多用户/账户系统、API Key/Provider 管理、社区插件目录、背景图管理、旧版本数据迁移、ARM64。
 
+## 路线图与待办（Roadmap / TODO）
+
+以下为后续不破坏兼容性的改进方向（非时间承诺；欢迎在 Issue 中讨论或认领）：
+
+- **简化部署流程**：收敛一键安装/升级/回滚体验，减少手工 Nginx/systemd 配置与前置检查，提供交互式安装与更清晰的失败恢复路径。
+- **版本号单一化**：以仓库根 `VERSION` 为唯一事实源，构建、CI、release 与验收脚本统一读取，消除当前分散在多处的硬编码版本字符串。
+- **减少硬编码常量**：端口、路径、默认值、registry/镜像地址等收敛为集中配置与常量表，便于不同环境定制。
+- **前端彻底重构**：整理组件/状态/API 分层与类型定义，降低耦合，补齐单元/组件测试与可访问性支持。
+- **工作台旧 Cookie 自动恢复**：检测到 DSH 上游鉴权失败时自动清理旧 `dsh-auth-*` Cookie 并走 token 引导（当前需手动清 Cookie，见 [CHANGELOG](docs/CHANGELOG.md) 的 Known issues）。
+
 ## 许可与致谢
 
 本项目以 **GPL-3.0-or-later** 发布，并包含 HMCL 第 7 条附加条款；完整文本见 [LICENSE](LICENSE)、[LICENSES/](LICENSES/) 与 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
