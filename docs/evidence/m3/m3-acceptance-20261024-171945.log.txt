@@ -1,0 +1,468 @@
+=== PCL-DSH-Go M3-K acceptance E2E 20261024-171945 ===
+repo=/mnt/d/Projects/DSHL/PCL-DSH-Go data_root=/tmp/pcl-dsh-go-test/m3-data manager=127.0.0.1:18080 nginx=127.0.0.1:8088 runtime=0.2.1-rc.3
+PASS  system :80 untouched before test  
+manager built from current tree (M3): size=9765024 B sha256=baa9d5b31cb20b5b761f5d85440625d3f2653e034cd20402aa058a7a34ca32ff
+PASS  manager linux/amd64 build from current tree  size=9765024 sha256=baa9d5b31cb20b5b761f5d85440625d3f2653e034cd20402aa058a7a34ca32ff
+INFO  reused existing real DSH runtime via symlink: /tmp/pcl-dsh-go-test/e2e-data/runtimes/0.2.1-rc.3 -> /tmp/pcl-dsh-go-test/m3-data/runtimes/0.2.1-rc.3 (no reinstall)
+PASS  reusable real runtime symlinked into fresh data-root  source=/tmp/pcl-dsh-go-test/e2e-data/runtimes/0.2.1-rc.3
+manager start pid=132464 data-root=/tmp/pcl-dsh-go-test/m3-data port=18080
+manager health: {"status":"UP","version":"0.3.0-m3","uptimeSeconds":0}
+PASS  manager /api/health  
+PASS  nginx -t (M2 production template adapted)  
+PASS  isolated Nginx :8088 up (system :80 untouched)  
+api nginx GET /api/health -> 200
+PASS  via Nginx /api/health 200 + X-Trace-Id  trace=cc8eb45bd9d8
+api manager POST /api/auth/login -> 204
+PASS  login initial via API 204  
+api manager GET /api/auth/me -> 200
+api manager PUT /api/auth/password -> 204
+PASS  change password 204  
+api manager GET /api/auth/me -> 200
+api manager POST /api/auth/login -> 204
+PASS  login new password 204  
+api manager GET /api/auth/me -> 200
+PASS  unauth preview -> 401 four-field  status=401 code=UNAUTHORIZED details={} trace=bc4f2926b61c
+api manager POST /api/packs/preview -> 400
+PASS  authenticated preview without multipart -> 400  status=400 code=BAD_REQUEST
+api manager upload /api/packs/preview (01_not_zip.dspack) -> 400
+api manager upload /api/packs/preview (02_truncated_zip.dspack) -> 400
+api manager upload /api/packs/preview (03_missing_dspack_marker.dspack) -> 400
+api manager upload /api/packs/preview (04_missing_manifest.dspack) -> 400
+api manager upload /api/packs/preview (05_conflicting_markers.dspack) -> 400
+api manager upload /api/packs/preview (06_dsh_pack_yaml.dspack) -> 400
+api manager upload /api/packs/preview (07_unsupported_container_version.dspack) -> 400
+api manager upload /api/packs/preview (08_unsupported_manifest_version.dspack) -> 400
+api manager upload /api/packs/preview (10_dshhome_with_v2_container.dspack) -> 400
+api manager upload /api/packs/preview (11_empty_zip.dspack) -> 400
+api manager upload /api/packs/preview (12_invalid_manifest_json.dspack) -> 400
+api manager upload /api/packs/preview (13_manifest_metadata_too_large.dspack) -> 400
+api manager upload /api/packs/preview (14_zip_slip_parent.dspack) -> 400
+api manager upload /api/packs/preview (15_zip_slip_deep.dspack) -> 400
+api manager upload /api/packs/preview (16_absolute_unix.dspack) -> 400
+api manager upload /api/packs/preview (17_absolute_windows.dspack) -> 400
+api manager upload /api/packs/preview (18_unc_path.dspack) -> 400
+api manager upload /api/packs/preview (19_backslash_path.dspack) -> 400
+api manager upload /api/packs/preview (20_windows_reserved.dspack) -> 400
+api manager upload /api/packs/preview (21_trailing_dot.dspack) -> 400
+api manager upload /api/packs/preview (22_trailing_space.dspack) -> 400
+api manager upload /api/packs/preview (23_colon_ads.dspack) -> 400
+api manager upload /api/packs/preview (24_control_char_name.dspack) -> 400
+api manager upload /api/packs/preview (25_empty_segment.dspack) -> 400
+api manager upload /api/packs/preview (26_dot_segment.dspack) -> 400
+api manager upload /api/packs/preview (27_path_too_long.dspack) -> 400
+api manager upload /api/packs/preview (28_forbidden_char.dspack) -> 400
+api manager upload /api/packs/preview (29_case_collision.dspack) -> 400
+api manager upload /api/packs/preview (30_nfc_collision.dspack) -> 400
+api manager upload /api/packs/preview (31_file_dir_collision.dspack) -> 400
+api manager upload /api/packs/preview (32_duplicate_path.dspack) -> 400
+api manager upload /api/packs/preview (33_symlink_entry.dspack) -> 400
+api manager upload /api/packs/preview (34_special_file.dspack) -> 400
+api manager upload /api/packs/preview (35_encrypted_zip.dspack) -> 400
+api manager upload /api/packs/preview (36_unsupported_compression.dspack) -> 400
+api manager upload /api/packs/preview (37_corrupt_crc.dspack) -> 400
+api manager upload /api/packs/preview (38_compression_bomb.dspack) -> 400
+api manager upload /api/packs/preview (39_declared_file_too_large.dspack) -> 400
+api manager upload /api/packs/preview (40_declared_total_too_large.dspack) -> 400
+api manager upload /api/packs/preview (42_overture_format_2.dspack) -> 400
+api manager upload /api/packs/preview (43_overture_missing_profile.dspack) -> 400
+api manager upload /api/packs/preview (44_overture_traversal_profile.dspack) -> 400
+api manager upload /api/packs/preview (45_overture_invalid_yaml.dspack) -> 400
+api manager upload /api/packs/preview (46_profile_name_traversal.dspack) -> 400
+PASS  malicious samples >= 25  count=44
+PASS  all malicious samples rejected 400 VALIDATION (no disk write)  rejected=44/44 failed=[]
+PASS  malicious previews leave no upload residue  uploads_before=0 after=0
+PASS  malicious previews create no instance  instances_before=0 after=0
+api manager upload /api/packs/preview (dspack-v2-profile.dspack) -> 200
+PASS  dspack v2 profile preview 200 + fields (format/version/dshVersion/profiles/unpackedBytes)  status=200 format=dspack version=1.0.0 dshVersion=0.2.1-rc.3 profiles=["web"] unpacked=281
+api manager upload /api/packs/preview (dspack-v3-profile.dspack) -> 200
+PASS  dspack v3 profile preview 200 + fields (format/version/dshVersion/profiles/unpackedBytes)  status=200 format=dspack version=1.0.0 dshVersion=0.2.1-rc.3 profiles=["web"] unpacked=281
+api manager upload /api/packs/preview (dspack-v3-dshhome.dspack) -> 200
+PASS  dspack v3 dshhome preview 200 + fields (format/version/dshVersion/profiles/unpackedBytes)  status=200 format=dspack version=1.0.0 dshVersion=0.2.1-rc.3 profiles=["m3home"] unpacked=286
+api manager upload /api/packs/preview (overture-v1-minimal.dspack) -> 200
+PASS  Overture v1 preview 200 + fields (format/version/dshVersion/profiles/unpackedBytes)  status=200 format=overture version=snapshot-1 dshVersion=0.2.1-rc.3 profiles=["web"] unpacked=129
+api manager POST /api/packs/import -> 202
+PASS  import unknown preview -> 202 JobView  
+api manager GET /api/jobs/j-adbdf2901146 -> 200
+job j-adbdf2901146 FAILED error=NOT_FOUND: 预览不存在或已过期，请重新上传。
+PASS  import unknown preview Job FAILED NOT_FOUND  state=FAILED code=NOT_FOUND
+api manager POST /api/packs/import -> 202
+PASS  import synthetic v3 preview accepted (202 JobView)  status=202
+job import synthetic v3 preview id=j-68225547a922 type=IMPORT_PACK
+api manager GET /api/jobs/j-68225547a922 -> 200
+api manager GET /api/jobs/j-68225547a922 -> 200
+api manager GET /api/jobs/j-68225547a922 -> 200
+api manager GET /api/jobs/j-68225547a922 -> 200
+api manager GET /api/jobs/j-68225547a922 -> 200
+api manager GET /api/jobs/j-68225547a922 -> 200
+api manager GET /api/jobs/j-68225547a922 -> 200
+api manager GET /api/jobs/j-68225547a922 -> 200
+PASS  synthetic import Job SUCCEEDED  state=SUCCEEDED
+PASS  synthetic import result {instanceId,name}  instance=i-a0d17a9f6b7a
+api manager GET /api/instances/i-a0d17a9f6b7a -> 200
+PASS  synthetic imported instance exists  status=未启动
+api manager DELETE /api/instances/i-a0d17a9f6b7a -> 200
+PASS  synthetic imported instance deleted (no launch asserted)  
+api manager POST /api/instances -> 201
+PASS  create baseline instance 201  
+PASS  baseline instance id  id=i-7f77a711071a
+api manager POST /api/instances/i-7f77a711071a/launch -> 202
+PASS  baseline launch accepted (202 JobView)  status=202
+job baseline launch id=j-128bbb4ad833 type=LAUNCH_INSTANCE
+api manager GET /api/jobs/j-128bbb4ad833 -> 200
+api manager GET /api/jobs/j-128bbb4ad833 -> 200
+api manager GET /api/jobs/j-128bbb4ad833 -> 200
+api manager GET /api/jobs/j-128bbb4ad833 -> 200
+api manager GET /api/jobs/j-128bbb4ad833 -> 200
+api manager GET /api/jobs/j-128bbb4ad833 -> 200
+PASS  baseline launch SUCCEEDED (real runtime)  state=SUCCEEDED
+api manager GET /api/instances/i-7f77a711071a/web-url -> 200
+PASS  baseline web-url 200  url=/workbench/i-7f77a711071a/
+api manager POST /api/instances/i-7f77a711071a/stop -> 200
+PASS  baseline stop 200  
+api manager POST /api/packs/export -> 202
+PASS  export profile accepted (202 JobView)  status=202
+job export profile id=j-76171131ad05 type=EXPORT_PACK
+api manager GET /api/jobs/j-76171131ad05 -> 200
+PASS  export profile Job SUCCEEDED  state=SUCCEEDED
+PASS  export result {artifactId,filename,size}  artifact=59796b0ef1d3 filename=m3-baseline-web-0.2.1-rc.3-20261024-092005.dspack.zip size=1525
+PASS  artifact download 200  status=200
+PASS  artifact Content-Disposition attachment  value=attachment; filename=m3-baseline-web-0.2.1-rc.3-20261024-092005.dspack.zip
+PASS  artifact Cache-Control no-store  value=no-store
+PASS  artifact size matches Job result  file=1525 job=1525
+PASS  exported artifact is valid ZIP, no credentials/sessions/logs/cache  entries=5 sensitive=0
+PASS  exported artifact contains dspack marker  
+api manager upload /api/packs/preview (export-profile.dspack) -> 200
+PASS  exported profile re-preview preview 200 + fields (format/version/dshVersion/profiles/unpackedBytes)  status=200 format=dspack version=0.2.1-rc.3 dshVersion=0.2.1-rc.3 profiles=["web"] unpacked=1136
+PASS  exported profile re-preview 200  
+api manager POST /api/packs/import -> 202
+PASS  roundtrip import exported profile accepted (202 JobView)  status=202
+job roundtrip import exported profile id=j-a487a4123207 type=IMPORT_PACK
+api manager GET /api/jobs/j-a487a4123207 -> 200
+api manager GET /api/jobs/j-a487a4123207 -> 200
+api manager GET /api/jobs/j-a487a4123207 -> 200
+api manager GET /api/jobs/j-a487a4123207 -> 200
+api manager GET /api/jobs/j-a487a4123207 -> 200
+PASS  roundtrip import SUCCEEDED  state=SUCCEEDED
+PASS  roundtrip instance created  instance=i-1a9ff0a772fb
+api manager POST /api/instances/i-1a9ff0a772fb/launch -> 202
+PASS  roundtrip launch accepted (202 JobView)  status=202
+job roundtrip launch id=j-05859d938e2b type=LAUNCH_INSTANCE
+api manager GET /api/jobs/j-05859d938e2b -> 200
+api manager GET /api/jobs/j-05859d938e2b -> 200
+api manager GET /api/jobs/j-05859d938e2b -> 200
+api manager GET /api/jobs/j-05859d938e2b -> 200
+PASS  roundtrip launch SUCCEEDED  state=SUCCEEDED
+PASS  roundtrip workbench anonymous 401 four-field  status=401 code=UNAUTHORIZED details={} trace=3b68a4fc8d01
+api manager GET /workbench/i-1a9ff0a772fb/ -> 302
+PASS  roundtrip workbench logged-in 302 token  status=302
+PASS  roundtrip 302 Location carries token (masked)  location=/workbench/i-1a9ff0a772fb/?token=***
+PASS  roundtrip DSH bootstrap 303  status=303
+PASS  roundtrip workbench page 200  status=200
+PASS  roundtrip page title DeepSeek Harness  
+PASS  roundtrip page base href=./  
+api manager POST /api/instances/i-1a9ff0a772fb/stop -> 200
+api manager DELETE /api/instances/i-1a9ff0a772fb -> 200
+PASS  roundtrip instance deleted (trash)  
+api manager POST /api/packs/export -> 202
+PASS  export home on web-only instance (negative) accepted (202 JobView)  status=202
+job export home on web-only instance (negative) id=j-cb6f3c6d6eb2 type=EXPORT_PACK
+api manager GET /api/jobs/j-cb6f3c6d6eb2 -> 200
+job j-cb6f3c6d6eb2 FAILED error=VALIDATION: 实例没有可导出的 profile。
+PASS  web-only instance home export FAILED VALIDATION (no exportable profile)  state=FAILED code=VALIDATION message=实例没有可导出的 profile。
+api manager POST /api/packs/import -> 202
+PASS  import synthetic dshhome accepted (202 JobView)  status=202
+job import synthetic dshhome id=j-144336113cae type=IMPORT_PACK
+api manager GET /api/jobs/j-144336113cae -> 200
+api manager GET /api/jobs/j-144336113cae -> 200
+api manager GET /api/jobs/j-144336113cae -> 200
+api manager GET /api/jobs/j-144336113cae -> 200
+PASS  dshhome import Job SUCCEEDED  state=SUCCEEDED error=: 
+PASS  dshhome imported instance created  instance=i-7f5a10199442
+api manager POST /api/instances/i-7f5a10199442/stop -> 200
+api manager POST /api/packs/export -> 202
+PASS  export home from dshhome instance accepted (202 JobView)  status=202
+job export home from dshhome instance id=j-0dd91fb83e28 type=EXPORT_PACK
+api manager GET /api/jobs/j-0dd91fb83e28 -> 200
+PASS  dshhome instance home export SUCCEEDED  state=SUCCEEDED error=: 
+PASS  home artifact download 200  
+api manager upload /api/packs/preview (export-home.dspack) -> 200
+PASS  exported home re-preview preview 200 + fields (format/version/dshVersion/profiles/unpackedBytes)  status=200 format=dspack version=0.2.1-rc.3 dshVersion=0.2.1-rc.3 profiles=["m3home"] unpacked=961
+PASS  exported home re-preview 200  
+api manager DELETE /api/instances/i-7f5a10199442 -> 200
+PASS  dshhome imported instance deleted  
+PASS  manager logs ERROR count 0 on happy path (before negative tests)  errors=0
+api manager GET /api/settings -> 200
+PASS  GET settings 200  
+api manager PUT /api/settings -> 200
+PASS  set registry to closed port for rollback test  status=200
+api manager upload /api/packs/preview (dspack-failing-deps.dspack) -> 200
+PASS  failing-import pack preview preview 200 + fields (format/version/dshVersion/profiles/unpackedBytes)  status=200 format=dspack version=1.0.0 dshVersion=0.2.1-rc.3 profiles=["web"] unpacked=314
+PASS  failing-import pack previews 200 (valid archive)  
+api manager POST /api/packs/import -> 202
+PASS  failing import accepted (202 JobView)  status=202
+job failing import id=j-7b01554745cc type=IMPORT_PACK
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+api manager GET /api/jobs/j-7b01554745cc -> 200
+job j-7b01554745cc FAILED error=INTERNAL: 恢复 profile web 依赖失败，请查看任务日志。
+PASS  failing import Job FAILED (rollback path)  state=FAILED code=INTERNAL message=恢复 profile web 依赖失败，请查看任务日志。
+PASS  failed import leaves no instance in store  instances_before=1 after=1
+PASS  failed import cleaned to trash (rollback)  trash_before=3 after=4
+api manager PUT /api/settings -> 200
+PASS  restore settings registry 200  
+api manager POST /api/instances -> 201
+PASS  create plugin instance 201  
+PASS  plugin instance id  id=i-878cbb43c266
+api manager POST /api/instances/i-878cbb43c266/launch -> 202
+PASS  plugin instance launch baseline accepted (202 JobView)  status=202
+job plugin instance launch baseline id=j-63093e07ae71 type=LAUNCH_INSTANCE
+api manager GET /api/jobs/j-63093e07ae71 -> 200
+api manager GET /api/jobs/j-63093e07ae71 -> 200
+api manager GET /api/jobs/j-63093e07ae71 -> 200
+api manager GET /api/jobs/j-63093e07ae71 -> 200
+PASS  plugin instance launch baseline SUCCEEDED  state=SUCCEEDED
+api manager POST /api/instances/i-878cbb43c266/stop -> 200
+PASS  plugin instance stop baseline  
+api manager POST /api/instances/i-878cbb43c266/stop -> 200
+api manager GET /api/instances/i-878cbb43c266 -> 200
+PASS  instance path available for plugin file:  path=/tmp/pcl-dsh-go-test/m3-data/instances/i-878cbb43c266
+PASS  local test plugin copied into workspace  
+api manager GET /api/instances/i-878cbb43c266/plugins?profile=web -> 200
+PASS  plugins list 200 baseline  count=2
+api manager POST /api/instances/i-878cbb43c266/plugins -> 202
+PASS  plugin add file:./local-test-plugin accepted (202 JobView)  status=202
+job plugin add file:./local-test-plugin id=j-bac6bd77d0ab type=PLUGIN_MUTATE
+api manager GET /api/jobs/j-bac6bd77d0ab -> 200
+api manager GET /api/jobs/j-bac6bd77d0ab -> 200
+api manager GET /api/jobs/j-bac6bd77d0ab -> 200
+api manager GET /api/jobs/j-bac6bd77d0ab -> 200
+api manager GET /api/jobs/j-bac6bd77d0ab -> 200
+api manager GET /api/jobs/j-bac6bd77d0ab -> 200
+PASS  plugin add Job SUCCEEDED  state=SUCCEEDED
+api manager GET /api/instances/i-878cbb43c266/plugins?profile=web -> 200
+PASS  plugins list contains @pcl-dsh/m3-test-plugin  body=[{"name":"@deepseek-ai/dsh-base","version":"0.2.1-rc.3","description":"The shared dsh core as a profile bundle: the first patch layer of base-backed profiles, inserting core rows over the empty profile root","source":"内置"},{"name":"@deepseek-ai/dsh-web-app","version":"0.2.1-rc.3","description":"
+api manager POST /api/instances/i-878cbb43c266/launch -> 202
+PASS  launch for plugin activation accepted (202 JobView)  status=202
+job launch for plugin activation id=j-2c19c4e686f5 type=LAUNCH_INSTANCE
+api manager GET /api/jobs/j-2c19c4e686f5 -> 200
+api manager GET /api/jobs/j-2c19c4e686f5 -> 200
+api manager GET /api/jobs/j-2c19c4e686f5 -> 200
+api manager GET /api/jobs/j-2c19c4e686f5 -> 200
+PASS  launch for plugin activation SUCCEEDED  state=SUCCEEDED
+api manager POST /api/instances/i-878cbb43c266/stop -> 200
+api manager GET /api/instances/i-878cbb43c266/plugins?profile=web -> 200
+PASS  plugin still listed after stop/start cycle  
+api manager PATCH /api/instances/i-878cbb43c266/plugins/%40pcl-dsh%2Fm3-test-plugin -> 202
+PASS  plugin update accepted (202 JobView)  status=202
+job plugin update id=j-5d2eda071c6f type=PLUGIN_MUTATE
+api manager GET /api/jobs/j-5d2eda071c6f -> 200
+api manager GET /api/jobs/j-5d2eda071c6f -> 200
+PASS  plugin update Job SUCCEEDED  state=SUCCEEDED
+api manager GET /api/instances/i-878cbb43c266/plugins?profile=web -> 200
+PASS  plugin still listed after update  
+api manager DELETE /api/instances/i-878cbb43c266/plugins/%40pcl-dsh%2Fm3-test-plugin -> 202
+PASS  plugin remove accepted (202 JobView)  status=202
+job plugin remove id=j-0b6b29b98b64 type=PLUGIN_MUTATE
+api manager GET /api/jobs/j-0b6b29b98b64 -> 200
+api manager GET /api/jobs/j-0b6b29b98b64 -> 200
+PASS  plugin remove Job SUCCEEDED  state=SUCCEEDED
+api manager GET /api/instances/i-878cbb43c266/plugins?profile=web -> 200
+PASS  plugin removed from list  
+api manager GET /api/jobs -> 200
+api manager POST /api/instances/i-878cbb43c266/plugins -> 400
+plugin sync-negative case=leading_dash action=add status=400 code=VALIDATION
+api manager POST /api/instances/i-878cbb43c266/plugins -> 400
+plugin sync-negative case=control_char action=add status=400 code=VALIDATION
+api manager POST /api/instances/i-878cbb43c266/plugins -> 400
+plugin sync-negative case=spec_too_long action=add status=400 code=VALIDATION
+api manager POST /api/instances/i-878cbb43c266/plugins -> 400
+plugin sync-negative case=invalid_npm_name action=add status=400 code=VALIDATION
+api manager POST /api/instances/i-878cbb43c266/plugins -> 400
+plugin sync-negative case=file_escape_workspace action=add status=400 code=VALIDATION
+api manager POST /api/instances/i-878cbb43c266/plugins -> 400
+plugin sync-negative case=file_absolute action=add status=400 code=VALIDATION
+api manager POST /api/instances/i-878cbb43c266/plugins -> 400
+plugin sync-negative case=link_escape action=add status=400 code=VALIDATION
+api manager POST /api/instances/i-878cbb43c266/plugins?profile=../evil -> 400
+plugin sync-negative case=invalid_profile action=add status=400 code=VALIDATION
+PASS  8 malicious plugin specs/params rejected synchronously 400 VALIDATION  ok=8/8
+api manager GET /api/jobs -> 200
+PASS  sync-rejected plugin specs create no Job  jobs_before=15 after=15
+api manager DELETE /api/instances/i-878cbb43c266/plugins/@deepseek-ai%2Fdsh-base -> 202
+api manager GET /api/jobs/j-2360d211413e -> 200
+job j-2360d211413e FAILED error=VALIDATION: 该条目不是此 profile 的独立依赖，不能通过移除插件删除 Harness 内置组合包。
+PASS  instance-dependent plugin negative builtin_bundle_remove -> Job FAILED VALIDATION  state=FAILED code=VALIDATION
+api manager DELETE /api/instances/i-878cbb43c266/plugins/not-installed-plugin -> 202
+api manager GET /api/jobs/j-3ec6ee9f58f8 -> 200
+job j-3ec6ee9f58f8 FAILED error=VALIDATION: 该条目不是此 profile 的独立依赖，不能通过移除插件删除 Harness 内置组合包。
+PASS  instance-dependent plugin negative remove_not_installed -> Job FAILED VALIDATION  state=FAILED code=VALIDATION
+api manager GET /api/instances/i-878cbb43c266/plugins?profile=../evil -> 400
+PASS  invalid plugin profile query -> 400  status=400 code=VALIDATION
+api manager POST /api/instances/i-878cbb43c266/launch -> 202
+PASS  launch for running-409 accepted (202 JobView)  status=202
+job launch for running-409 id=j-dae3173495be type=LAUNCH_INSTANCE
+api manager POST /api/instances/i-878cbb43c266/plugins -> 409
+PASS  plugin mutate while instance running -> 409  status=409 code=CONFLICT_BUSY
+api manager POST /api/instances/i-878cbb43c266/plugins -> 409
+PASS  plugin mutate while Job busy -> 409  status=409 code=CONFLICT_BUSY
+api manager GET /api/jobs/j-dae3173495be -> 200
+api manager GET /api/jobs/j-dae3173495be -> 200
+api manager GET /api/jobs/j-dae3173495be -> 200
+api manager GET /api/jobs/j-dae3173495be -> 200
+api manager POST /api/instances/i-878cbb43c266/stop -> 200
+INFO  pluginManagement=true on real rc.3; 422 capability path covered by server unit tests (not forced here)
+api manager DELETE /api/instances/i-878cbb43c266 -> 200
+PASS  plugin instance deleted (cleanup)  
+api manager GET /api/artifacts/0123456789ab -> 404
+PASS  unknown artifact -> 404 four-field  status=404 code=NOT_FOUND details={} trace=784cb180be66
+PASS  artifact unauthenticated -> 401  status=401
+api nginx upload /api/packs/preview (dspack-v2-profile.dspack) -> 200
+PASS  via Nginx valid preview 200  status=200
+api nginx upload /api/packs/preview (14_zip_slip_parent.dspack) -> 400
+PASS  via Nginx malicious preview 400  status=400 code=VALIDATION
+PASS  via Nginx unauth preview 401  status=401
+api nginx GET /api/instances/i-7f77a711071a/plugins?profile=web -> 200
+PASS  via Nginx plugins list 200  
+PASS  via Nginx artifact download 200  
+PASS  Nginx access log has no /api/ lines (access_log off)  
+PASS  manager logs/evidence no raw token/cookie  matches=0
+PASS  passwords never appear in logs/evidence  matches=0
+PASS  archive contents not echoed into evidence/logs  
+PASS  manager logs have no unexpected ERROR (negative-test failures are expected)  errors_total=3 unexpected=0
+PASS  data-root 0700  
+PASS  config json 0600  
+PASS  /etc/nginx unchanged  
+PASS  reference repo unchanged (baseline git status hash)  before=88b665dc9e72fcd2... after=88b665dc9e72fcd2...
+PASS  Windows DSH program tree unchanged (read-only)  
+
+=== RESULT ===
+checks_passed=124 checks_failed=0 runtime_reused=yes scenario=/tmp/pcl-dsh-go-test/m3-scenario-20261024-171945
+RESULT=PASS
+EXIT_CODE=0 scenario=/tmp/pcl-dsh-go-test/m3-scenario-20261024-171945

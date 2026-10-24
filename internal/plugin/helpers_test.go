@@ -291,6 +291,21 @@ func (f *pluginFixture) writeInstalledPackage(base, name, body string) {
 	}
 }
 
+// mkdirInWorkspace creates a directory (and optional package.json) inside the
+// instance workspace, for local file:/link: plugin specs.
+func (f *pluginFixture) mkdirInWorkspace(relative, packageJSON string) {
+	f.t.Helper()
+	directory := filepath.Join(f.workspaceDirectory(), filepath.FromSlash(relative))
+	if err := os.MkdirAll(directory, 0o700); err != nil {
+		f.t.Fatalf("mkdir %s in workspace: %v", relative, err)
+	}
+	if packageJSON != "" {
+		if err := os.WriteFile(filepath.Join(directory, "package.json"), []byte(packageJSON), 0o600); err != nil {
+			f.t.Fatalf("write workspace package.json: %v", err)
+		}
+	}
+}
+
 // readBridgeRecord reads the fake bridge invocation record.
 func (f *pluginFixture) readBridgeRecord() fakeBridgeRecord {
 	f.t.Helper()

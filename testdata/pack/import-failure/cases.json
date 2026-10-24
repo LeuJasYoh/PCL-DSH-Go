@@ -1,0 +1,11 @@
+{
+  "generator": "scripts/m3-gen-pack-samples.py",
+  "samples": [
+    {
+      "file": "dspack-failing-deps.dspack",
+      "kind": "valid-preview / import must FAIL (dependency restore)",
+      "sha256": "4f41340d8868b8cb678a487984545eeab9eee1b3f37e810ac753cbaaa2688729",
+      "size": 607
+    }
+  ]
+}

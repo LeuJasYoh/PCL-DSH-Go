@@ -1,0 +1,11 @@
+{
+  "name": "@pcl-dsh/m3-test-plugin",
+  "version": "0.1.0",
+  "description": "Synthetic local test plugin for PCL-DSH-Go M3 E2E (no runtime code needed)",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "README.md"
+  ],
+  "license": "GPL-3.0-or-later"
+}

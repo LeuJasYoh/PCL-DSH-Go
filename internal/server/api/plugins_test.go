@@ -231,3 +231,120 @@ func TestPluginMutationFailure(t *testing.T) {
 		t.Fatal("job error details must be an object")
 	}
 }
+
+// maliciousPluginSpecs are the instance-independent invalid mutations that must
+// be rejected synchronously with 400 VALIDATION before a Job is created
+// (testdata/plugin/malicious-specs.json and docs/M3_INTERFACES.md 5).
+func TestPluginSpecValidationIsSynchronous(t *testing.T) {
+	env := newTestEnv(t, false)
+	sess := env.loginAs(t)
+	instance := env.createTestInstance(t, "插件负向校验实例", freePort(t))
+	base := "/api/instances/" + instance.ID + "/plugins"
+
+	beforeJobs := len(env.jobs.List())
+	env.plugins.mu.Lock()
+	beforeMutates := env.plugins.mutateCalls
+	env.plugins.mu.Unlock()
+
+	addCases := []string{
+		"-evil",
+		"evil\x01pkg",
+		strings.Repeat("a", 215),
+		"@bad//name",
+		"file:../../outside",
+		"file:/etc/passwd",
+		"link:../outside",
+		"file:C:/Windows/win.ini",
+		"file://server/share",
+		"bad name with space",
+	}
+	for _, spec := range addCases {
+		rec := env.request(t, http.MethodPost, base, jsonBody(t, map[string]string{"spec": spec}), sess.withSession())
+		body := decodeError(t, rec, http.StatusBadRequest, apierr.CodeValidation)
+		if body.TraceID == "" {
+			t.Fatalf("spec %q: missing traceId", spec)
+		}
+		if len(env.jobs.List()) != beforeJobs {
+			t.Fatalf("spec %q: a job was created for an invalid spec", spec)
+		}
+		if env.jobs.Busy() {
+			t.Fatalf("spec %q: job manager busy after invalid spec", spec)
+		}
+	}
+
+	// Invalid profile is rejected synchronously too.
+	rec := env.request(t, http.MethodPost, base+"?profile=..%2Fevil",
+		jsonBody(t, map[string]string{"spec": "@acme/plugin"}), sess.withSession())
+	decodeError(t, rec, http.StatusBadRequest, apierr.CodeValidation)
+
+	// Remove requires a complete npm package name.
+	removeCases := []string{"/@bad", "/not%20a%20package", "/file%3A%2Fetc%2Fpasswd"}
+	for _, suffix := range removeCases {
+		rec := env.request(t, http.MethodDelete, base+suffix, nil, sess.withSession())
+		decodeError(t, rec, http.StatusBadRequest, apierr.CodeValidation)
+	}
+
+	if len(env.jobs.List()) != beforeJobs {
+		t.Fatal("invalid mutations created jobs")
+	}
+	env.plugins.mu.Lock()
+	afterMutates := env.plugins.mutateCalls
+	env.plugins.mu.Unlock()
+	if afterMutates != beforeMutates {
+		t.Fatalf("plugin.Mutate calls = %d, want %d (no Job for invalid input)", afterMutates, beforeMutates)
+	}
+}
+
+func TestPluginValidSpecsStillAccepted(t *testing.T) {
+	env := newTestEnv(t, false)
+	sess := env.loginAs(t)
+	instance := env.createTestInstance(t, "插件正向校验实例", freePort(t))
+	base := "/api/instances/" + instance.ID + "/plugins"
+
+	validAdds := []string{
+		"@acme/plugin-demo",
+		"lodash@4.17.21",
+		"github:acme/plugin",
+		"npm:lodash@4",
+		"acme/plugin",
+		"file:./local-plugin",
+		"link:./local-plugin",
+	}
+	for _, spec := range validAdds {
+		rec := env.request(t, http.MethodPost, base, jsonBody(t, map[string]string{"spec": spec}), sess.withSession())
+		view := decodeJSONResponse[job.View](t, rec, http.StatusAccepted)
+		if view.Type != job.KindPluginMutate {
+			t.Fatalf("spec %q: job type = %q", spec, view.Type)
+		}
+		env.waitForJobState(t, sess, view.ID, job.StateSucceeded)
+	}
+
+	// Update (no spec) and remove (full npm name) keep working.
+	rec := env.request(t, http.MethodPatch, base+"/@acme/plugin-demo", nil, sess.withSession())
+	updateView := decodeJSONResponse[job.View](t, rec, http.StatusAccepted)
+	env.waitForJobState(t, sess, updateView.ID, job.StateSucceeded)
+
+	rec = env.request(t, http.MethodDelete, base+"/dep-one", nil, sess.withSession())
+	removeView := decodeJSONResponse[job.View](t, rec, http.StatusAccepted)
+	env.waitForJobState(t, sess, removeView.ID, job.StateSucceeded)
+}
+
+// TestPluginInstanceDependentValidationStaysInJob documents the boundary: checks
+// that need the instance filesystem (built-in bundle protection, removable
+// dependency) still fail the Job with error.code=VALIDATION, not INTERNAL.
+func TestPluginInstanceDependentValidationStaysInJob(t *testing.T) {
+	env := newTestEnv(t, false)
+	sess := env.loginAs(t)
+	instance := env.createTestInstance(t, "插件实例依赖校验", freePort(t))
+	env.plugins.mu.Lock()
+	env.plugins.mutateErr = apierr.New(http.StatusBadRequest, apierr.CodeValidation, "内置 bundle 不能移除。")
+	env.plugins.mu.Unlock()
+
+	rec := env.request(t, http.MethodDelete,
+		"/api/instances/"+instance.ID+"/plugins/@deepseek-ai/dsh-base", nil, sess.withSession())
+	view := decodeJSONResponse[job.View](t, rec, http.StatusAccepted)
+	finished := env.waitForJobState(t, sess, view.ID, job.StateFailed)
+	if finished.Error == nil || finished.Error.Code != apierr.CodeValidation {
+		t.Fatalf("job error = %+v, want VALIDATION", finished.Error)
+	}
+}

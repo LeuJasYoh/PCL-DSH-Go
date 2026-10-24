@@ -36,32 +36,26 @@ func (s *Service) Mutate(ctx context.Context, in MutateInput, logf func(string))
 	if err != nil {
 		return MutateResult{}, err
 	}
+	if err := ValidateMutationInput(in); err != nil {
+		// The exported validator is shared with the API layer so malicious specs
+		// surface as 400 VALIDATION before (and inside) a Job.
+		return MutateResult{}, err
+	}
 	action, err := normalizeAction(in.Action)
 	if err != nil {
 		return MutateResult{}, err
 	}
-	if !validProfileName(profile) {
-		return MutateResult{}, apierr.New(http.StatusBadRequest, apierr.CodeValidation, "profile 参数无效。")
-	}
 	inputSpec := strings.TrimSpace(in.Spec)
 	anchoredSpec := ""
-	switch action {
-	case ActionAdd:
-		if err := validatePluginSpec(inputSpec); err != nil {
-			return MutateResult{}, err
-		}
-	case ActionUpdate:
-		if inputSpec != "" {
-			return MutateResult{}, apierr.New(http.StatusBadRequest, apierr.CodeValidation, "更新操作不接受包参数（原地更新）。")
-		}
-	case ActionRemove:
-		if err := validatePluginSpec(inputSpec); err != nil {
-			return MutateResult{}, err
-		}
-		if !validPackageName(inputSpec) {
-			return MutateResult{}, apierr.New(http.StatusBadRequest, apierr.CodeValidation, "移除操作需要完整 npm 包名。")
-		}
+	if action == ActionRemove {
 		if err := s.checkRemovableDependency(instance, profile, inputSpec); err != nil {
+			return MutateResult{}, err
+		}
+	}
+	if action == ActionAdd && isLocalPluginSpec(inputSpec) {
+		// Instance-dependent filesystem checks: the target must exist inside the
+		// instance workspace, also after symlink resolution (no "../" escapes).
+		if err := s.validateLocalPluginTarget(instance.ID, inputSpec); err != nil {
 			return MutateResult{}, err
 		}
 	}

@@ -1,0 +1,76 @@
+{
+  "generator": "scripts/m3-gen-pack-samples.py",
+  "specs": [
+    {
+      "case": "leading_dash",
+      "action": "add",
+      "spec": "-evil",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION"
+    },
+    {
+      "case": "control_char",
+      "action": "add",
+      "spec": "evil\u0001pkg",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION"
+    },
+    {
+      "case": "spec_too_long",
+      "action": "add",
+      "spec": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION"
+    },
+    {
+      "case": "invalid_npm_name",
+      "action": "add",
+      "spec": "@bad//name",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION"
+    },
+    {
+      "case": "file_escape_workspace",
+      "action": "add",
+      "spec": "file:../../outside",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION"
+    },
+    {
+      "case": "file_absolute",
+      "action": "add",
+      "spec": "file:/etc/passwd",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION"
+    },
+    {
+      "case": "link_escape",
+      "action": "add",
+      "spec": "link:../outside",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION"
+    },
+    {
+      "case": "builtin_bundle_remove",
+      "action": "remove",
+      "spec": "@deepseek-ai/dsh-base",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION"
+    },
+    {
+      "case": "remove_not_installed",
+      "action": "remove",
+      "spec": "not-installed-plugin",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION"
+    },
+    {
+      "case": "invalid_profile",
+      "action": "add",
+      "spec": "@pcl-dsh/m3-test-plugin",
+      "profile": "../evil",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION"
+    }
+  ]
+}

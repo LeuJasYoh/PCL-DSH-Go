@@ -1,0 +1,357 @@
+{
+  "generator": "scripts/m3-gen-pack-samples.py",
+  "cases": [
+    {
+      "file": "01_not_zip.dspack",
+      "class": "not_zip",
+      "rule": "DSH_INTEGRATION 7.1 ZIP container",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "02_truncated_zip.dspack",
+      "class": "truncated_zip",
+      "rule": "7.2 corrupt container",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "03_missing_dspack_marker.dspack",
+      "class": "missing_marker",
+      "rule": "7.1 exactly one marker",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "04_missing_manifest.dspack",
+      "class": "missing_manifest",
+      "rule": "7.1 dspack needs manifest.json",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "05_conflicting_markers.dspack",
+      "class": "conflicting_markers",
+      "rule": "7.1 exactly one marker",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "06_dsh_pack_yaml.dspack",
+      "class": "dsh_pack_yaml",
+      "rule": "7.1 Overture YAML unsupported",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "07_unsupported_container_version.dspack",
+      "class": "unsupported_container_version",
+      "rule": "7.1 version 2|3 only",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "08_unsupported_manifest_version.dspack",
+      "class": "unsupported_manifest_version",
+      "rule": "7.1 manifestVersion 4|5 only",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "10_dshhome_with_v2_container.dspack",
+      "class": "dshhome_v2",
+      "rule": "7.1 dshhome requires v3 + mv5",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "11_empty_zip.dspack",
+      "class": "empty_zip",
+      "rule": "7.1 missing marker",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "12_invalid_manifest_json.dspack",
+      "class": "invalid_manifest_json",
+      "rule": "7.1 manifest must be JSON",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "13_manifest_metadata_too_large.dspack",
+      "class": "metadata_too_large",
+      "rule": "7.2 metadata <= 4 MiB",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "14_zip_slip_parent.dspack",
+      "class": "zip_slip_parent",
+      "rule": "7.2 no ..",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "15_zip_slip_deep.dspack",
+      "class": "zip_slip_deep",
+      "rule": "7.2 no ..",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "16_absolute_unix.dspack",
+      "class": "absolute_unix",
+      "rule": "7.2 relative only",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "17_absolute_windows.dspack",
+      "class": "absolute_windows",
+      "rule": "7.2 relative only / drive",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "18_unc_path.dspack",
+      "class": "unc_path",
+      "rule": "7.2 UNC rejected",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "19_backslash_path.dspack",
+      "class": "backslash_path",
+      "rule": "7.2 backslash rejected",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "20_windows_reserved.dspack",
+      "class": "windows_reserved",
+      "rule": "7.2 Windows reserved names",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "21_trailing_dot.dspack",
+      "class": "trailing_dot",
+      "rule": "7.2 trailing dot",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "22_trailing_space.dspack",
+      "class": "trailing_space",
+      "rule": "7.2 trailing space",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "23_colon_ads.dspack",
+      "class": "colon_ads",
+      "rule": "7.2 colon/ADS",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "24_control_char_name.dspack",
+      "class": "control_char_name",
+      "rule": "7.2 control chars",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "25_empty_segment.dspack",
+      "class": "empty_segment",
+      "rule": "7.2 no empty segment",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "26_dot_segment.dspack",
+      "class": "dot_segment",
+      "rule": "7.2 no . segment",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "27_path_too_long.dspack",
+      "class": "path_too_long",
+      "rule": "7.2 path <= 1000",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "28_forbidden_char.dspack",
+      "class": "forbidden_char",
+      "rule": "7.2 forbidden characters",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "29_case_collision.dspack",
+      "class": "case_collision",
+      "rule": "7.2 case-insensitive collision",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "30_nfc_collision.dspack",
+      "class": "nfc_collision",
+      "rule": "7.2 Unicode NFC collision",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "31_file_dir_collision.dspack",
+      "class": "file_dir_collision",
+      "rule": "7.2 file/dir collision",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "32_duplicate_path.dspack",
+      "class": "duplicate_path",
+      "rule": "7.2 duplicate path",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "33_symlink_entry.dspack",
+      "class": "symlink_entry",
+      "rule": "7.2 symlinks rejected",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "34_special_file.dspack",
+      "class": "special_file",
+      "rule": "7.2 special files rejected",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "35_encrypted_zip.dspack",
+      "class": "encrypted_zip",
+      "rule": "7.2 encrypted ZIP rejected",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "36_unsupported_compression.dspack",
+      "class": "unsupported_compression",
+      "rule": "7.2 unsupported compression rejected",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "37_corrupt_crc.dspack",
+      "class": "corrupt_crc",
+      "rule": "7.2 CRC mismatch rejected",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "38_compression_bomb.dspack",
+      "class": "compression_bomb",
+      "rule": "7.2 ratio > 1000 when > 1 MiB",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "39_declared_file_too_large.dspack",
+      "class": "max_file_bytes",
+      "rule": "7.2 single file <= 2 GiB",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "40_declared_total_too_large.dspack",
+      "class": "max_unpacked_bytes",
+      "rule": "7.2 unpacked total <= 6 GiB",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "42_overture_format_2.dspack",
+      "class": "overture_format",
+      "rule": "7.1 snapshot format 1 only",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "43_overture_missing_profile.dspack",
+      "class": "overture_missing_profile",
+      "rule": "7.1 profiles/<id>/profile.yaml",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "44_overture_traversal_profile.dspack",
+      "class": "overture_path_traversal",
+      "rule": "7.2 safe paths",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "45_overture_invalid_yaml.dspack",
+      "class": "overture_invalid_yaml",
+      "rule": "7.1 profile.yaml parse",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    },
+    {
+      "file": "46_profile_name_traversal.dspack",
+      "class": "profile_name_traversal",
+      "rule": "7.2 safe profile identifiers",
+      "expectedStatus": 400,
+      "expectedCode": "VALIDATION",
+      "note": ""
+    }
+  ]
+}

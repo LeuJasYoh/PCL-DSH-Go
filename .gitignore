@@ -30,3 +30,6 @@ Thumbs.db
 .tmp/
 tmp/
 reports/
+# Python (M3 sample generator)
+__pycache__/
+*.pyc

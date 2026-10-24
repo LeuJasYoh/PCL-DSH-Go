@@ -2,7 +2,7 @@
 
 PCL-DSH-Go 是 [PCL-DSH-Linux](https://github.com/LeuJasYoh/pcl-dsh-linux) 的 Go 重写版：在 Linux 服务器上以 WebUI 管理 DeepSeek Harness（DSH）实例的管理器。
 
-> 状态：**M0 垂直切片 + M1 后端核心 + M2 反代硬化/Nginx 生产链路已完成**（2026-10-24，真实 DSH `0.2.1-rc.3` 在 WSL 验收通过）；M3–M5（整合包与插件/WebUI/发布）等待实现。本仓库包含计划、实现规格、DSH 集成契约、前端迁移指南、验收标准、任务拆解与实现提示词。
+> 状态：**M0 垂直切片 + M1 后端核心 + M2 反代硬化/Nginx + M3 整合包与插件已完成**（2026-10-24，真实 DSH `0.2.1-rc.3` 在 WSL 验收通过）；M4（WebUI）、M5（发布）等待实现。本仓库包含计划、实现规格、DSH 集成契约、前端迁移指南、验收标准、任务拆解与实现提示词。
 
 ## 目标
 
@@ -11,6 +11,23 @@ PCL-DSH-Go 是 [PCL-DSH-Linux](https://github.com/LeuJasYoh/pcl-dsh-linux) 的 G
 - 任务与日志、整合包导入导出、已装插件管理、直连登录（SSH 隧道 + 一次性 token URL，SSH 用户可配置）；
 - 保留 WebUI；不含账户系统、社区插件目录、背景图管理、旧数据兼容；
 - 内置 Node 24.22.1 + pnpm 11.28.5，服务器无需系统 Node/npm/JDK。
+
+## M3 状态（2026-10-24）
+
+M3 已完成并通过真实 DSH `0.2.1-rc.3` + 真实 DSH 插件 CLI 验收（正式 E2E **124/124 PASS**，Lead 独立复跑一致；证据 `docs/evidence/m3/`）：
+
+- 安全归档 `internal/safe`：ZIP/TAR 穿越/链接/限值/CRC/压缩比/取消，44 个恶意样本全部拒绝；
+- 整合包 `internal/pack`：dspack v2/v3、Overture snapshot v1 预览（30min TTL）、导入（runtime 解析/安全 staging/依赖恢复/外部资源/失败回滚 trash）、导出（profile/home、凭据与缓存黑名单、24h artifact）；
+- 已装插件 `internal/plugin`：列表 + 通过 go:embed Node 桥执行 DSH CLI 的安装/更新/移除（pnpm 路由到内置工具链，非法 spec 同步 400）；
+- API：`POST /api/packs/preview|import|export`、`GET /api/artifacts/{id}`、`GET/POST/PATCH/DELETE /api/instances/{id}/plugins`，导入/导出/插件变更均为 Job+SSE。
+
+### 一键验收（WSL）
+
+```bash
+bash scripts/wsl/m3-acceptance.sh   # fresh data-root + 真实 DSH/真实插件 CLI，约 3-5 分钟
+```
+
+生产注意：home 导出要求实例默认 profile 非 web/headless（与参考实现一致）；导入后需能访问 npm registry 恢复 profile 依赖。
 
 ## M2 状态（2026-10-24）
 
@@ -93,6 +110,8 @@ M0 调试 API（仅 `--pcl.dev-mode` 启用并绑定 127.0.0.1；M1 由正式认
 
 ## 文档
 
+- [M3 验收报告（整合包 + 已装插件）](docs/M3_RESULTS.md)
+- [M3 冻结决策](docs/M3_INTERFACES.md)
 - [M2 验收报告（反代硬化 + Nginx 生产链路）](docs/M2_RESULTS.md)
 - [M2 冻结决策](docs/M2_INTERFACES.md)
 - [M1 验收报告（后端 v1 API + 真实 DSH 集成）](docs/M1_RESULTS.md)

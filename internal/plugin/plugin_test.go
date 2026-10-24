@@ -8,6 +8,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -214,6 +215,8 @@ func TestMutateAddSuccess(t *testing.T) {
 
 func TestMutateLocalSpecAnchoring(t *testing.T) {
 	fixture := newPluginFixture(t, "mutate-anchor")
+	fixture.mkdirInWorkspace("local-plugin", `{"name":"local-plugin","version":"1.0.0"}`)
+	fixture.mkdirInWorkspace("vendor/bare-plugin", `{"name":"bare-plugin","version":"1.0.0"}`)
 	_, err := fixture.service.Mutate(context.Background(), MutateInput{
 		InstanceID: fixture.instance.ID,
 		Profile:    "web",
@@ -472,6 +475,125 @@ func TestMutateContextCancelled(t *testing.T) {
 	}, nil)
 	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("Mutate(cancelled ctx) error = %v, want context.Canceled", err)
+	}
+}
+
+func TestValidateMutationInput(t *testing.T) {
+	malicious := []struct {
+		name  string
+		input MutateInput
+	}{
+		{"scoped double slash", MutateInput{InstanceID: pluginTestID, Profile: "web", Action: ActionAdd, Spec: "@bad//name"}},
+		{"scoped extra segment", MutateInput{InstanceID: pluginTestID, Profile: "web", Action: ActionAdd, Spec: "@scope/name/extra"}},
+		{"scoped empty name", MutateInput{InstanceID: pluginTestID, Profile: "web", Action: ActionAdd, Spec: "@scope/"}},
+		{"parent escape", MutateInput{InstanceID: pluginTestID, Profile: "web", Action: ActionAdd, Spec: "file:../../outside"}},
+		{"absolute path", MutateInput{InstanceID: pluginTestID, Profile: "web", Action: ActionAdd, Spec: "file:/etc/passwd"}},
+		{"windows drive", MutateInput{InstanceID: pluginTestID, Profile: "web", Action: ActionAdd, Spec: "file:C:/Windows/win.ini"}},
+		{"unc path", MutateInput{InstanceID: pluginTestID, Profile: "web", Action: ActionAdd, Spec: "file://server/share"}},
+		{"link parent escape", MutateInput{InstanceID: pluginTestID, Profile: "web", Action: ActionAdd, Spec: "link:../outside"}},
+		{"link absolute", MutateInput{InstanceID: pluginTestID, Profile: "web", Action: ActionAdd, Spec: "link:/etc/passwd"}},
+		{"flag-like spec", MutateInput{InstanceID: pluginTestID, Profile: "web", Action: ActionAdd, Spec: "--config.ignore-scripts=false"}},
+		{"spaces in package name", MutateInput{InstanceID: pluginTestID, Profile: "web", Action: ActionAdd, Spec: "bad name with space"}},
+		{"remove malformed name", MutateInput{InstanceID: pluginTestID, Profile: "web", Action: ActionRemove, Spec: "@bad//name"}},
+	}
+	for _, tc := range malicious {
+		tc := tc
+		t.Run("malicious/"+tc.name, func(t *testing.T) {
+			err := ValidateMutationInput(tc.input)
+			apiErr, ok := apierr.As(err)
+			if !ok {
+				t.Fatalf("ValidateMutationInput(%s) error = %v, want *apierr.Error", tc.name, err)
+			}
+			if apiErr.Status != 400 || apiErr.Code != apierr.CodeValidation {
+				t.Fatalf("ValidateMutationInput(%s) = %+v, want 400 VALIDATION", tc.name, apiErr)
+			}
+		})
+	}
+
+	valid := []MutateInput{
+		{InstanceID: pluginTestID, Profile: "web", Action: ActionAdd, Spec: "@acme/plugin-demo"},
+		{InstanceID: pluginTestID, Profile: "web", Action: ActionAdd, Spec: "lodash"},
+		{InstanceID: pluginTestID, Profile: "web", Action: ActionAdd, Spec: "lodash@4.17.21"},
+		{InstanceID: pluginTestID, Profile: "web", Action: ActionAdd, Spec: "@acme/plugin@^1.2.0"},
+		{InstanceID: pluginTestID, Profile: "web", Action: ActionAdd, Spec: "github:acme/plugin"},
+		{InstanceID: pluginTestID, Profile: "web", Action: ActionAdd, Spec: "npm:lodash@4"},
+		{InstanceID: pluginTestID, Profile: "web", Action: ActionAdd, Spec: "acme/plugin"},
+		{InstanceID: pluginTestID, Profile: "web", Action: ActionAdd, Spec: "./local-plugin"},
+		{InstanceID: pluginTestID, Profile: "web", Action: ActionAdd, Spec: "file:./local-plugin"},
+		{InstanceID: pluginTestID, Profile: "web", Action: ActionAdd, Spec: "link:./local-plugin"},
+		{InstanceID: pluginTestID, Profile: "web", Action: ActionUpdate},
+		{InstanceID: pluginTestID, Profile: "web", Action: ActionRemove, Spec: "dep-one"},
+	}
+	for index, input := range valid {
+		if err := ValidateMutationInput(input); err != nil {
+			t.Fatalf("ValidateMutationInput(valid[%d] %+v) error = %v", index, input, err)
+		}
+	}
+}
+
+func TestMutateMaliciousSpecsReturnValidation(t *testing.T) {
+	fixture := newPluginFixture(t, "mutate-malicious")
+	cases := []MutateInput{
+		{InstanceID: fixture.instance.ID, Profile: "web", Action: ActionAdd, Spec: "@bad//name"},
+		{InstanceID: fixture.instance.ID, Profile: "web", Action: ActionAdd, Spec: "file:../../outside"},
+		{InstanceID: fixture.instance.ID, Profile: "web", Action: ActionAdd, Spec: "file:/etc/passwd"},
+		{InstanceID: fixture.instance.ID, Profile: "web", Action: ActionAdd, Spec: "link:../outside"},
+		{InstanceID: fixture.instance.ID, Profile: "web", Action: ActionAdd, Spec: "file://server/share"},
+		{InstanceID: fixture.instance.ID, Profile: "web", Action: ActionAdd, Spec: "bad name with space"},
+	}
+	for index, input := range cases {
+		_, err := fixture.service.Mutate(context.Background(), input, nil)
+		apiErr, ok := apierr.As(err)
+		if !ok || apiErr.Status != 400 || apiErr.Code != apierr.CodeValidation {
+			t.Fatalf("Mutate(malicious[%d] %q) error = %v, want 400 VALIDATION", index, input.Spec, err)
+		}
+	}
+	if _, statErr := os.Stat(filepath.Join(fixture.workspaceDirectory(), fakeRecordFile)); !errors.Is(statErr, os.ErrNotExist) {
+		t.Fatalf("bridge must not run for a rejected spec")
+	}
+}
+
+func TestMutateLocalTargetValidation(t *testing.T) {
+	fixture := newPluginFixture(t, "mutate-local-target")
+
+	// Missing workspace target -> 400 VALIDATION (no INTERNAL, no bridge run).
+	_, err := fixture.service.Mutate(context.Background(), MutateInput{
+		InstanceID: fixture.instance.ID, Profile: "web", Action: ActionAdd, Spec: "file:./missing-plugin",
+	}, nil)
+	if apiErr, ok := apierr.As(err); !ok || apiErr.Status != 400 || apiErr.Code != apierr.CodeValidation {
+		t.Fatalf("Mutate(missing local target) error = %v, want 400 VALIDATION", err)
+	}
+	if _, statErr := os.Stat(filepath.Join(fixture.workspaceDirectory(), fakeRecordFile)); !errors.Is(statErr, os.ErrNotExist) {
+		t.Fatalf("bridge must not run when the local target is missing")
+	}
+
+	// Existing target inside the workspace -> success.
+	fixture.mkdirInWorkspace("local-plugin", `{"name":"local-plugin","version":"1.0.0"}`)
+	if _, err := fixture.service.Mutate(context.Background(), MutateInput{
+		InstanceID: fixture.instance.ID, Profile: "web", Action: ActionAdd, Spec: "link:./local-plugin",
+	}, nil); err != nil {
+		t.Fatalf("Mutate(valid link target) error = %v", err)
+	}
+
+	// Symlink escaping the workspace -> 400 VALIDATION.
+	if runtime.GOOS != "windows" {
+		outside := filepath.Join(t.TempDir(), "outside-plugin")
+		if err := os.MkdirAll(outside, 0o700); err != nil {
+			t.Fatalf("mkdir outside plugin: %v", err)
+		}
+		workspace := fixture.workspaceDirectory()
+		if err := os.MkdirAll(workspace, 0o700); err != nil {
+			t.Fatalf("mkdir workspace: %v", err)
+		}
+		escapeLink := filepath.Join(workspace, "escape")
+		if err := os.Symlink(outside, escapeLink); err == nil {
+			_, err = fixture.service.Mutate(context.Background(), MutateInput{
+				InstanceID: fixture.instance.ID, Profile: "web", Action: ActionAdd, Spec: "link:./escape",
+			}, nil)
+			if apiErr, ok := apierr.As(err); !ok || apiErr.Status != 400 || apiErr.Code != apierr.CodeValidation {
+				t.Fatalf("Mutate(symlink escape) error = %v, want 400 VALIDATION", err)
+			}
+		}
 	}
 }
 
