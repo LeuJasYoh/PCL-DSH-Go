@@ -39,3 +39,69 @@ test('直连未就绪时展示提示', async ({ page }) => {
   await page.locator('[data-testid^="instance-direct-"]').first().click()
   await expect(page.getByTestId('direct-access-note').or(page.getByText('实例未运行'))).toBeVisible()
 })
+
+test('Clipboard API 不可用时使用兼容复制', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: undefined })
+    document.execCommand = (command) => {
+      if (command !== 'copy') return false
+      const active = document.activeElement
+      if (active instanceof HTMLTextAreaElement) {
+        document.documentElement.dataset.copiedText = active.value
+      }
+      return true
+    }
+  })
+  await mockJson(page, '**/api/state', state)
+  await mockJson(page, '**/api/instances/*/direct-access', {
+    ready: true,
+    port: 3080,
+    directUrl: 'http://127.0.0.1:3080/?token=e2e-token',
+    tunnelCommand: 'ssh -L 3080:127.0.0.1:3080 root@127.0.0.1',
+    sshHost: '127.0.0.1',
+    sshUser: 'root',
+    note: '通过 SSH 隧道访问工作台。',
+  })
+  await page.goto('/instances')
+  await page.locator('[data-testid^="instance-direct-"]').first().click()
+  await page.getByTestId('direct-access-copy-tunnel').click()
+  await expect(page.getByText('已复制到剪贴板。')).toBeVisible()
+  await expect(page.getByTestId('direct-access-manual-copy')).toHaveCount(0)
+  const copied = await page.evaluate(() => document.documentElement.dataset.copiedText)
+  expect(copied).toBe('ssh -L 3080:127.0.0.1:3080 root@127.0.0.1')
+})
+
+test('无法自动复制时滚动到手动复制框并选中文本', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: undefined })
+    document.execCommand = () => false
+  })
+  await mockJson(page, '**/api/state', state)
+  await mockJson(page, '**/api/instances/*/direct-access', {
+    ready: true,
+    port: 3080,
+    directUrl: 'http://127.0.0.1:3080/?token=e2e-token',
+    tunnelCommand: 'ssh -L 3080:127.0.0.1:3080 root@127.0.0.1',
+    sshHost: '127.0.0.1',
+    sshUser: 'root',
+    note: '通过 SSH 隧道访问工作台。',
+  })
+  await page.goto('/instances')
+  await page.locator('[data-testid^="instance-direct-"]').first().click()
+  await page.getByTestId('direct-access-copy-url').click()
+  const input = page.getByTestId('direct-access-manual-copy')
+  await expect(input).toBeVisible()
+  await expect(input).toBeInViewport()
+  await expect(input).toHaveValue('http://127.0.0.1:3080/?token=e2e-token')
+  const selection = await input.evaluate((element) => {
+    const textarea = element as HTMLTextAreaElement
+    return {
+      focused: document.activeElement === textarea,
+      start: textarea.selectionStart,
+      end: textarea.selectionEnd,
+    }
+  })
+  expect(selection.focused).toBe(true)
+  expect(selection.start).toBe(0)
+  expect(selection.end).toBe('http://127.0.0.1:3080/?token=e2e-token'.length)
+})

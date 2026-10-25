@@ -59,6 +59,8 @@ release 打包脚本另识别 `PCL_DSH_TOOLS_DIR` / `PCL_DSH_RELEASE_DIR`（仅�
 ```
 
 - 目录权限 0700；`initial-password` 与 `config/admin.json` 为 0600。
+- DSH 子进程以实例 `workspace` 为 `HOME` 和工作目录；管理器在 `dsh-home/cordis.patch.yml` 配置默认工作区为 `workspace/deepseek-harness/default-workspace`，已有自定义 `documentsDirectory` 不会被覆盖。
+- systemd 默认仅放开 data-root 写入；目录选择器可浏览的宿主机路径不等于可写路径，不要把 `/root`、`/home` 或 release 目录当作实例工作区。
 - 数据目录与 release 分离，升级/回滚不会改动数据；备份建议见 [DEPLOYMENT.md](DEPLOYMENT.md#12-备份与恢复)。
 - 首次启动自动创建；损坏的 JSON 会明确报错而不是静默覆盖。
 

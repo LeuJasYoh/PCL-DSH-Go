@@ -1,6 +1,6 @@
 # 用户指南
 
-> 对应当前源码与 **0.2.2** 发行包，版本见 [`VERSION`](../VERSION)，变更见 [CHANGELOG](CHANGELOG.md)。截图保留 0.2.1 发行时的界面，0.2.2 的顶部栏和部分输入规则已调整；旧发行包以随包文档为准。
+> 对应当前源码与 **0.2.3** 发行包，版本见 [`VERSION`](../VERSION)，变更见 [CHANGELOG](CHANGELOG.md)。截图保留 0.2.1 发行时的界面，0.2.2 起的顶部栏和部分输入规则已调整；旧发行包以随包文档为准。
 
 本文介绍 PCL-DSH-Go WebUI 的完整使用流程。安装与系统运维见 [部署与运维](DEPLOYMENT.md)，参数与数据布局见 [配置参考](CONFIGURATION.md)。
 
@@ -90,6 +90,8 @@ Profile 是 DSH 的一套命名运行配置，决定加载哪些功能和插件�
 - 未登录管理器时访问工作台会被拒绝（需先登录 WebUI）；
 - 管理器负责 DSH 的一次性 token 引导、Cookie/Location/Origin 重写，以及 HTTP/SSE/WebSocket 透传；
 - 工作台内登录、会话、插件界面均由 DSH 自身管理，管理器不保存 DSH 凭据。
+- 默认工作区位于当前实例的 `workspace/deepseek-harness/default-workspace`；「添加工作区」的目录选择器从该实例的 `workspace` 打开。编辑路径时按钮会暂时置灰，先按 Enter 提交路径，再新建文件夹或打开目录。
+- 默认 systemd 沙箱只允许写管理器 data-root，不会向 DSH 开放 `/root`、`/home` 或发行目录的写权限；请在实例工作区内创建目录，或由运维人员明确配置额外目录及权限。
 
 ![工作台](images/workbench.png)
 
@@ -106,6 +108,8 @@ Profile 是 DSH 的一套命名运行配置，决定加载哪些功能和插件�
    - **一次性 URL**，形如 `http://127.0.0.1:3080/?token=...`（仅在本机隧道建立后有效，请勿分享）；
    - 未就绪时提示先启动实例。
 4. 在本机终端执行隧道命令，然后在浏览器打开一次性 URL 即可进入工作台。token 有有效期，失效后重新打开对话框获取。
+
+复制按钮在 HTTP 或浏览器禁止 Clipboard API 时会尝试兼容复制；若仍被浏览器拒绝，对话框会显示并选中手动复制文本，按 Ctrl+C 或长按复制即可。
 
 ## 8. 整合包
 

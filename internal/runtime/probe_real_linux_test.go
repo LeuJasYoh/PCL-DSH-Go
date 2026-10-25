@@ -117,15 +117,19 @@ func TestProbeRealDSHRuntime(t *testing.T) {
 		t.Fatalf("launch dir = %q", spec.Dir)
 	}
 	for _, entry := range spec.Env {
-		if strings.HasPrefix(entry, "HOME=") {
-			t.Fatalf("DSH launch env contains HOME: %q", entry)
-		}
 		if strings.Contains(entry, "API_KEY") || strings.Contains(entry, "TOKEN=") {
 			t.Fatalf("DSH launch env contains account credentials: %q", entry)
 		}
 	}
 	envText := strings.Join(spec.Env, "\n")
-	for _, expected := range []string{"DSH_HOME=", "DSH_AGENTS_HOME=", "DSH_TELEMETRY_MODE=DISABLED", "PATH="} {
+	for _, expected := range []string{
+		"HOME=" + spec.Dir,
+		"DSH_HOME=",
+		"DSH_AGENTS_HOME=",
+		"PNPM_CONFIG_STORE_DIR=" + filepath.Join(dirs.CacheDir, "pnpm-store"),
+		"DSH_TELEMETRY_MODE=DISABLED",
+		"PATH=",
+	} {
 		if !strings.Contains(envText, expected) {
 			t.Fatalf("launch env is missing %q: %v", expected, spec.Env)
 		}

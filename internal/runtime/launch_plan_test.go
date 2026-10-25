@@ -157,6 +157,7 @@ func TestBuildLaunchEnvironmentWhitelist(t *testing.T) {
 		DSHHome:        filepath.Join(root, "instances", "i-0123456789ab", "dsh-home"),
 		AgentsHome:     filepath.Join(root, "instances", "i-0123456789ab", "agents-home"),
 		Registry:       "https://registry.npmjs.org",
+		Home:           filepath.Join(root, "instances", "i-0123456789ab", "workspace"),
 	}
 	environment, err := buildLaunchEnvironment(options)
 	if err != nil {
@@ -164,13 +165,14 @@ func TestBuildLaunchEnvironmentWhitelist(t *testing.T) {
 	}
 	values := environmentMap(t, environment)
 	expected := map[string]string{
-		"DSH_HOME":            options.DSHHome,
-		"DSH_AGENTS_HOME":     options.AgentsHome,
-		"HDSL_NPM_REGISTRY":   "https://registry.npmjs.org",
-		"NPM_CONFIG_REGISTRY": "https://registry.npmjs.org",
-		"NPM_CONFIG_CACHE":    filepath.Join(root, "cache", "npm"),
-		"PNPM_HOME":           options.PnpmHome,
-		"PNPM_STORE_DIR":      filepath.Join(root, "cache", "pnpm-store"),
+		"HOME":                  options.Home,
+		"DSH_HOME":              options.DSHHome,
+		"DSH_AGENTS_HOME":       options.AgentsHome,
+		"HDSL_NPM_REGISTRY":     "https://registry.npmjs.org",
+		"NPM_CONFIG_REGISTRY":   "https://registry.npmjs.org",
+		"NPM_CONFIG_CACHE":      filepath.Join(root, "cache", "npm"),
+		"PNPM_HOME":             options.PnpmHome,
+		"PNPM_CONFIG_STORE_DIR": filepath.Join(root, "cache", "pnpm-store"),
 		"NPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS": "false",
 		"NPM_CONFIG_PACKAGE_MANAGER_STRICT":          "false",
 		"PNPM_CONFIG_AUTO_INSTALL_PEERS":             "true",
@@ -186,9 +188,6 @@ func TestBuildLaunchEnvironmentWhitelist(t *testing.T) {
 		if got := values[key]; got != want {
 			t.Fatalf("environment[%q] = %q, want %q", key, got, want)
 		}
-	}
-	if _, ok := values["HOME"]; ok {
-		t.Fatalf("DSH launch environment must not set HOME, got %q", values["HOME"])
 	}
 	for _, key := range []string{"HTTP_PROXY", "HTTPS_PROXY", "NPM_CONFIG_PROXY", "NPM_CONFIG_HTTPS_PROXY", "NO_PROXY"} {
 		if _, ok := values[key]; ok {
@@ -251,6 +250,7 @@ func TestBuildLaunchEnvironmentValidation(t *testing.T) {
 		PnpmHome:   filepath.Join(root, "pnpm"),
 		DSHHome:    filepath.Join(root, "dsh-home"),
 		AgentsHome: filepath.Join(root, "agents-home"),
+		Home:       filepath.Join(root, "workspace"),
 	}
 	cases := []struct {
 		name   string
@@ -260,6 +260,8 @@ func TestBuildLaunchEnvironmentValidation(t *testing.T) {
 		{"node path", func(o *launchEnvOptions) { o.NodePath = "" }},
 		{"dsh home", func(o *launchEnvOptions) { o.DSHHome = "" }},
 		{"agents home", func(o *launchEnvOptions) { o.AgentsHome = "" }},
+		{"home empty", func(o *launchEnvOptions) { o.Home = "" }},
+		{"home relative", func(o *launchEnvOptions) { o.Home = "workspace" }},
 		{"registry", func(o *launchEnvOptions) { o.Registry = "ftp://registry" }},
 		{"proxy", func(o *launchEnvOptions) { o.Proxy = "socks5://127.0.0.1:1080" }},
 		{"proxy userinfo", func(o *launchEnvOptions) { o.Proxy = "http://user:pass@127.0.0.1:7890" }},
@@ -314,6 +316,7 @@ func TestBuildLaunchEnvironmentHostPath(t *testing.T) {
 		DSHHome:        filepath.Join(root, "dsh-home"),
 		AgentsHome:     filepath.Join(root, "agents-home"),
 		Registry:       "https://registry.npmjs.org",
+		Home:           filepath.Join(root, "workspace"),
 		HostPath:       hostPath,
 	}
 	environment, err := buildLaunchEnvironment(options)

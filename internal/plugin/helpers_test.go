@@ -82,7 +82,7 @@ func fakeBridgeMain(args []string) int {
 	record := fakeBridgeRecord{Args: append([]string(nil), args...), Cwd: workingDirectory, Env: make(map[string]string, 12)}
 	for _, key := range []string{
 		"HOME", "DSH_HOME", "DSH_AGENTS_HOME", "NPM_CONFIG_REGISTRY",
-		"PNPM_HOME", "PNPM_STORE_DIR", "PATH",
+		"PNPM_HOME", "PNPM_CONFIG_STORE_DIR", "PATH",
 		"HTTP_PROXY", "HTTPS_PROXY", "NPM_CONFIG_PROXY", "NPM_CONFIG_HTTPS_PROXY", "NO_PROXY",
 	} {
 		if value := os.Getenv(key); value != "" {

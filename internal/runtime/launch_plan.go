@@ -36,8 +36,8 @@ type launchEnvOptions struct {
 	Registry string
 	// Proxy is an optional http(s) proxy applied to every package operation.
 	Proxy string
-	// Home is only set for install/restore helpers; DSH launches leave it unset
-	// because DSH_HOME/DSH_AGENTS_HOME fully scope the instance.
+	// Home is the instance workspace for DSH launches and a throw-away directory
+	// for install/restore helpers.
 	Home string
 	// HostPath is the manager process PATH (os.Getenv("PATH")). It is appended
 	// to the constructed PATH as required by docs/DSH_INTEGRATION.md 1.2:
@@ -57,6 +57,9 @@ func buildLaunchEnvironment(options launchEnvOptions) ([]string, error) {
 	if options.DSHHome == "" || options.AgentsHome == "" {
 		return nil, fmt.Errorf("缺少 DSH_HOME 或 DSH_AGENTS_HOME")
 	}
+	if options.Home == "" || !filepath.IsAbs(options.Home) {
+		return nil, fmt.Errorf("HOME 必须是绝对路径")
+	}
 	registry, err := normalizeRegistry(options.Registry)
 	if err != nil {
 		return nil, err
@@ -65,18 +68,16 @@ func buildLaunchEnvironment(options launchEnvOptions) ([]string, error) {
 		return nil, err
 	}
 	cacheDirectory := filepath.Join(options.DataRoot, "cache")
-	environment := make([]string, 0, 22)
-	if options.Home != "" {
-		environment = append(environment, "HOME="+options.Home)
-	}
+	environment := make([]string, 0, 23)
 	environment = append(environment,
+		"HOME="+options.Home,
 		"DSH_HOME="+options.DSHHome,
 		"DSH_AGENTS_HOME="+options.AgentsHome,
 		"HDSL_NPM_REGISTRY="+registry,
 		"NPM_CONFIG_REGISTRY="+registry,
 		"NPM_CONFIG_CACHE="+filepath.Join(cacheDirectory, "npm"),
 		"PNPM_HOME="+options.PnpmHome,
-		"PNPM_STORE_DIR="+filepath.Join(cacheDirectory, "pnpm-store"),
+		"PNPM_CONFIG_STORE_DIR="+filepath.Join(cacheDirectory, "pnpm-store"),
 		"NPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS=false",
 		"NPM_CONFIG_PACKAGE_MANAGER_STRICT=false",
 		"PNPM_CONFIG_AUTO_INSTALL_PEERS=true",

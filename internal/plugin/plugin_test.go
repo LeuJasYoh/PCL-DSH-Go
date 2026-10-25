@@ -181,10 +181,11 @@ func TestMutateAddSuccess(t *testing.T) {
 		t.Fatalf("bridge cwd = %q, want workspace %q", record.Cwd, fixture.workspaceDirectory())
 	}
 	expectedEnv := map[string]string{
-		"HOME":                filepath.Join(fixture.dataRoot, "cache", "pnpm-home", fixture.instance.ID, "web"),
-		"DSH_HOME":            filepath.Join(fixture.dirs.InstancesDir, fixture.instance.ID, "dsh-home"),
-		"NPM_CONFIG_REGISTRY": "https://registry.npmjs.org",
-		"PNPM_HOME":           filepath.Join(fixture.dataRoot, "tools", "pnpm"),
+		"HOME":                  filepath.Join(fixture.dataRoot, "cache", "pnpm-home", fixture.instance.ID, "web"),
+		"DSH_HOME":              filepath.Join(fixture.dirs.InstancesDir, fixture.instance.ID, "dsh-home"),
+		"NPM_CONFIG_REGISTRY":   "https://registry.npmjs.org",
+		"PNPM_HOME":             filepath.Join(fixture.dataRoot, "tools", "pnpm"),
+		"PNPM_CONFIG_STORE_DIR": filepath.Join(fixture.dataRoot, "cache", "pnpm-store"),
 	}
 	for key, want := range expectedEnv {
 		if got := record.Env[key]; got != want {

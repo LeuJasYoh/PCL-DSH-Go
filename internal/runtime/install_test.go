@@ -163,8 +163,8 @@ func TestInstallSuccess(t *testing.T) {
 	if record.Env["NPM_CONFIG_REGISTRY"] != installTestRegistry {
 		t.Fatalf("NPM_CONFIG_REGISTRY = %q", record.Env["NPM_CONFIG_REGISTRY"])
 	}
-	if record.Env["PNPM_STORE_DIR"] != storeDirectory {
-		t.Fatalf("PNPM_STORE_DIR = %q, want %q", record.Env["PNPM_STORE_DIR"], storeDirectory)
+	if record.Env["PNPM_CONFIG_STORE_DIR"] != storeDirectory {
+		t.Fatalf("PNPM_CONFIG_STORE_DIR = %q, want %q", record.Env["PNPM_CONFIG_STORE_DIR"], storeDirectory)
 	}
 	wantPath := strings.Join([]string{
 		filepath.Dir(toolchain.NodePath),

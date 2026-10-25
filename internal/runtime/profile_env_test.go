@@ -62,16 +62,16 @@ func TestProfileInstallEnvironmentSuccess(t *testing.T) {
 
 	values := environmentMap(t, environment)
 	expected := map[string]string{
-		"HOME":                filepath.Join(fixture.dirs.DataRoot, "cache", "pnpm-home", launchTestInstanceID, "web"),
-		"DSH_HOME":            filepath.Join(instanceDirectory, "dsh-home"),
-		"DSH_AGENTS_HOME":     filepath.Join(instanceDirectory, "agents-home"),
-		"HDSL_NPM_REGISTRY":   "https://registry.npmjs.org",
-		"NPM_CONFIG_REGISTRY": "https://registry.npmjs.org",
-		"NPM_CONFIG_CACHE":    filepath.Join(fixture.dirs.DataRoot, "cache", "npm"),
-		"PNPM_HOME":           filepath.Join(fixture.dirs.DataRoot, "tools", "pnpm"),
-		"PNPM_STORE_DIR":      filepath.Join(fixture.dirs.DataRoot, "cache", "pnpm-store"),
-		"XDG_CACHE_HOME":      filepath.Join(fixture.dirs.DataRoot, "cache"),
-		"DSH_TELEMETRY_MODE":  "DISABLED",
+		"HOME":                  filepath.Join(fixture.dirs.DataRoot, "cache", "pnpm-home", launchTestInstanceID, "web"),
+		"DSH_HOME":              filepath.Join(instanceDirectory, "dsh-home"),
+		"DSH_AGENTS_HOME":       filepath.Join(instanceDirectory, "agents-home"),
+		"HDSL_NPM_REGISTRY":     "https://registry.npmjs.org",
+		"NPM_CONFIG_REGISTRY":   "https://registry.npmjs.org",
+		"NPM_CONFIG_CACHE":      filepath.Join(fixture.dirs.DataRoot, "cache", "npm"),
+		"PNPM_HOME":             filepath.Join(fixture.dirs.DataRoot, "tools", "pnpm"),
+		"PNPM_CONFIG_STORE_DIR": filepath.Join(fixture.dirs.DataRoot, "cache", "pnpm-store"),
+		"XDG_CACHE_HOME":        filepath.Join(fixture.dirs.DataRoot, "cache"),
+		"DSH_TELEMETRY_MODE":    "DISABLED",
 		"PATH": strings.Join([]string{
 			filepath.Dir(fixture.toolchain.NodePath),
 			filepath.Join(fixture.dirs.DataRoot, "tools", "shims"),

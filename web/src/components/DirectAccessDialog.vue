@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { nextTick, onMounted, ref } from 'vue'
 
 import { instancesApi } from '@/api'
 import type { DirectAccess, InstanceSummary } from '@/api/types'
@@ -29,6 +29,7 @@ const loading = ref(true)
 const error = ref('')
 const data = ref<DirectAccess | null>(null)
 const manualCopy = ref<{ label: string; text: string } | null>(null)
+const manualCopyInput = ref<HTMLTextAreaElement | null>(null)
 
 onMounted(() => {
   void load()
@@ -48,14 +49,18 @@ async function load(): Promise<void> {
 
 async function copy(value: string, label: string): Promise<void> {
   if (!value) return
-  manualCopy.value = null
   const outcome = await copyText(value)
   if (outcome === 'copied') {
+    manualCopy.value = null
     notify.success('已复制到剪贴板。')
     return
   }
   manualCopy.value = { label, text: value }
-  notify.info('当前页面无法直接写入剪贴板，请手动复制下方文本。')
+  await nextTick()
+  const input = manualCopyInput.value
+  input?.focus()
+  input?.select()
+  input?.scrollIntoView({ block: 'nearest' })
 }
 </script>
 
@@ -149,12 +154,15 @@ async function copy(value: string, label: string): Promise<void> {
         <label class="field-label" for="direct-access-manual-copy">手动复制 · {{ manualCopy.label }}</label>
         <textarea
           id="direct-access-manual-copy"
+          ref="manualCopyInput"
           class="input direct-access-input"
           rows="2"
           readonly
           :value="manualCopy.text"
           data-testid="direct-access-manual-copy"
+          @focus="manualCopyInput?.select()"
         ></textarea>
+        <p class="small-muted">文本已选中，请按 Ctrl+C；触屏可长按文本复制。</p>
       </div>
     </template>
 

@@ -11,6 +11,7 @@ import (
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/config"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/store"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/tools"
+	"gopkg.in/yaml.v3"
 )
 
 const launchTestVersion = "0.2.1-rc.3"
@@ -111,18 +112,35 @@ func TestBuildLaunchSpecSuccess(t *testing.T) {
 			t.Fatalf("directory %s was not created: %v", directory, statErr)
 		}
 	}
+	patchData, err := os.ReadFile(filepath.Join(instanceDirectory, "dsh-home", "cordis.patch.yml"))
+	if err != nil {
+		t.Fatalf("read workspace patch: %v", err)
+	}
+	var patches []struct {
+		ID     string `yaml:"id"`
+		Config struct {
+			DocumentsDirectory string `yaml:"documentsDirectory"`
+		} `yaml:"config"`
+	}
+	if err := yaml.Unmarshal(patchData, &patches); err != nil {
+		t.Fatalf("parse workspace patch: %v", err)
+	}
+	if len(patches) != 1 || patches[0].ID != "workspace-controller" || patches[0].Config.DocumentsDirectory != wantWorkspace {
+		t.Fatalf("workspace patch = %+v, want documentsDirectory %q", patches, wantWorkspace)
+	}
 
 	values := environmentMap(t, spec.Env)
 	expected := map[string]string{
-		"DSH_HOME":            filepath.Join(instanceDirectory, "dsh-home"),
-		"DSH_AGENTS_HOME":     filepath.Join(instanceDirectory, "agents-home"),
-		"HDSL_NPM_REGISTRY":   "https://registry.npmjs.org",
-		"NPM_CONFIG_REGISTRY": "https://registry.npmjs.org",
-		"NPM_CONFIG_CACHE":    filepath.Join(fixture.dirs.DataRoot, "cache", "npm"),
-		"PNPM_HOME":           filepath.Join(fixture.dirs.DataRoot, "tools", "pnpm"),
-		"PNPM_STORE_DIR":      filepath.Join(fixture.dirs.DataRoot, "cache", "pnpm-store"),
-		"XDG_CACHE_HOME":      filepath.Join(fixture.dirs.DataRoot, "cache"),
-		"DSH_TELEMETRY_MODE":  "DISABLED",
+		"HOME":                  wantWorkspace,
+		"DSH_HOME":              filepath.Join(instanceDirectory, "dsh-home"),
+		"DSH_AGENTS_HOME":       filepath.Join(instanceDirectory, "agents-home"),
+		"HDSL_NPM_REGISTRY":     "https://registry.npmjs.org",
+		"NPM_CONFIG_REGISTRY":   "https://registry.npmjs.org",
+		"NPM_CONFIG_CACHE":      filepath.Join(fixture.dirs.DataRoot, "cache", "npm"),
+		"PNPM_HOME":             filepath.Join(fixture.dirs.DataRoot, "tools", "pnpm"),
+		"PNPM_CONFIG_STORE_DIR": filepath.Join(fixture.dirs.DataRoot, "cache", "pnpm-store"),
+		"XDG_CACHE_HOME":        filepath.Join(fixture.dirs.DataRoot, "cache"),
+		"DSH_TELEMETRY_MODE":    "DISABLED",
 		"PATH": strings.Join([]string{
 			filepath.Dir(fixture.toolchain.NodePath),
 			filepath.Join(fixture.dirs.DataRoot, "tools", "shims"),
@@ -136,9 +154,6 @@ func TestBuildLaunchSpecSuccess(t *testing.T) {
 			t.Fatalf("Env[%q] = %q, want %q", key, got, want)
 		}
 	}
-	if _, present := values["HOME"]; present {
-		t.Fatalf("DSH launch env must not set HOME")
-	}
 	for _, key := range []string{"HTTP_PROXY", "HTTPS_PROXY", "NPM_CONFIG_PROXY", "NPM_CONFIG_HTTPS_PROXY", "NO_PROXY"} {
 		if _, present := values[key]; present {
 			t.Fatalf("proxy variable %q set without a proxy", key)
@@ -150,6 +165,30 @@ func TestBuildLaunchSpecSuccess(t *testing.T) {
 				t.Fatalf("command injected %q: %v", forbidden, spec.Command)
 			}
 		}
+	}
+}
+
+func TestBuildLaunchSpecPreservesCustomDocumentsDirectory(t *testing.T) {
+	t.Parallel()
+	fixture := newLaunchFixture(t)
+	dshHome := filepath.Join(fixture.dirs.InstancesDir, launchTestInstanceID, "dsh-home")
+	if err := os.MkdirAll(dshHome, 0o700); err != nil {
+		t.Fatalf("mkdir dsh-home: %v", err)
+	}
+	original := "# local settings\n- id: workspace-controller\n  config:\n    documentsDirectory: /srv/custom-documents\n    documentsLookupTimeoutMs: 5000\n- id: local-custom\n  disabled: !!js process.env.LOCAL_CUSTOM === 'yes'\n"
+	path := filepath.Join(dshHome, "cordis.patch.yml")
+	if err := os.WriteFile(path, []byte(original), 0o600); err != nil {
+		t.Fatalf("write custom patch: %v", err)
+	}
+	if _, err := fixture.service.BuildLaunchSpec(fixture.instance, fixture.dirs, fixture.toolchain, "", "", fixture.caps); err != nil {
+		t.Fatalf("BuildLaunchSpec() error = %v", err)
+	}
+	updated, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read custom patch: %v", err)
+	}
+	if string(updated) != original {
+		t.Fatalf("custom patch changed:\n%s", updated)
 	}
 }
 

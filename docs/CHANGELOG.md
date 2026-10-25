@@ -6,6 +6,14 @@
 
 暂无。
 
+## [0.2.3] - 2026-10-25
+
+### Fixed
+
+- 插件命令使用的 pnpm store 改为 pnpm 11 实际读取的 `PNPM_CONFIG_STORE_DIR`，避免写入只读的 `current/tools/pnpm/store`。
+- DSH 使用实例 `workspace` 作为 `HOME`，并通过实例级 Cordis 配置固定默认工作区位置；目录选择器不再落到服务账号的数据根目录，已有自定义 Documents 配置保持不变。
+- 直连信息复制在非安全上下文先尝试兼容复制；仍需手动复制时自动滚动到文本框并选中内容。
+
 ## [0.2.2] - 2026-10-25
 
 ### Added

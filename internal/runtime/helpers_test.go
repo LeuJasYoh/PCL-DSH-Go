@@ -216,7 +216,7 @@ func fakePnpmWriteRecord(workingDirectory string, flags []string) {
 		"NPM_CONFIG_REGISTRY",
 		"NPM_CONFIG_CACHE",
 		"PNPM_HOME",
-		"PNPM_STORE_DIR",
+		"PNPM_CONFIG_STORE_DIR",
 		"PATH",
 		"HTTP_PROXY",
 		"HTTPS_PROXY",

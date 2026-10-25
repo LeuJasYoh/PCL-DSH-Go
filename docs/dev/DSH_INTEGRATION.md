@@ -22,13 +22,14 @@
 ### 1.2 子进程环境（DSH 进程）
 参考 `RuntimeService.configureEnvironment` 的键值，至少注入：
 ```text
+HOME=<instance>/workspace
 DSH_HOME=<instance>/dsh-home
 DSH_AGENTS_HOME=<instance>/agents-home
 HDSL_NPM_REGISTRY=<registry>
 NPM_CONFIG_REGISTRY=<registry>
 NPM_CONFIG_CACHE=<data>/cache/npm
 PNPM_HOME=<release>/tools/pnpm
-PNPM_STORE_DIR=<data>/cache/pnpm-store
+PNPM_CONFIG_STORE_DIR=<data>/cache/pnpm-store
 NPM_CONFIG_MANAGE_PACKAGE_MANAGER_VERSIONS=false
 NPM_CONFIG_PACKAGE_MANAGER_STRICT=false
 PNPM_CONFIG_AUTO_INSTALL_PEERS=true
