@@ -80,11 +80,9 @@ const (
 	defaultUpstreamTimeout    = 60 * time.Second
 	defaultWSHandshakeTimeout = 10 * time.Second
 	upstreamDialTimeout       = 5 * time.Second
-	// maxWSMessageBytes caps a single WebSocket message in both directions.
-	maxWSMessageBytes = 1 << 20
-	wsPingInterval    = 20 * time.Second
-	wsControlTimeout  = 5 * time.Second
-	wsWriteTimeout    = 30 * time.Second
+	wsPingInterval            = 20 * time.Second
+	wsControlTimeout          = 5 * time.Second
+	wsWriteTimeout            = 30 * time.Second
 )
 
 // Handler is the /workbench reverse proxy http.Handler.

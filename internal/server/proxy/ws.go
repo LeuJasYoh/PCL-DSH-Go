@@ -81,7 +81,6 @@ func (h *Handler) serveWebSocket(w http.ResponseWriter, r *http.Request, route w
 		return
 	}
 	defer upstreamConn.Close()
-	upstreamConn.SetReadLimit(maxWSMessageBytes)
 
 	// Upstream accepted the handshake: now upgrade the browser. The gorilla
 	// Upgrader is given the upstream-selected subprotocol through
@@ -102,7 +101,7 @@ func (h *Handler) serveWebSocket(w http.ResponseWriter, r *http.Request, route w
 		return
 	}
 	defer client.Close()
-	client.SetReadLimit(maxWSMessageBytes)
+	// DSH sends a full history snapshot as one message, so messages pass without a fixed size cap.
 	h.relayWebSocket(client, upstreamConn)
 }
 
@@ -241,14 +240,10 @@ func relayFrames(source, target *websocket.Conn) error {
 }
 
 // isCloseHandshakeError reports whether a relay ended because of a normal close
-// handshake (or a read limit violation that gorilla already reports with a
-// close frame), so the other direction may still complete quickly.
+// handshake, so the other direction may still complete quickly.
 func isCloseHandshakeError(err error) bool {
 	var closeErr *websocket.CloseError
-	if errors.As(err, &closeErr) {
-		return true
-	}
-	return errors.Is(err, websocket.ErrReadLimit)
+	return errors.As(err, &closeErr)
 }
 
 // forwardClose translates a read error into a close frame for the peer.
@@ -262,9 +257,6 @@ func closeFrameForError(err error) (int, string) {
 	var closeErr *websocket.CloseError
 	if errors.As(err, &closeErr) {
 		return normalizeCloseCode(closeErr.Code), normalizeCloseText(closeErr.Text)
-	}
-	if errors.Is(err, websocket.ErrReadLimit) {
-		return websocket.CloseMessageTooBig, ""
 	}
 	// Abnormal transport failure: tell the peer we are going away.
 	return websocket.CloseGoingAway, ""

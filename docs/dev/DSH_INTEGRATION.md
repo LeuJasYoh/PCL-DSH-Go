@@ -208,7 +208,7 @@ dangerouslyAllowAllBuilds: true
 ### 6.3 WebSocket 反向代理
 - 握手：仅登录会话 + 实例存在/运行/状态运行中；Origin 与 Host 同源（默认端口归一化：http→80、https→443；Host 无端口时使用 Origin 的 scheme 默认端口）。
 - 上游 URI：ws://127.0.0.1:<port><path>?<query>（path 来自去掉前缀后的 remainder；同 SSRF 规则）。
-- 透传：Cookie（DSH 自身 Cookie）、Sec-WebSocket-Protocol（子协议）、Origin 改写为回环；最大消息 1 MiB；文本/二进制帧双向；ping/pong；关闭码/原因归一化转发。
+- 透传：Cookie（DSH 自身 Cookie）、Sec-WebSocket-Protocol（子协议）、Origin 改写为回环；不设单条消息大小上限（兼容 DSH 单个历史 snapshot 大帧）；文本/二进制帧双向；ping/pong；关闭码/原因归一化转发。
 - 错误：未就绪 409；上游连接失败 502；握手拒绝 401/403/404/409 与请求一致。
 - 测试：真实 DSH 页面建立 /workbench/{id}/api/remote.mux（具体路径以 DSH 页面为准），至少验证连接、消息收发、关闭。
 

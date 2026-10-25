@@ -95,7 +95,7 @@ func testWebSocketUpgrader(subprotocols ...string) websocket.Upgrader {
 }
 
 // newWSEchoUpstream starts a mock DSH WebSocket endpoint. Without onConnect it
-// echoes every message; onConnect replaces the echo loop (used for close/limit
+// echoes every message; onConnect replaces the echo loop (used for close
 // scenarios).
 func newWSEchoUpstream(t *testing.T, upgrader websocket.Upgrader, onConnect func(*websocket.Conn)) (*httptest.Server, *wsUpstreamObservation) {
 	t.Helper()
@@ -324,13 +324,11 @@ func TestWebSocketUpstreamCloseCodeForwarded(t *testing.T) {
 	}
 }
 
-func TestWebSocketMessageTooLarge(t *testing.T) {
-	// The mock upstream sends a message larger than the 1 MiB read limit; the
-	// proxy must disconnect with close code 1009 (message too big).
+func TestWebSocketRelaysLargeUpstreamMessage(t *testing.T) {
+	largePayload := bytes.Repeat([]byte("a"), 4<<20)
 	onConnect := func(conn *websocket.Conn) {
-		oversized := bytes.Repeat([]byte("a"), maxWSMessageBytes+1024)
-		_ = conn.SetWriteDeadline(time.Now().Add(5 * time.Second))
-		_ = conn.WriteMessage(websocket.BinaryMessage, oversized)
+		_ = conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+		_ = conn.WriteMessage(websocket.TextMessage, largePayload)
 		for {
 			if _, _, err := conn.ReadMessage(); err != nil {
 				return
@@ -344,15 +342,17 @@ func TestWebSocketMessageTooLarge(t *testing.T) {
 		t.Fatalf("dial: %v", err)
 	}
 	t.Cleanup(func() { conn.Close() })
-	conn.SetReadDeadline(time.Now().Add(5 * time.Second))
-	_, _, err = conn.ReadMessage()
-	var closeErr *websocket.CloseError
-	if !errors.As(err, &closeErr) || closeErr.Code != websocket.CloseMessageTooBig {
-		t.Fatalf("read error = %v, want close code %d", err, websocket.CloseMessageTooBig)
+	conn.SetReadDeadline(time.Now().Add(10 * time.Second))
+	messageType, payload, err := conn.ReadMessage()
+	if err != nil {
+		t.Fatalf("read large upstream message: %v", err)
+	}
+	if messageType != websocket.TextMessage || !bytes.Equal(payload, largePayload) {
+		t.Fatalf("large upstream message was not relayed intact: type=%d bytes=%d", messageType, len(payload))
 	}
 }
 
-func TestWebSocketClientMessageTooLarge(t *testing.T) {
+func TestWebSocketRelaysLargeClientMessage(t *testing.T) {
 	upstream, _ := newWSEchoUpstream(t, testWebSocketUpgrader(), nil)
 	_, proxyServer := newProxyHandler(t, staticResolver(upstreamTarget(t, upstream), nil), nil)
 	conn, _, err := dialProxyWebSocket(t, proxyServer, "/workbench/i-test/api/remote.mux", nil)
@@ -360,14 +360,18 @@ func TestWebSocketClientMessageTooLarge(t *testing.T) {
 		t.Fatalf("dial: %v", err)
 	}
 	t.Cleanup(func() { conn.Close() })
-	oversized := bytes.Repeat([]byte("b"), maxWSMessageBytes+1024)
-	_ = conn.SetWriteDeadline(time.Now().Add(5 * time.Second))
-	_ = conn.WriteMessage(websocket.BinaryMessage, oversized)
-	_ = conn.SetReadDeadline(time.Now().Add(5 * time.Second))
-	_, _, err = conn.ReadMessage()
-	var closeErr *websocket.CloseError
-	if !errors.As(err, &closeErr) || closeErr.Code != websocket.CloseMessageTooBig {
-		t.Fatalf("read error = %v, want close code %d", err, websocket.CloseMessageTooBig)
+	largePayload := bytes.Repeat([]byte("b"), 4<<20)
+	_ = conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+	if err := conn.WriteMessage(websocket.BinaryMessage, largePayload); err != nil {
+		t.Fatalf("write large client message: %v", err)
+	}
+	_ = conn.SetReadDeadline(time.Now().Add(10 * time.Second))
+	messageType, payload, err := conn.ReadMessage()
+	if err != nil {
+		t.Fatalf("read large echoed message: %v", err)
+	}
+	if messageType != websocket.BinaryMessage || !bytes.Equal(payload, largePayload) {
+		t.Fatalf("large client message was not relayed intact: type=%d bytes=%d", messageType, len(payload))
 	}
 }
 
