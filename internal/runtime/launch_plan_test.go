@@ -97,7 +97,7 @@ func TestAssembleLaunchCommandValidation(t *testing.T) {
 		{"node empty", func(n, e *string, c *Capabilities, p *string, port *int) { *n = "" }},
 		{"node relative", func(n, e *string, c *Capabilities, p *string, port *int) { *n = "node" }},
 		{"entry empty", func(n, e *string, c *Capabilities, p *string, port *int) { *e = "" }},
-		{"profile", func(n, e *string, c *Capabilities, p *string, port *int) { *p = "bad profile" }},
+		{"profile", func(n, e *string, c *Capabilities, p *string, port *int) { *p = "bad/profile" }},
 		{"port zero", func(n, e *string, c *Capabilities, p *string, port *int) { *port = 0 }},
 		{"port high", func(n, e *string, c *Capabilities, p *string, port *int) { *port = 65536 }},
 	}

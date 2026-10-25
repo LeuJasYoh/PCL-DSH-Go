@@ -12,6 +12,7 @@ import (
 	"testing"
 	"unicode"
 
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/passhash"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -72,12 +73,18 @@ func TestOpenAdminBootstrap(t *testing.T) {
 	if file.CreatedAt <= 0 {
 		t.Fatalf("createdAt = %d，期望正数毫秒时间戳", file.CreatedAt)
 	}
-	cost, err := bcrypt.Cost([]byte(file.PasswordHash))
+	if err := passhash.ValidateHash(file.PasswordHash); err != nil {
+		t.Fatalf("passwordHash 不是受支持的哈希: %v", err)
+	}
+	if !strings.HasPrefix(file.PasswordHash, passhash.HashPrefix) {
+		t.Fatalf("passwordHash = %q, want prefix %q", file.PasswordHash, passhash.HashPrefix)
+	}
+	cost, err := bcrypt.Cost([]byte(strings.TrimPrefix(file.PasswordHash, passhash.HashPrefix)))
 	if err != nil {
 		t.Fatalf("passwordHash 不是合法 BCrypt: %v", err)
 	}
-	if cost != 10 {
-		t.Fatalf("BCrypt cost = %d，期望 10", cost)
+	if cost != passhash.BcryptCost {
+		t.Fatalf("BCrypt cost = %d，期望 %d", cost, passhash.BcryptCost)
 	}
 
 	ok, err := admin.VerifyPassword(password)
@@ -148,10 +155,10 @@ func TestOpenAdminChangePassword(t *testing.T) {
 
 	invalidNews := []string{
 		"",
-		"short7",                // 7 字符
-		strings.Repeat("a", 65), // 65 字符
-		"line\nbreak-password",  // 控制字符
-		oldPassword,             // 与旧密码相同
+		"short7",                 // 7 字符
+		strings.Repeat("a", 257), // 257 字符
+		"line\nbreak-password",   // 控制字符
+		oldPassword,              // 与旧密码相同
 	}
 	for _, newPassword := range invalidNews {
 		if err := admin.ChangePassword(oldPassword, newPassword); !errors.Is(err, ErrInvalidInput) {
@@ -159,7 +166,7 @@ func TestOpenAdminChangePassword(t *testing.T) {
 		}
 	}
 
-	newPassword := "NewPassw0rd-123"
+	newPassword := strings.Repeat("a", passhash.MaxRunes)
 	if err := admin.ChangePassword(oldPassword, newPassword); err != nil {
 		t.Fatalf("ChangePassword 失败: %v", err)
 	}
@@ -238,8 +245,7 @@ func TestOpenAdminCorruptFileNotOverwritten(t *testing.T) {
 		{"非法 JSON", "{not json"},
 		{"schemaVersion 不支持", "{\"schemaVersion\":2,\"passwordHash\":\"x\"}"},
 		{"缺 passwordHash", "{\"schemaVersion\":1,\"passwordHash\":\"\",\"initialPasswordPending\":true}"},
-		{"passwordHash 非 BCrypt", "{\"schemaVersion\":1,\"passwordHash\":\"not-a-bcrypt-hash\",\"initialPasswordPending\":true}"},
-	}
+		{"passwordHash 非 BCrypt", "{\"schemaVersion\":1,\"passwordHash\":\"not-a-bcrypt-hash\",\"initialPasswordPending\":true}"}}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			dataRoot := filepath.Join(t.TempDir(), "data")
@@ -267,6 +273,61 @@ func TestOpenAdminCorruptFileNotOverwritten(t *testing.T) {
 func TestOpenAdminEmptyDataRoot(t *testing.T) {
 	if _, err := OpenAdmin("   "); err == nil || !errors.Is(err, ErrInvalidInput) {
 		t.Fatalf("空 data-root 应返回 ErrInvalidInput，实际 %v", err)
+	}
+}
+
+func TestAdminLegacyBcryptHashAndUpgrade(t *testing.T) {
+	dataRoot := t.TempDir()
+	configDir := filepath.Join(dataRoot, "config")
+	if err := os.MkdirAll(configDir, 0o700); err != nil {
+		t.Fatalf("创建 config 目录失败: %v", err)
+	}
+	legacyHash, err := bcrypt.GenerateFromPassword([]byte("legacy-password-1"), passhash.BcryptCost)
+	if err != nil {
+		t.Fatalf("生成旧 BCrypt 哈希失败: %v", err)
+	}
+	legacyFile := adminFile{
+		SchemaVersion:          AdminSchemaVersion,
+		PasswordHash:           string(legacyHash),
+		InitialPasswordPending: false,
+		CreatedAt:              1,
+	}
+	data, err := json.Marshal(legacyFile)
+	if err != nil {
+		t.Fatalf("序列化 admin.json 失败: %v", err)
+	}
+	adminPath := filepath.Join(configDir, adminFileName)
+	if err := os.WriteFile(adminPath, data, 0o600); err != nil {
+		t.Fatalf("写入 admin.json 失败: %v", err)
+	}
+
+	admin, err := OpenAdmin(dataRoot)
+	if err != nil {
+		t.Fatalf("OpenAdmin(旧 BCrypt) 失败: %v", err)
+	}
+	defer admin.Close()
+	if admin.InitialPasswordPending() {
+		t.Fatal("旧 admin.json 的 pending 应保持 false")
+	}
+	if ok, err := admin.VerifyPassword("legacy-password-1"); err != nil || !ok {
+		t.Fatalf("旧 BCrypt 密码校验 = %v, %v; want true, nil", ok, err)
+	}
+	if err := admin.ChangePassword("legacy-password-1", "new-password-2"); err != nil {
+		t.Fatalf("旧 BCrypt 改密失败: %v", err)
+	}
+	updatedData, err := os.ReadFile(adminPath)
+	if err != nil {
+		t.Fatalf("读取更新后的 admin.json 失败: %v", err)
+	}
+	var updated adminFile
+	if err := json.Unmarshal(updatedData, &updated); err != nil {
+		t.Fatalf("解析更新后的 admin.json 失败: %v", err)
+	}
+	if !strings.HasPrefix(updated.PasswordHash, passhash.HashPrefix) {
+		t.Fatalf("改密后 passwordHash = %q, want prefix %q", updated.PasswordHash, passhash.HashPrefix)
+	}
+	if ok, err := admin.VerifyPassword("new-password-2"); err != nil || !ok {
+		t.Fatalf("改密后新密码校验 = %v, %v; want true, nil", ok, err)
 	}
 }
 

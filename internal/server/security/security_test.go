@@ -532,7 +532,7 @@ func TestChangePassword(t *testing.T) {
 	// Validation failures.
 	requireAPIError(t, manager.ChangePassword(result.SessionID, "", "new-password-2"), http.StatusBadRequest, apierr.CodeValidation)
 	requireAPIError(t, manager.ChangePassword(result.SessionID, testPassword, "short"), http.StatusBadRequest, apierr.CodeValidation)
-	requireAPIError(t, manager.ChangePassword(result.SessionID, testPassword, strings.Repeat("x", 65)), http.StatusBadRequest, apierr.CodeValidation)
+	requireAPIError(t, manager.ChangePassword(result.SessionID, testPassword, strings.Repeat("x", 257)), http.StatusBadRequest, apierr.CodeValidation)
 	requireAPIError(t, manager.ChangePassword(result.SessionID, testPassword, testPassword), http.StatusBadRequest, apierr.CodeValidation)
 	// Wrong old password (backend rejects).
 	requireAPIError(t, manager.ChangePassword(result.SessionID, "not-the-old-one", "new-password-2"), http.StatusBadRequest, apierr.CodeValidation)

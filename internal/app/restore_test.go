@@ -225,7 +225,7 @@ func TestRestoreProfileDependenciesErrors(t *testing.T) {
 	err := application.RestoreProfileDependencies(ctx, "i-000000000000", "web", nil)
 	requireAPIError(t, err, 404, apierr.CodeNotFound)
 
-	err = application.RestoreProfileDependencies(ctx, instance.ID, "bad profile", nil)
+	err = application.RestoreProfileDependencies(ctx, instance.ID, "bad/profile", nil)
 	requireAPIError(t, err, 400, apierr.CodeValidation)
 
 	fakeRT.profileEnvErr = errors.New("env boom")

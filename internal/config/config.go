@@ -43,6 +43,8 @@ type Config struct {
 	// MaxRunningInstances 是同时运行的 DSH 实例上限：默认 0（不限制）。
 	MaxRunningInstances int
 	DevMode             bool
+	// ShowVersion is set by --version; main prints the injected version and exits.
+	ShowVersion bool
 }
 
 // Load 解析命令行参数（args 不含 argv[0]），并应用 PCL_DSH_DATA 兜底与基础校验。
@@ -54,13 +56,14 @@ func Load(args []string, getenv func(string) string) (Config, error) {
 	fs := flag.NewFlagSet("pcl-dsh-go", flag.ContinueOnError)
 	fs.SetOutput(io.Discard) // 由调用方统一打印错误，避免重复输出
 	var (
-		address    string
-		port       int
-		dataRoot   string
-		toolRoot   string
-		staticDir  string
-		maxRunning int
-		devMode    bool
+		address     string
+		port        int
+		dataRoot    string
+		toolRoot    string
+		staticDir   string
+		maxRunning  int
+		devMode     bool
+		showVersion bool
 	)
 	fs.StringVar(&address, "server.address", DefaultServerAddress, "HTTP 监听地址")
 	fs.IntVar(&port, "server.port", DefaultServerPort, "HTTP 监听端口（1-65535）")
@@ -69,8 +72,12 @@ func Load(args []string, getenv func(string) string) (Config, error) {
 	fs.StringVar(&staticDir, "server.static-dir", "", "WebUI 静态资源目录（构建产物 dist；空表示使用内置占位页）")
 	fs.IntVar(&maxRunning, "pcl.max-running-instances", DefaultMaxRunningInstances, "同时运行的 DSH 实例上限（默认 0=不限制；负数非法）")
 	fs.BoolVar(&devMode, "pcl.dev-mode", false, "开发模式（M0 调试 API 开关）")
+	fs.BoolVar(&showVersion, "version", false, "显示版本并退出")
 	if err := fs.Parse(args); err != nil {
 		return Config{}, err
+	}
+	if showVersion {
+		return Config{ShowVersion: true}, nil
 	}
 	if fs.NArg() > 0 {
 		return Config{}, fmt.Errorf("不支持的位置参数：%s", strings.Join(fs.Args(), " "))
@@ -169,6 +176,7 @@ func UsageText() string {
 		"  --server.static-dir string WebUI 静态资源目录（构建产物 dist；空表示使用内置占位页，相对路径按当前目录解析）",
 		"  --pcl.max-running-instances int 同时运行的 DSH 实例上限（默认 " + fmt.Sprintf("%d", DefaultMaxRunningInstances) + "=不限制；负数非法）",
 		"  --pcl.dev-mode            M0 调试模式（默认 false）",
+		"  --version                 显示版本并退出",
 		"  -h, --help                显示本帮助",
 		"",
 	}

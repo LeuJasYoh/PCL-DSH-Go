@@ -342,8 +342,8 @@ func TestSettingsValidation(t *testing.T) {
 
 func TestCreateValidationTable(t *testing.T) {
 	s, _ := newTestStore(t)
-	longName := strings.Repeat("名", 41)
-	exactName := strings.Repeat("名", 40)
+	longName := strings.Repeat("名", 161)
+	exactName := strings.Repeat("名", 160)
 
 	validVersions := []string{"0.0.0", "0.2.1-rc.3", "1.2.3-0", "1.2.3-alpha.1", "1.2.3-alpha.1+build.5", "10.20.30"}
 	for i, version := range validVersions {
@@ -381,12 +381,17 @@ func TestCreateValidationTable(t *testing.T) {
 		{"版本数字 prerelease 前导零", CreateInstanceInput{Name: "x", Version: "1.2.3-01", Profile: "web", Port: 31013}},
 		{"版本 build 空段", CreateInstanceInput{Name: "x", Version: "1.2.3+bad..x", Profile: "web", Port: 31014}},
 		{"profile 空", CreateInstanceInput{Name: "x", Version: "1.2.3", Profile: "", Port: 31015}},
-		{"profile 含空格", CreateInstanceInput{Name: "x", Version: "1.2.3", Profile: "web profile", Port: 31016}},
-		{"profile 含斜杠", CreateInstanceInput{Name: "x", Version: "1.2.3", Profile: "web/x", Port: 31017}},
-		{"profile 含冒号", CreateInstanceInput{Name: "x", Version: "1.2.3", Profile: "web:x", Port: 31018}},
-		{"profile 含中文", CreateInstanceInput{Name: "x", Version: "1.2.3", Profile: "网页", Port: 31019}},
+		{"profile 首尾空格", CreateInstanceInput{Name: "x", Version: "1.2.3", Profile: " web", Port: 31016}},
+		{"profile 连续点", CreateInstanceInput{Name: "x", Version: "1.2.3", Profile: "a..b", Port: 31017}},
+		{"profile 结尾点", CreateInstanceInput{Name: "x", Version: "1.2.3", Profile: "a.", Port: 31018}},
+		{"profile 保留名", CreateInstanceInput{Name: "x", Version: "1.2.3", Profile: "node_modules", Port: 31019}},
+		{"profile 含斜杠", CreateInstanceInput{Name: "x", Version: "1.2.3", Profile: "web/x", Port: 31020}},
+		{"profile 含冒号", CreateInstanceInput{Name: "x", Version: "1.2.3", Profile: "web:x", Port: 31021}},
+		{"profile 以点开头", CreateInstanceInput{Name: "x", Version: "1.2.3", Profile: ".hidden", Port: 31022}},
+		{"profile 超长", CreateInstanceInput{Name: "x", Version: "1.2.3", Profile: strings.Repeat("p", 65), Port: 31023}},
 		{"端口 0", CreateInstanceInput{Name: "x", Version: "1.2.3", Profile: "web", Port: 0}},
 		{"端口负数", CreateInstanceInput{Name: "x", Version: "1.2.3", Profile: "web", Port: -1}},
+		{"端口低于 1024", CreateInstanceInput{Name: "x", Version: "1.2.3", Profile: "web", Port: 1023}},
 		{"端口过大", CreateInstanceInput{Name: "x", Version: "1.2.3", Profile: "web", Port: 65536}},
 	}
 	for _, tc := range tests {
@@ -395,9 +400,21 @@ func TestCreateValidationTable(t *testing.T) {
 		}
 	}
 
-	// 边界合法值：40 个字符的名称与端口 1/65535。
-	if _, err := s.CreateInstance(CreateInstanceInput{Name: exactName, Version: "1.0.0", Profile: "p-1_2.3", Port: 1}); err != nil {
-		t.Fatalf("40 字符名称/端口 1 应合法: %v", err)
+	// 合法 profile：ASCII、空格和 Unicode 都受支持，长度上限 64 个字符。
+	for i, validProfile := range []string{"web", "p-1_2.3", "web profile", "中文 配置", "网页"} {
+		if _, err := s.CreateInstance(CreateInstanceInput{
+			Name:    fmt.Sprintf("profile-ok-%d", i),
+			Version: "1.2.3",
+			Profile: validProfile,
+			Port:    32000 + i,
+		}); err != nil {
+			t.Fatalf("合法 profile %q 被拒绝: %v", validProfile, err)
+		}
+	}
+
+	// 边界合法值：160 个字符的名称与端口 1024/65535。
+	if _, err := s.CreateInstance(CreateInstanceInput{Name: exactName, Version: "1.0.0", Profile: "p-1_2.3", Port: 1024}); err != nil {
+		t.Fatalf("160 字符名称/端口 1024 应合法: %v", err)
 	}
 	if _, err := s.CreateInstance(CreateInstanceInput{Name: "p", Version: "1.0.0", Profile: "web", Port: 65535}); err != nil {
 		t.Fatalf("端口 65535 应合法: %v", err)

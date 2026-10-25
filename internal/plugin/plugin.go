@@ -21,6 +21,7 @@ import (
 
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/apierr"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/config"
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/ports"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/runtime"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/store"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/tools"
@@ -140,7 +141,7 @@ var instanceRunningProbe = probeInstancePort
 // probeInstancePort reports whether something accepts TCP connections on the
 // instance loopback port.
 func probeInstancePort(port int) bool {
-	if port < 1 || port > 65535 {
+	if !ports.ValidInstance(port) {
 		return false
 	}
 	connection, err := net.DialTimeout("tcp", net.JoinHostPort("127.0.0.1", strconv.Itoa(port)), portProbeTimeout)
@@ -155,7 +156,7 @@ func probeInstancePort(port int) bool {
 // running check lives in the API/app layer (process manager state); this is a
 // fail-safe so plugin mutations never run while DSH is live.
 func (s *Service) instanceRunning(instance store.Instance) bool {
-	if instance.Port < 1 || instance.Port > 65535 {
+	if !ports.ValidInstance(instance.Port) {
 		return false
 	}
 	return instanceRunningProbe(instance.Port)

@@ -265,7 +265,7 @@ func TestServiceProbeNotInstalled(t *testing.T) {
 	if _, err := service.Probe(context.Background(), serviceTestVersion, "web"); err == nil {
 		t.Fatalf("Probe() succeeded for a missing runtime")
 	}
-	if _, err := service.Probe(context.Background(), serviceTestVersion, "bad profile"); err == nil {
+	if _, err := service.Probe(context.Background(), serviceTestVersion, "bad/profile"); err == nil {
 		t.Fatalf("Probe() accepted an invalid profile")
 	}
 }

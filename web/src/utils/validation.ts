@@ -1,33 +1,37 @@
 /**
- * Client-side validation with the exact Chinese wording used by the desktop
- * launcher (ShellView.editInstance validation + Controller.saveSettings).
- * The server repeats these checks; these helpers only provide instant feedback.
+ * Client-side validation mirroring internal/store/validate.go; the server
+ * repeats these checks. These helpers only provide instant feedback.
  */
 
-const VERSION_PATTERN = /^[0-9][0-9A-Za-z.+-]{0,79}$/
-const PROFILE_PATTERN = /^[\p{L}\p{N}][\p{L}\p{N}._ -]{0,127}$/u
+const VERSION_MAX_LENGTH = 128
+const VERSION_PATTERN = /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(\.(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?$/
+const PROFILE_MAX_LENGTH = 64
+const PROFILE_PATTERN = /^[\p{L}\p{N}][\p{L}\p{N}._ -]{0,63}$/u
 const RESERVED_PROFILE = /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(\..*)?$/i
 
 export function validateInstanceName(name: string): string | null {
   const value = name.trim()
   if (!value) return '请输入实例名称。'
-  if (value.length > 160) return '实例名称请控制在 160 个字符以内。'
+  if (Array.from(value).length > 160) return '实例名称请控制在 160 个字符以内。'
   return null
 }
 
 export function validateVersion(version: string): string | null {
   const value = version.trim()
   if (!value) return '请输入 Harness 版本。'
-  if (!VERSION_PATTERN.test(value)) return '请输入精确版本号，例如 0.1.0-rc.6。'
+  if (value.length > VERSION_MAX_LENGTH) return '版本号过长。'
+  if (!VERSION_PATTERN.test(value)) return '请输入完整 SemVer 版本（例如 1.2.3-rc.1）。'
   return null
 }
 
 export function validateProfile(profile: string): string | null {
-  const value = profile.trim()
-  if (!value) return '请输入 Profile 名称。'
-  if (!PROFILE_PATTERN.test(value) || value.includes('..') || value.endsWith('.') || value.endsWith(' ')
-      || RESERVED_PROFILE.test(value)) {
-    return 'Profile 名称须为 1–128 个字符，可使用中文、数字、空格、点、下划线或连字符；不支持路径符号、连续点和系统保留名。'
+  const value = profile
+  if (!value.trim()) return '请输入 Profile 名称。'
+  if (value !== value.trim()) return 'Profile 名称首尾不能有空格。'
+  if (Array.from(value).length > PROFILE_MAX_LENGTH) return 'Profile 名称不能超过 64 个字符。'
+  if (!PROFILE_PATTERN.test(value) || value.includes('..') || value.endsWith('.')
+      || RESERVED_PROFILE.test(value) || value.toLowerCase() === 'node_modules') {
+    return 'Profile 须以字母或数字开头，只允许字母、数字、空格、点、下划线和连字符；不支持路径符号、连续点、结尾点或系统保留名。'
   }
   return null
 }

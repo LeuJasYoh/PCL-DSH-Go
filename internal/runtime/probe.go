@@ -11,6 +11,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	profilecheck "github.com/LeuJasYoh/PCL-DSH-Go/internal/profile"
 )
 
 const (
@@ -32,8 +34,6 @@ var (
 	webAliasPattern = regexp.MustCompile(`(?m)(?:^[ \t]*web(?:[ \t]|\[)|\bdsh[ \t]+web(?:[ \t]|$))`)
 	// optionFlagPattern validates manual option declarations.
 	optionFlagPattern = regexp.MustCompile("^--[A-Za-z][A-Za-z0-9-]*$")
-	// profilePattern matches the profile names accepted by the instance store.
-	profilePattern = regexp.MustCompile("^[A-Za-z0-9._-]{1,128}$")
 )
 
 // Capabilities is the frozen capability descriptor for an installed runtime
@@ -419,8 +419,7 @@ func containsString(values []string, wanted string) bool {
 	return false
 }
 
-// validProfileName validates a profile name using the same character set as the
-// instance store.
+// validProfileName validates a profile name using the shared profile rules.
 func validProfileName(profile string) bool {
-	return profilePattern.MatchString(profile)
+	return profilecheck.Valid(profile)
 }

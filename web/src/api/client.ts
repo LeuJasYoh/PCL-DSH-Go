@@ -1,7 +1,5 @@
 import type { ApiErrorBody } from './types'
-
-const CSRF_COOKIE = 'XSRF-TOKEN'
-const CSRF_HEADER = 'X-XSRF-TOKEN'
+import { CSRF_COOKIE, CSRF_HEADER } from '@/config'
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 

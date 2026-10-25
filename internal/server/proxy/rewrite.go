@@ -9,6 +9,8 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/protocol"
 )
 
 const (
@@ -16,13 +18,6 @@ const (
 	workbenchPrefix = "/workbench/"
 	// maxInstanceIDLength bounds the instance id accepted in the URL.
 	maxInstanceIDLength = 128
-	// dshAuthCookiePrefix identifies cookies that belong to the DSH instance
-	// and therefore must be forwarded upstream.
-	dshAuthCookiePrefix = "dsh-auth-"
-	// sessionCookieName / csrfCookieName belong to the console itself and must
-	// never reach the DSH process.
-	sessionCookieName = "JSESSIONID"
-	csrfCookieName    = "XSRF-TOKEN"
 )
 
 // hopByHopHeaders are connection-scoped headers that are never forwarded in
@@ -175,7 +170,7 @@ func hasDshAuthCookie(header http.Header) bool {
 	for _, line := range header.Values("Cookie") {
 		for _, part := range strings.Split(line, ";") {
 			name, _, _ := strings.Cut(strings.TrimSpace(part), "=")
-			if strings.HasPrefix(strings.TrimSpace(name), dshAuthCookiePrefix) {
+			if strings.HasPrefix(strings.TrimSpace(name), protocol.DSHAuthCookiePrefix) {
 				return true
 			}
 		}
@@ -206,7 +201,7 @@ func dshCookieHeader(header http.Header) string {
 }
 
 func isConsoleCookieName(name string) bool {
-	return strings.EqualFold(name, sessionCookieName) || strings.EqualFold(name, csrfCookieName)
+	return strings.EqualFold(name, protocol.SessionCookieName) || strings.EqualFold(name, protocol.CSRFCookieName)
 }
 
 // filteredRequestHeaders builds the upstream request header set. Hop-by-hop,

@@ -4,7 +4,7 @@
 #
 # Usage:
 #   bash scripts/wsl/m5-acceptance.sh --selfcheck
-#   M5_RELEASE=/path/to/pcl-dsh-go-1.0.0-linux-amd64 bash scripts/wsl/m5-acceptance.sh --isolated
+#   M5_RELEASE=/path/to/pcl-dsh-go-<version>-linux-amd64 bash scripts/wsl/m5-acceptance.sh --isolated
 #   M5_LIVE_READY=1 bash scripts/wsl/m5-acceptance.sh --live
 #   bash scripts/wsl/m5-acceptance.sh --full
 # Evidence: docs/evidence/m5/m5-acceptance-<ts>.log.txt (sanitized) + EXIT_CODE.
@@ -27,7 +27,9 @@ ISO_PORT=18085
 LIVE_URL="${M5_LIVE_URL:-http://127.0.0.1}"
 LIVE_DATA="${M5_LIVE_DATA:-/var/lib/pcl-dsh-go}"
 LIVE_PREFIX="${M5_LIVE_PREFIX:-/opt/pcl-dsh-go}"
-EXPECTED_VERSION="${M5_VERSION:-0.2.1}"
+VERSION_FILE="$REPO_ROOT/VERSION"
+[ -f "$VERSION_FILE" ] || { echo "m5-acceptance: 缺少 $VERSION_FILE" >&2; exit 2; }
+EXPECTED_VERSION="${M5_VERSION:-$(tr -d '[:space:]' < "$VERSION_FILE")}"
 NGINX_CONFIG=""
 
 san() {

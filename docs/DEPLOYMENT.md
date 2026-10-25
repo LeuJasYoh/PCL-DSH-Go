@@ -1,6 +1,6 @@
 # 部署与运维
 
-本文面向 Linux x86_64 服务器（含 WSL2 本机部署），介绍 PCL-DSH-Go 0.2.1 的安装、升级、回滚、卸载、重置、systemd/Nginx 与排障。参数细节见 [配置参考](CONFIGURATION.md)。
+本文面向 Linux x86_64 服务器（含 WSL2 本机部署），介绍 PCL-DSH-Go 当前版本（根目录 `VERSION`）的安装、升级、回滚、卸载、重置、systemd/Nginx 与排障。参数细节见 [配置参考](CONFIGURATION.md)。
 
 ## 1. 部署拓扑
 
@@ -31,13 +31,13 @@ DSH 实例（默认不限并发；127.0.0.1:3080+）
 | Nginx | ≥ 1.18（使用 `map`/HTTP 1.1/Upgrade） |
 | 网络 | 安装 DSH 运行时/插件需访问 npm registry（可在 WebUI「设置」配置 registry/代理） |
 | 磁盘 | release 约数百 MB；每个 DSH 运行时约 500 MB；再预留数据/日志/缓存 |
-| 端口 | `:80`（Nginx）；`127.0.0.1:8080`（管理器）；`127.0.0.1:3080+`（实例） |
+| 端口 | `:80`（Nginx）；`127.0.0.1:8080`（管理器）；`127.0.0.1:1024–65535`（实例，自动分配从 3080 起） |
 
 ## 3. 发布包与校验
 
 ```text
-pcl-dsh-go-0.2.1-linux-amd64/
-  bin/pcl-dsh-go                 # linux/amd64（version 0.2.1）
+pcl-dsh-go-<version>-linux-amd64/
+  bin/pcl-dsh-go                 # linux/amd64（version 见包内 VERSION）
   static/                        # WebUI 构建产物
   tools/node/                    # 内置 Node 24.22.1
   tools/pnpm/                    # 内置 pnpm 11.28.5
@@ -64,8 +64,9 @@ file bin/pcl-dsh-go        # 期望 ELF 64-bit LSB ... x86-64
 
 ## 4. 安装
 
+在第 3 节解包得到的发行包根目录执行：
+
 ```bash
-cd pcl-dsh-go-0.2.1-linux-amd64
 sudo ./packaging/install.sh
 ```
 
@@ -145,7 +146,9 @@ sudo tail -n 100 /var/log/nginx/error.log
 
 ## 9. 回滚
 
-前提：旧版本目录仍在 `<prefix>/releases/<oldver>`，且旧版本能读当前数据 schema。
+前提：旧版本目录仍在 `<prefix>/releases/<oldver>`，且旧版本能读取当前配置、密码哈希和实例记录。
+
+> 当前源码新生成或修改的密码使用 `bcrypt-sha256:` 格式，旧版 0.2.1 程序无法读取，即使 `schemaVersion` 仍为 1。若已改密或新建过管理员凭据，不能只切换程序回滚，需先停服务并恢复升级前的兼容数据备份。长名称、Unicode/空格 profile 等新规则也可能不被旧版接受。反过来，旧记录若含低于 1024 的实例端口或不符合新 Profile 规则的名字，也会被新版校验拒绝；升级前需核对。
 
 ```bash
 sudo ls -1 /opt/pcl-dsh-go/releases
@@ -158,14 +161,16 @@ curl -sf http://127.0.0.1:8080/api/health; echo
 
 ## 10. 卸载
 
-在发行包 `packaging/` 目录内执行：
+在解包后的发行包根目录执行：
 
 ```bash
 sudo ./packaging/uninstall.sh              # 删除程序/unit/Nginx site，保留数据
 sudo ./packaging/uninstall.sh --purge-data # 额外删除数据目录与 pcl-dsh 用户（不可恢复！）
 ```
 
-默认保留 `/var/lib/pcl-dsh-go`；卸载会恢复被备份的默认 Nginx 站。若安装时使用自定义 `--data-dir`，`--purge-data` 只会删除默认数据目录，自定义目录请手工处理。
+默认保留 `/var/lib/pcl-dsh-go`；卸载会恢复被备份的默认 Nginx 站。
+
+> **自定义目录限制**：卸载脚本尚未支持 `--data-dir`，`--purge-data` 会删除默认 `/var/lib/pcl-dsh-go`，不会识别安装时选择的其它目录。使用自定义数据目录时不要执行该选项；先保留数据卸载，再由管理员核对、备份并处理实际目录。脚本修复仍属待办，本次未改其删除逻辑。
 
 ## 11. 重置数据（危险）
 
@@ -204,7 +209,7 @@ sudo systemctl start pcl-dsh-go
 | `<data>/logs/` | 0700 |
 | `/etc/systemd/system/pcl-dsh-go.service`、Nginx site | 0644 root:root |
 
-端口：`:80`（Nginx 对外）、`127.0.0.1:8080`（管理器）、`127.0.0.1:3080+`（实例）。运行实例上限默认 `0`（不限制），可用 `--max-running-instances` 控制（见 [配置参考](CONFIGURATION.md#6-运行实例上限与资源建议)）。
+端口：`:80`（Nginx 对外）、`127.0.0.1:8080`（管理器）、`127.0.0.1:1024–65535`（实例，自动分配从 3080 起）。运行实例上限默认 `0`（不限制），可用 `--max-running-instances` 控制（见 [配置参考](CONFIGURATION.md#6-运行实例上限与资源建议)）。
 
 
 ## 14. WSL2 本机部署

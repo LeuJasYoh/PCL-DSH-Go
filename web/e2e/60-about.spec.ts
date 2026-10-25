@@ -14,4 +14,10 @@ test('关于页可查看 GPL 全文与 HMCL 附加条款', async ({ page }) => {
 
   await page.locator('[data-testid="license-dialog"] .modal-footer .btn-primary').click()
   await expect(page.getByTestId('license-dialog')).toHaveCount(0)
+
+  const header = page.getByTestId('page-header')
+  await expect(header.locator('.page-header__title')).toContainText('设置')
+  await expect(header.locator('button')).toHaveCount(1)
+  await header.getByTestId('window-home').click()
+  await expect(page.getByTestId('page-home')).toBeVisible()
 })

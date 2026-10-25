@@ -60,11 +60,8 @@ export const useAppStateStore = defineStore('appState', () => {
     return error.value ? '读取工作空间失败' : '就绪'
   })
 
-  const taskActive = computed(() => statusText.value.startsWith('进行中：'))
-  const taskPhase = computed(() => {
-    const text = statusText.value
-    return taskActive.value ? text.slice('进行中：'.length).trim() : ''
-  })
+  const taskActive = computed(() => status.value?.code === 'RUNNING')
+  const taskPhase = computed(() => status.value?.phase ?? '')
 
   const backendState = computed<'unknown' | 'ok' | 'not-implemented' | 'error'>(() => {
     const code = errorStatus.value

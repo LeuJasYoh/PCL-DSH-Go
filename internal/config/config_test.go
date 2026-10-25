@@ -128,6 +128,18 @@ func TestLoadHelp(t *testing.T) {
 	}
 }
 
+func TestLoadVersion(t *testing.T) {
+	for _, arg := range []string{"--version", "-version"} {
+		cfg, err := Load([]string{arg}, func(string) string { return "" })
+		if err != nil {
+			t.Fatalf("Load(%q) 失败：%v", arg, err)
+		}
+		if !cfg.ShowVersion {
+			t.Errorf("Load(%q).ShowVersion = false, 期望 true", arg)
+		}
+	}
+}
+
 func TestLoadNilGetenv(t *testing.T) {
 	cfg, err := Load(nil, nil)
 	if err != nil {
@@ -140,7 +152,7 @@ func TestLoadNilGetenv(t *testing.T) {
 
 func TestUsageTextContainsFlags(t *testing.T) {
 	text := UsageText()
-	for _, want := range []string{"--server.address", "--server.port", "--pcl.data-root", "--pcl.tool-root", "--server.static-dir", "--pcl.dev-mode", EnvDataRoot} {
+	for _, want := range []string{"--server.address", "--server.port", "--pcl.data-root", "--pcl.tool-root", "--server.static-dir", "--pcl.dev-mode", "--version", EnvDataRoot} {
 		if !strings.Contains(text, want) {
 			t.Errorf("UsageText 缺少 %q", want)
 		}

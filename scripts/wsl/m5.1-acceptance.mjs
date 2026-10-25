@@ -5,7 +5,8 @@ import { fileURLToPath } from 'node:url'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const REPO = path.resolve(HERE, '..', '..')
-const RELEASE = process.env.M52_RELEASE || path.join(REPO, 'release', 'pcl-dsh-go-0.2.1-linux-amd64')
+const PROJECT_VERSION = process.env.PCL_DSH_VERSION || fs.readFileSync(path.join(REPO, 'VERSION'), 'utf8').trim()
+const RELEASE = process.env.M52_RELEASE || path.join(REPO, 'release', 'pcl-dsh-go-' + PROJECT_VERSION + '-linux-amd64')
 const BIN = path.join(RELEASE, 'bin', 'pcl-dsh-go')
 const TOOLS = path.join(RELEASE, 'tools')
 const STATIC = path.join(RELEASE, 'static')

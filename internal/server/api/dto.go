@@ -38,6 +38,7 @@ type RuntimeDTO struct {
 type StatusDTO struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
+	Phase   string `json:"phase,omitempty"`
 }
 
 // SettingsDTO is the manager settings payload (GET/PUT /api/settings).
@@ -125,10 +126,10 @@ func (a *API) statusDTO() StatusDTO {
 			if phase == "" {
 				phase = "任务执行中"
 			}
-			return StatusDTO{Code: "RUNNING", Message: "进行中：" + phase}
+			return StatusDTO{Code: "RUNNING", Message: "进行中：" + phase, Phase: phase}
 		}
 	}
-	return StatusDTO{Code: "RUNNING", Message: "进行中：任务执行中"}
+	return StatusDTO{Code: "RUNNING", Message: "进行中：任务执行中", Phase: "任务执行中"}
 }
 
 // isActiveStatus reports whether a process status code represents an active

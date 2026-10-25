@@ -6,17 +6,20 @@ import (
 	"crypto/subtle"
 	"net/http"
 	"time"
+
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/protocol"
 )
 
 // Cookie and header names of the session/CSRF protocol
-// (docs/IMPLEMENTATION_SPEC.md 4.1).
+// (docs/IMPLEMENTATION_SPEC.md 4.1). The values live in internal/protocol so
+// the workbench proxy strips exactly the same names.
 const (
 	// SessionCookieName carries the opaque session id.
-	SessionCookieName = "JSESSIONID"
+	SessionCookieName = protocol.SessionCookieName
 	// CSRFCookieName is the readable double-submit CSRF cookie.
-	CSRFCookieName = "XSRF-TOKEN"
+	CSRFCookieName = protocol.CSRFCookieName
 	// CSRFHeaderName is the request header that must echo CSRFCookieName.
-	CSRFHeaderName = "X-XSRF-TOKEN"
+	CSRFHeaderName = protocol.CSRFHeaderName
 )
 
 // NewCSRFToken returns a fresh CSRF token: 32 lowercase hex characters

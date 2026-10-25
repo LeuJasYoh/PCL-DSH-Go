@@ -47,7 +47,7 @@ func (s *Service) ProfileInstallEnvironment(dirs config.Dirs, instanceID, profil
 	if !instanceIDPattern.MatchString(instanceID) {
 		return "", nil, fmt.Errorf("实例 ID 无效：%q", instanceID)
 	}
-	if !validProfileName(profile) || profile == "." || profile == ".." {
+	if !validProfileName(profile) {
 		return "", nil, fmt.Errorf("profile 名称无效：%q", profile)
 	}
 	if s.tools == nil || s.tools.NodePath == "" || s.tools.PnpmScript == "" {

@@ -1,6 +1,6 @@
 # 配置参考
 
-本文列出 PCL-DSH-Go 0.2.1 的启动参数、环境变量、数据目录、端口与运行实例上限。部署步骤见 [部署与运维](DEPLOYMENT.md)，WebUI 内设置见 [用户指南 ` 设置](USER_GUIDE.md#11-设置)。
+本文列出 PCL-DSH-Go 当前源码的启动参数、环境变量、数据目录、端口与运行实例上限，项目版本见 [`VERSION`](../VERSION)。部署步骤见 [部署与运维](DEPLOYMENT.md)，WebUI 内设置见 [用户指南 · 设置](USER_GUIDE.md#11-设置)。
 
 ## 1. 启动参数
 
@@ -15,6 +15,7 @@
 | `--pcl.tool-root` | 空 | 内置 Node/pnpm 的 tools 根目录；为空时依次查找 `<tool-root>` → `<data-root>/tools` → `PATH` |
 | `--pcl.max-running-instances` | `0` | 同时运行的 DSH 实例上限：`0` = 不限制；`>0` 为上限；负数启动报错 |
 | `--pcl.dev-mode` | `false` | 启用调试接口（仅开发/测试；生产保持关闭） |
+| `--version` | — | 打印构建时注入的项目版本并退出 |
 | `-h` / `--help` | — | 打印帮助并退出 |
 
 示例：
@@ -46,7 +47,7 @@ release 打包脚本另识别 `PCL_DSH_TOOLS_DIR` / `PCL_DSH_RELEASE_DIR`（仅�
   config/
     manager.json        # schemaVersion 1：selectedInstanceId + settings(proxy/registry/directAccessSshUser)
     instances.json      # schemaVersion 1：实例列表（id/name/version/profile/port/createdAt/updatedAt）
-    admin.json          # schemaVersion 1：管理员 BCrypt 密码哈希 + initialPasswordPending
+    admin.json          # schemaVersion 1：管理员 bcrypt-sha256 密码哈希 + initialPasswordPending
     compatibility.json  # 可选：运行时能力人工声明
   instances/<id>/{dsh-home,workspace,agents-home}
   runtimes/<semver>/    # 由内置 pnpm 安装的 DSH 运行时
@@ -69,7 +70,7 @@ release 打包脚本另识别 `PCL_DSH_TOOLS_DIR` / `PCL_DSH_RELEASE_DIR`（仅�
 | `8080`（或 `--server.port`） | 管理器 HTTP | 仅回环（Nginx 反代） |
 | `3080+`（自动分配） | DSH 实例监听 | 仅回环（由管理器/反代访问） |
 
-不要把 `8080` 暴露到公网；实例端口由创建实例时自动分配，也可手动指定空闲端口。
+不要把 `8080` 暴露到公网；实例端口由创建实例时自动分配（3080 起），也可手动指定 1024–65535 的空闲端口。
 
 ## 5. 工具链（Node/pnpm）
 
@@ -144,8 +145,9 @@ ReadWritePaths=/var/lib/pcl-dsh-go
 
 ## 10. 数据 schema 与兼容性
 
-- 配置文件均带 `schemaVersion: 1`；管理器启动时校验，遇到不支持版本会明确报错，不会静默改写。
-- 升级前请备份数据；跨 schema 版本回滚需要同时恢复旧数据（见 [DEPLOYMENT.md](DEPLOYMENT.md#9-回滚)）。
+- 管理器主要配置文件使用 `schemaVersion: 1`；管理器启动时校验，遇到不支持版本会明确报错，不会静默改写。
+- `admin.json.passwordHash` 新值使用 `bcrypt-sha256:` 前缀，旧 BCrypt 哈希仍可读取，改密后写入新格式；schemaVersion 未变不代表旧程序能读新哈希。
+- 升级前请备份数据；跨 schema 或密码哈希格式回滚需要恢复兼容的旧数据（见 [DEPLOYMENT.md](DEPLOYMENT.md#9-回滚)）。
 - 不兼容旧版 PCL-DSH（其他管理器）的 data-root，也不做自动迁移。
 
 ## 11. 环境变量与日志

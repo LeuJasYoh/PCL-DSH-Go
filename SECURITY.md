@@ -23,7 +23,7 @@ PCL-DSH-Go 是单管理员的 DSH 实例管理器，通常部署在可访问内�
 
 ## 安全模型与默认防护
 
-- **认证**：单管理员；密码 BCrypt(cost10) 存储；首次启动生成 24 位随机初始密码（0600，仅首启生成）；首次登录强制改密；连续失败按 IP 限流/锁定。
+- **认证**：单管理员；密码使用 bcrypt-sha256（BCrypt cost 10，兼容旧 BCrypt 哈希）存储；新密码 8–256 字符；首次启动生成 24 位随机初始密码（0600，仅首启生成）；首次登录强制改密；连续失败按 IP 限流/锁定。
 - **会话/请求**：服务端会话 Cookie（HttpOnly/SameSite、12h 滑动过期）；写请求 CSRF 双提交校验；Origin/Referer 同源校验。
 - **网络边界**：管理器只监听 `127.0.0.1:8080`，公网只通过 Nginx；Nginx 对 `/api`、`/workbench` 关闭 access log（query 可能含一次性 token）；建议在 Nginx/前置代理终止 TLS。
 - **权限**：服务以专用 `pcl-dsh` 用户运行；systemd 沙箱（NoNewPrivileges、ProtectSystem=strict、ProtectHome、PrivateTmp、ReadWritePaths 限数据目录）；数据目录 0700、凭据 0600。
@@ -44,7 +44,7 @@ PCL-DSH-Go 是单管理员的 DSH 实例管理器，通常部署在可访问内�
 ## 已知限制（安全相关）
 
 - 单管理员、无 MFA、无多用户隔离；能登录管理员的用户即拥有全部实例/插件管理权限。
-- 应用层 HTTP，TLS 依赖部署方；未启用 HTTP 时会话/密码可能被网络嗅探（请仅在可信网络裸用）。
+- 应用层 HTTP，TLS 依赖部署方；未启用 HTTPS 时会话/密码可能被网络嗅探（请仅在可信网络裸用）。
 - DSH 实例与其插件运行在管理器同一系统用户下，无额外沙箱隔离；不受信任的插件等同于在服务器上执行代码。
 - 工作台旧 Cookie 可能在升级/切换实例后残留导致异常（见 [CHANGELOG](docs/CHANGELOG.md#known-issues)），不是权限绕过，但请清除后使用。
 - 不提供漏洞悬赏或 SLA；维护者按能力尽快处理。

@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/ports"
 )
 
 // readyFromStatus 判定一次 HTTP 探测是否代表服务就绪（docs/DSH_INTEGRATION.md §5.4）：
@@ -97,7 +99,7 @@ func (h *Handle) probeOnce() bool {
 // portFree 通过“能否连接 127.0.0.1:port”判断端口是否空闲。能连接视为被占用。
 // 与参考实现一致：不做独占 bind 预检，避免 TIME_WAIT 误判。
 func portFree(port int) bool {
-	if port < 1 || port > 65535 {
+	if !ports.ValidInstance(port) {
 		return false
 	}
 	conn, err := net.DialTimeout("tcp", "127.0.0.1:"+strconv.Itoa(port), 150*time.Millisecond)

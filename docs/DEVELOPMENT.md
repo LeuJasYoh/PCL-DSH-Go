@@ -1,6 +1,6 @@
 # 开发与发布
 
-本文面向贡献者，说明 PCL-DSH-Go 0.2.1 的本地构建、测试、CI 与发布流程。贡献流程与 PR 要求见 [CONTRIBUTING.md](../CONTRIBUTING.md)。
+本文面向贡献者，说明 PCL-DSH-Go 当前版本（根目录 `VERSION`）的本地构建、测试、CI 与发布流程。贡献流程与 PR 要求见 [CONTRIBUTING.md](../CONTRIBUTING.md)。
 
 ## 1. 工具链
 
@@ -33,7 +33,12 @@ internal/plugin/       # 已装插件管理（Node 桥）
 internal/safe/         # ZIP/TAR 安全归档
 internal/artifact/     # artifact 存储与下载
 internal/directaccess/ # SSH 隧道/一次性 URL
+internal/passhash/     # 密码 8–256 字符、版本化哈希与旧 BCrypt 校验
+internal/profile/      # Unicode Profile 名称规则
+internal/ports/        # 实例端口范围
+internal/protocol/     # 管理器 Cookie/CSRF 名称
 internal/apierr/       # 统一错误模型
+VERSION                # 项目版本权威来源
 web/                   # Vue 3 + TypeScript + Vite WebUI
 packaging/             # install/uninstall/reset、systemd、Nginx 模板
 scripts/               # 构建/验收脚本（frontend-build.ps1、build-release.sh、wsl/…）
@@ -45,15 +50,17 @@ docs/                  # 用户文档；历史设计归档在 docs/dev/
 
 ```bash
 # Linux / WSL 本机
-go build -trimpath -ldflags "-s -w -X main.version=0.2.1" -o bin/pcl-dsh-go ./cmd/pcl-dsh-go
+VERSION="$(cat VERSION)"
+go build -trimpath -ldflags "-s -w -X main.version=$VERSION" -o bin/pcl-dsh-go ./cmd/pcl-dsh-go
 go test ./...
 
 # Windows 开发机交叉编译 Linux 二进制
+VERSION="$(cat VERSION)"
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -trimpath \
-  -ldflags "-s -w -X main.version=0.2.1" -o bin/pcl-dsh-go ./cmd/pcl-dsh-go
+  -ldflags "-s -w -X main.version=$VERSION" -o bin/pcl-dsh-go ./cmd/pcl-dsh-go
 ```
 
-`main.version` 注入进程版本，会出现在 `/api/health`、日志和 WebUI；缺省为 `dev`。不要在 Windows 上运行管理器进程（只做编译/测试/浏览器）。
+`main.version` 注入进程版本，会出现在 `/api/health`、日志和 WebUI；缺省为 `dev`。构建后可用 `bin/pcl-dsh-go --version` 核对注入结果。不要在 Windows 上运行管理器进程（只做编译/测试/浏览器）。
 
 ## 4. 构建前端
 
@@ -97,11 +104,12 @@ wsl -d Ubuntu -- /mnt/d/Projects/DSHL/PCL-DSH-Go/bin/tests/pkg.test
 
 ```bash
 # 1) Linux/amd64 二进制（版本注入）
+VERSION="$(cat VERSION)"
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -trimpath \
-  -ldflags "-s -w -X main.version=0.2.1" -o bin/pcl-dsh-go ./cmd/pcl-dsh-go
+  -ldflags "-s -w -X main.version=$VERSION" -o bin/pcl-dsh-go ./cmd/pcl-dsh-go
 # 2) 构建前端 web/dist
-# 3) 打包（需 Linux/WSL；tools 默认 /opt/pcl-dsh-go/tools）
-bash scripts/build-release.sh --version 0.2.1 \
+# 3) 打包（需 Linux/WSL；tools 默认 /opt/pcl-dsh-go/tools；版本默认读取根 VERSION）
+bash scripts/build-release.sh \
   --tools /opt/pcl-dsh-go/tools \
   --out release
 ```
@@ -111,8 +119,11 @@ bash scripts/build-release.sh --version 0.2.1 \
 ## 8. 版本与发布流程
 
 - **项目版本**（如 `0.2.1`）独立于 DSH 运行时版本（如 `0.2.1-rc.3`），两者不是同一版本体系。
-- 版本变更时更新：`docs/CHANGELOG.md`、文档中的版本号；发布构建时通过 `-X main.version` 注入二进制版本。
-- 发布产物：Linux amd64 release tar.gz + sha256；发布说明引用 CHANGELOG。
+- 仓库根 `VERSION` 是项目版本的权威来源；CI 与文档构建命令读取它，再通过 `-X main.version` 写入二进制。`--version`、API 和 WebUI 展示注入值，程序运行时不读取源码文件，直接 `go build` 未注入时显示 `dev`。
+- 版本变更时更新根 `VERSION` 与 `docs/CHANGELOG.md`，同步 `web/package.json` 和 `web/package-lock.json` 的项目版本（不是依赖版本；CI 会检查 package.json）。前端展示以后端返回值为准，npm 元数据目前仍需同步维护。
+- `scripts/build-release.sh` 默认读取根 `VERSION`，保留 `--version <ver>` 显式覆盖；覆盖时二进制也必须注入同一个版本，脚本会拒绝不一致的包。
+- 日常提交、推送不等于发版；本轮变更保留在 `Unreleased`，正式发行时再确定版本号、创建 tag 并生成发布包。
+- 发布包内置 Node 24.22.1 + pnpm 11.28.5（`tools/`），目标机不依赖系统 Node/npm；发布产物为 Linux amd64 release tar.gz + sha256，发布说明引用 CHANGELOG。
 - 发版前检查：CI 全绿、`scripts/frontend-build.ps1` 成功、release 构建成功、干净 WSL 安装/升级/回滚验收通过。
 - 不要提交 `bin/`、`web/dist`、`release/`、`node_modules` 等构建产物。
 

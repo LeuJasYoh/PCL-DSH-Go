@@ -5,6 +5,7 @@
 ## 必须做
 
 - 先读文档再改代码；实现与文档冲突时先更新文档（或记录决策）再改代码。
+- 版本号以仓库根 `VERSION` 为唯一来源；构建、CI、发布脚本从这里读取，`bin/pcl-dsh-go --version` 必须与之一致；不要在其他文件硬编码项目版本。
 - 使用 Go 1.27+；gofmt/go vet/go test 全绿；前端 npm run build / vue-tsc 通过。
 - 安全优先：认证/会话/CSRF/登录限流/首登改密/日志脱敏/SSRF/路径穿越/上传限制/原子写/flock 按规范实现。
 - 真实 DSH 测试在 WSL 中，用 runtime 副本与独立 data-root（/tmp/pcl-dsh-go-test）；测试后清理。

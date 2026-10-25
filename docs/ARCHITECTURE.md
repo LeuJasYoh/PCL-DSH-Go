@@ -1,6 +1,6 @@
 # 架构说明
 
-本文说明 PCL-DSH-Go 0.2.1 的组件划分、关键流程与安全设计。配置项见 [配置参考](CONFIGURATION.md)，开发构建见 [开发与发布](DEVELOPMENT.md)。
+本文说明 PCL-DSH-Go 当前版本（根目录 `VERSION`）的组件划分、关键流程与安全设计。配置项见 [配置参考](CONFIGURATION.md)，开发构建见 [开发与发布](DEVELOPMENT.md)。
 
 ## 1. 总览
 
@@ -40,7 +40,7 @@
 | internal/config | 启动参数/env、data-root 目录初始化、单实例文件锁 |
 | internal/logging | slog JSON（stdout+按日文件）、审计日志、脱敏、日志 tail |
 | internal/tools | 内置 Node/pnpm 定位与版本探测、子进程命令/环境 |
-| internal/store | manager.json/instances.json/admin.json、原子写、校验、admin 密码（BCrypt）、trash |
+| internal/store | manager.json/instances.json/admin.json、原子写、校验、admin 密码（bcrypt-sha256）、trash |
 | internal/process | 实例进程 spawn/进程组/就绪探测（stdout token）/停止/状态 |
 | internal/runtime | DSH 版本枚举、pnpm 安装、能力探测、启动命令/环境构建、runtime 删除 |
 | internal/app | 编排层：实例 CRUD/启停、运行时安装/删除、设置、日志 tail、并发上限 |
@@ -54,6 +54,10 @@
 | internal/safe | ZIP/TAR 安全归档：路径/链接/CRC/压缩比/限值/取消 |
 | internal/artifact | 导出文件存储（artifacts.json，TTL 24h）与下载 |
 | internal/directaccess | SSH 隧道命令与一次性 token URL 构建 |
+| internal/passhash | 管理员密码策略与哈希（bcrypt-sha256，兼容旧 BCrypt） |
+| internal/profile | DSH profile 名称校验（支持 Unicode/空格，路径与保留名防护） |
+| internal/ports | 实例端口规则（1024–65535） |
+| internal/protocol | 会话/CSRF Cookie 与 Header 名 |
 | internal/apierr | 统一错误模型（HTTP 状态 + code + 中文 message） |
 
 历史设计文档（里程碑接口/规格）归档在 [dev/README.md](dev/README.md)，不作为当前实现依据；当前实现以代码与用户文档为准。
@@ -67,6 +71,8 @@
 2. /api/** 进入管理器：会话 Cookie 校验 → 首登门槛 → CSRF（写请求）→ Origin/JSON 限制 → handler。
 3. 未登录/会话失效返回 401；首登未改密除认证/健康检查外返回 403 PASSWORD_CHANGE_REQUIRED；写请求缺 CSRF 返回 403。
 4. 长任务写接口创建 Job（202）并通过 /api/jobs 与 SSE 查询进度；管理器同时只执行一个阻塞型 Job，忙时返回 409 CONFLICT_BUSY。
+5. `GET /api/state` 的 `status.code` 表示 `READY`/`RUNNING`，运行时附带 `phase`；`message` 仅作展示，前端不再从中文前缀推断任务状态。
+6. 管理器 Cookie 与 CSRF Header 名称由 `internal/protocol` 提供，安全层和工作台代理共用；前端对应值位于 `web/src/config.ts`。代理剥离管理器凭据，DSH Cookie 按原反代规则处理，旧 Cookie 自动恢复仍未实现。
 
 ### 4.2 运行时安装
 
@@ -94,7 +100,7 @@
 
 | 面 | 措施 |
 | --- | --- |
-| 认证 | 单管理员 BCrypt(cost10)；初始密码 24 位随机、0600、仅首启生成；首登强制改密 |
+| 认证 | 单管理员 bcrypt-sha256(cost10，兼容旧 BCrypt)，新密码 8–256 字符；初始密码 24 位随机、0600、仅首启生成；首登强制改密 |
 | 会话 | 服务端会话 Cookie（HttpOnly、SameSite、12h 滑动过期）；登出废止 |
 | CSRF/Origin | 写请求双提交 CSRF；Origin/Referer 与 Host 同源校验；代理仅信任回环上游与 Nginx 注入的 X-Real-IP |
 | 暴力破解 | 按客户端 IP 统计失败次数，窗口内锁定并返回 423 |
@@ -102,7 +108,7 @@
 | 日志 | 结构化日志写前脱敏（token/password/api_key/authorization/cookie/URL token）；Nginx 敏感路径 access_log off |
 | 上传/归档 | 2 GiB 上限、路径穿越/绝对路径/保留名/链接/特殊文件/压缩炸弹/CRC 全校验；解包目标限 data-root 内且父链无 symlink |
 | 依赖/插件 | 运行时与插件来自 npm registry，安装会执行第三方代码；仅使用可信 registry/插件 |
-| 密钥 | 不保存 DSH 凭据/API Key；管理员密码仅存 BCrypt 哈希；一次性 token 不入日志 |
+| 密钥 | 不保存 DSH 凭据/API Key；管理员密码仅存加盐哈希；一次性 token 不入日志 |
 
 进一步加固与漏洞报告见 [SECURITY.md](../SECURITY.md)。
 
@@ -119,12 +125,12 @@
 | --- | --- |
 | :80（可配置） | Nginx 对外入口 |
 | 127.0.0.1:8080 | 管理器 API/静态 |
-| 127.0.0.1:3080+ | DSH 实例（自动分配，仅回环） |
+| 127.0.0.1:1024–65535（自动分配从 3080 起） | DSH 实例（仅回环） |
 
 Nginx 反代需保持 HTTP/1.1、关闭代理缓冲（SSE）、透传 Upgrade（WS），并按配置保留 Host 端口；详见发行包 Nginx 模板与 [DEPLOYMENT.md](DEPLOYMENT.md#7-nginx)。
 
 ## 8. 兼容性与扩展
 
-- 已验证 DSH 运行时不限于单一版本：安装/探测按实际 npm 包能力执行；能力差异通过 compatibility.json 与能力探测处理，不支持的启动请求会明确报错。
+- 已验证 DSH 基线为 `0.2.1-rc.3`；版本选择未锁定该版本，其他版本按实际 npm 包能力安装/探测，但不代表均已验收。能力差异通过 compatibility.json 与能力探测处理，不支持的启动请求会明确报错。
 - WebUI 与 API 同源部署，静态资源可继续由 Nginx 托管；接入新的前端构建产物只需替换 static/。
 - 若需多用户/账户体系，应在反向代理/外部身份层实现，当前版本不内置。

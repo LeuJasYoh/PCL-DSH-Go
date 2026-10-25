@@ -129,7 +129,7 @@ func TestListEmptyProfileAndErrors(t *testing.T) {
 	} else if apiErr, ok := apierr.As(err); !ok || apiErr.Status != 404 || apiErr.Code != apierr.CodeNotFound {
 		t.Fatalf("List(missing instance) error = %v, want 404 NOT_FOUND", err)
 	}
-	for _, profile := range []string{"", "bad profile", ".."} {
+	for _, profile := range []string{"", "bad/profile", ".."} {
 		if _, err := fixture.service.List(context.Background(), fixture.instance.ID, profile); err == nil {
 			t.Fatalf("List(profile=%q) succeeded, want 400", profile)
 		} else if apiErr, ok := apierr.As(err); !ok || apiErr.Status != 400 || apiErr.Code != apierr.CodeValidation {
@@ -314,7 +314,7 @@ func TestMutatePreconditions(t *testing.T) {
 		},
 		{
 			name:      "invalid profile",
-			input:     MutateInput{InstanceID: fixture.instance.ID, Profile: "bad profile", Action: ActionAdd, Spec: "@acme/x"},
+			input:     MutateInput{InstanceID: fixture.instance.ID, Profile: "bad/profile", Action: ActionAdd, Spec: "@acme/x"},
 			wantStaus: 400,
 			wantCode:  apierr.CodeValidation,
 		},
@@ -394,10 +394,16 @@ func TestInstanceRunningProbe(t *testing.T) {
 			t.Fatalf("probeInstancePort(%d) = false, want true for a live listener", port)
 		}
 		_ = listener.Close()
-		if !probeInstancePort(port) {
-			// A closed port is free unless another process (or WSL localhost
-			// forwarding) grabbed it again immediately.
-			closedObserved = true
+		// WSL localhost forwarding can release a closed listener asynchronously.
+		deadline := time.Now().Add(time.Second)
+		for time.Now().Before(deadline) {
+			if !probeInstancePort(port) {
+				closedObserved = true
+				break
+			}
+			time.Sleep(10 * time.Millisecond)
+		}
+		if closedObserved {
 			break
 		}
 	}

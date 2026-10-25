@@ -12,7 +12,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-VERSION="0.2.1"
+VERSION=""
 TOOLS_DIR="${PCL_DSH_TOOLS_DIR:-/opt/pcl-dsh-go/tools}"
 OUT_DIR="${PCL_DSH_RELEASE_DIR:-$REPO_ROOT/release}"
 
@@ -20,7 +20,7 @@ usage() {
   cat <<'EOF'
 Usage: scripts/build-release.sh [options]
 
-  --version <ver>   Release version (default: 1.0.0)
+  --version <ver>   Release version (default: repo VERSION)
   --tools <dir>     Bundled toolchain root containing node/ and pnpm/ (default: /opt/pcl-dsh-go/tools)
   --out <dir>       Output directory (default: <repo>/release)
   -h, --help        Show this help
@@ -41,6 +41,11 @@ while [ $# -gt 0 ]; do
 done
 
 fail() { echo "build-release: $*" >&2; exit 1; }
+if [ -z "$VERSION" ]; then
+  VERSION_FILE="$REPO_ROOT/VERSION"
+  [ -f "$VERSION_FILE" ] || fail "缺少 $VERSION_FILE"
+  VERSION="$(tr -d '[:space:]' < "$VERSION_FILE")"
+fi
 [ -n "$VERSION" ] || fail "版本不能为空"
 NAME="pcl-dsh-go-$VERSION-linux-amd64"
 PKG="$OUT_DIR/$NAME"
@@ -48,15 +53,16 @@ BIN="$REPO_ROOT/bin/pcl-dsh-go"
 DIST="$REPO_ROOT/web/dist"
 
 [ -f "$BIN" ] || fail "缺少 $BIN（先构建 linux/amd64 二进制）"
+[ -x "$BIN" ] || chmod 0755 "$BIN" 2>/dev/null || fail "bin/pcl-dsh-go 不可执行"
 [ -f "$DIST/index.html" ] || fail "缺少 $DIST/index.html（先运行 scripts/frontend-build.ps1）"
 [ -x "$TOOLS_DIR/node/bin/node" ] || fail "缺少内置 Node: $TOOLS_DIR/node/bin/node"
 [ -d "$TOOLS_DIR/pnpm" ] || fail "缺少内置 pnpm: $TOOLS_DIR/pnpm"
 if command -v file >/dev/null 2>&1; then
   file "$BIN" | grep -q 'ELF 64-bit LSB.*x86-64' || fail "bin/pcl-dsh-go 不是 Linux amd64 ELF"
 fi
-if strings "$BIN" 2>/dev/null | grep -q 'version dev'; then
-  echo "warning: 二进制版本号可能未注入（-X main.version）" >&2
-fi
+BUILT_VERSION="$("$BIN" --version 2>/dev/null || true)"
+[ -n "$BUILT_VERSION" ] || fail "无法读取 bin/pcl-dsh-go --version；请用 -X main.version 注入版本后重新构建"
+[ "$BUILT_VERSION" = "$VERSION" ] || fail "bin/pcl-dsh-go 版本 ($BUILT_VERSION) 与 VERSION ($VERSION) 不一致；请用 -X main.version=$VERSION 重新构建"
 
 echo "==> release: $NAME"
 rm -rf "$PKG"

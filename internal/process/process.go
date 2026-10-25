@@ -26,6 +26,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/ports"
 )
 
 // 状态码。字符串值被 HTTP API 复用，前端 M1 依赖中文 Message。
@@ -784,8 +786,8 @@ func validateLaunchSpec(spec *LaunchSpec) error {
 	if !filepath.IsAbs(spec.Command[0]) {
 		return fmt.Errorf("%w: Command[0] 必须是绝对路径（当前 %q）", ErrInvalidSpec, spec.Command[0])
 	}
-	if spec.Port < 1 || spec.Port > 65535 {
-		return fmt.Errorf("%w: 端口须在 1-65535 之间（当前 %d）", ErrInvalidSpec, spec.Port)
+	if !ports.ValidInstance(spec.Port) {
+		return fmt.Errorf("%w: 端口须在 %d-%d 之间（当前 %d）", ErrInvalidSpec, ports.InstanceMin, ports.Max, spec.Port)
 	}
 	if strings.TrimSpace(spec.LogPath) == "" {
 		return fmt.Errorf("%w: LogPath 不能为空", ErrInvalidSpec)

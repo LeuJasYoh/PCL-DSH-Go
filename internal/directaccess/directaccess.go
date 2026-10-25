@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/apierr"
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/ports"
 )
 
 const (
@@ -48,7 +49,7 @@ type Input struct {
 	Host string
 	// SSHUser is settings.DirectAccessSSHUser ("" defaults to "root").
 	SSHUser string
-	// Port is the instance workbench port (1-65535).
+	// Port is the instance workbench port (1024-65535).
 	Port int
 	// Ready reports whether the workbench is running and confirmed ready.
 	Ready bool
@@ -84,7 +85,7 @@ func Build(in Input) (DTO, error) {
 	if err != nil {
 		return DTO{}, err
 	}
-	if in.Port < 1 || in.Port > 65535 {
+	if !ports.ValidInstance(in.Port) {
 		return DTO{}, apierr.New(http.StatusBadRequest, apierr.CodeValidation, "实例端口无效，无法生成直连信息。")
 	}
 

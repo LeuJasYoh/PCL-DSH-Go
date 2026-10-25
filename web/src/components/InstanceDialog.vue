@@ -325,7 +325,7 @@ function submit(): void {
             :value="version"
             :disabled="submitting"
             data-testid="instance-version"
-            placeholder="完整版本号，例如 0.2.1-rc.3"
+            placeholder="完整版本号，例如 1.2.3-rc.1"
             autocomplete="off"
             role="combobox"
             aria-haspopup="listbox"

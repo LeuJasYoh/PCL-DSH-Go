@@ -91,9 +91,10 @@ func TestCreateInstanceValidation(t *testing.T) {
 		{"名称含路径分隔符", store.CreateInstanceInput{Name: "a/b", Version: "0.2.1-rc.3", Profile: "web", Port: freeLoopbackPort(t)}},
 		{"版本非精确 SemVer", store.CreateInstanceInput{Name: "x", Version: "0.2", Profile: "web", Port: freeLoopbackPort(t)}},
 		{"profile 为空", store.CreateInstanceInput{Name: "x", Version: "0.2.1-rc.3", Profile: "", Port: freeLoopbackPort(t)}},
-		{"profile 非法", store.CreateInstanceInput{Name: "x", Version: "0.2.1-rc.3", Profile: "web profile", Port: freeLoopbackPort(t)}},
+		{"profile 非法", store.CreateInstanceInput{Name: "x", Version: "0.2.1-rc.3", Profile: "bad/profile", Port: freeLoopbackPort(t)}},
 		{"端口过大", store.CreateInstanceInput{Name: "x", Version: "0.2.1-rc.3", Profile: "web", Port: 70000}},
 		{"端口为负", store.CreateInstanceInput{Name: "x", Version: "0.2.1-rc.3", Profile: "web", Port: -5}},
+		{"端口低于 1024", store.CreateInstanceInput{Name: "x", Version: "0.2.1-rc.3", Profile: "web", Port: 1023}},
 	}
 	for _, tc := range cases {
 		_, err := application.CreateInstance(context.Background(), tc.in)

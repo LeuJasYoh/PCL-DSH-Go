@@ -227,7 +227,7 @@ function openLicense(tab: LicenseTab): void {
             <p>界面改编自 Hello Minecraft! Launcher（HMCL）</p>
             <p>版权所有 © 2013-2026 huangyuhui 及贡献者</p>
             <p>HDSL 桌面版版权归 jiefing 及贡献者所有；PCL-DSH-Go 保留上游可见版权，并以独立名称和版本区别于原版。</p>
-            <p>PCL-DSH-Go {{ auth.version }} · Copyright (c) 2026 jiefing 及贡献者 · GPL-3.0-or-later（GNU GPL 第 3 版或后续版本）</p>
+            <p>{{ auth.version ? 'PCL-DSH-Go ' + auth.version : 'PCL-DSH-Go' }} · Copyright (c) 2026 jiefing 及贡献者 · GPL-3.0-or-later（GNU GPL 第 3 版或后续版本）</p>
           </div>
           <div class="about-links">
             <button class="btn btn-secondary btn--small" type="button" data-testid="license-gpl" @click="openLicense('gpl')">

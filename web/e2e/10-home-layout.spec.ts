@@ -5,9 +5,13 @@ test('首页布局：40px 页头 / 200px 侧栏 / 7 个导航 / 200x55 启动按
   await page.goto('/')
   await expect(page.getByTestId('page-home')).toBeVisible()
 
-  const header = await page.locator('[data-testid="page-header"]').boundingBox()
+  const headerElement = page.getByTestId('page-header')
+  const header = await headerElement.boundingBox()
   expect(header).not.toBeNull()
   expect(Math.round(header!.height)).toBe(40)
+  await expect(headerElement.locator('.page-header__title')).toContainText('PCL-DSH-Go')
+  await expect(headerElement.getByTestId('task-status')).toBeVisible()
+  await expect(headerElement.locator('img, button, svg, .task-spinner')).toHaveCount(0)
 
   const sidebar = await page.locator('[data-testid="sidebar"]').boundingBox()
   expect(sidebar).not.toBeNull()

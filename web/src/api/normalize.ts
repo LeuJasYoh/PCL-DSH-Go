@@ -116,10 +116,14 @@ export function normalizeRuntimes(raw: unknown): RuntimeSummary[] {
 
 function normalizeStatus(raw: unknown): StatusSnapshot {
   if (isRecord(raw)) {
-    return { code: asString(raw.code) || 'READY', message: asString(raw.message) || '就绪' }
+    return {
+      code: asString(raw.code) || 'READY',
+      message: asString(raw.message) || '就绪',
+      phase: asString(raw.phase),
+    }
   }
-  if (typeof raw === 'string' && raw) return { code: 'READY', message: raw }
-  return { code: 'READY', message: '就绪' }
+  if (typeof raw === 'string' && raw) return { code: 'READY', message: raw, phase: '' }
+  return { code: 'READY', message: '就绪', phase: '' }
 }
 
 /** GET /api/state: {version,currentInstanceId,instances,runtimes,status,settings,availableVersions,warnings}. */

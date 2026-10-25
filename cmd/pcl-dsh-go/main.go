@@ -70,6 +70,10 @@ func run(args []string) int {
 		fmt.Fprintf(os.Stderr, "启动参数错误：%v\n\n%s\n", err, config.UsageText())
 		return 2
 	}
+	if cfg.ShowVersion {
+		fmt.Println(version)
+		return 0
+	}
 	cfg.Version = version
 
 	dirs, err := config.InitDataRoot(cfg)

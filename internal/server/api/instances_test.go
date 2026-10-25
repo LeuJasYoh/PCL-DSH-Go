@@ -63,7 +63,7 @@ func TestInstanceCRUD(t *testing.T) {
 		jsonBody(t, map[string]any{"name": "坏版本", "version": "not-semver", "profile": "web"}), sess.withSession())
 	decodeError(t, rec, http.StatusBadRequest, apierr.CodeValidation)
 	rec = env.request(t, http.MethodPost, "/api/instances",
-		jsonBody(t, map[string]any{"name": "坏 profile", "version": "0.2.1-rc.3", "profile": "bad profile"}), sess.withSession())
+		jsonBody(t, map[string]any{"name": "坏 profile", "version": "0.2.1-rc.3", "profile": "bad/profile"}), sess.withSession())
 	decodeError(t, rec, http.StatusBadRequest, apierr.CodeValidation)
 
 	// Read back.

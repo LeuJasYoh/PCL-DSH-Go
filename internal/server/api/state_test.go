@@ -92,4 +92,7 @@ func TestStateBusyStatus(t *testing.T) {
 	if state.Status.Message != "进行中：阻塞中" {
 		t.Fatalf("busy status message = %q, want 进行中：阻塞中", state.Status.Message)
 	}
+	if state.Status.Phase != "阻塞中" {
+		t.Fatalf("busy status phase = %q, want 阻塞中", state.Status.Phase)
+	}
 }

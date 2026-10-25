@@ -34,7 +34,7 @@ import (
 type Target struct {
 	// InstanceID is the instance the target belongs to.
 	InstanceID string
-	// Port is the loopback port the DSH instance listens on (1-65535).
+	// Port is the loopback port the DSH instance listens on (1024-65535).
 	Port int
 	// BootstrapPath is the path of the in-memory DSH bootstrap URL. It is used
 	// as the upstream base path; an empty value means "/".

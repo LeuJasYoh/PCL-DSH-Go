@@ -1100,7 +1100,7 @@ func sha256File(ctx context.Context, filePath string) (string, error) {
 	return hex.EncodeToString(hasher.Sum(nil)), nil
 }
 
-// importInstanceName derives a valid instance display name (1-40 characters).
+// importInstanceName derives a valid instance display name (1-160 characters).
 func importInstanceName(requested, packageName, previewName string) string {
 	name := strings.TrimSpace(requested)
 	if name == "" {
@@ -1113,8 +1113,8 @@ func importInstanceName(requested, packageName, previewName string) string {
 		name = "整合包实例"
 	}
 	runes := []rune(name)
-	if len(runes) > 40 {
-		runes = runes[:40]
+	if len(runes) > 160 {
+		runes = runes[:160]
 	}
 	return string(runes)
 }

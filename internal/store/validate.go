@@ -10,18 +10,19 @@ import (
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/ports"
+	profilecheck "github.com/LeuJasYoh/PCL-DSH-Go/internal/profile"
 )
 
 const (
 	instanceIDPattern = `^i-[0-9a-f]{12}$`
 	// 精确 SemVer（含可选 prerelease/build），与 https://semver.org/spec/v2.0.0.html 一致。
 	semverPattern  = `^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(\.(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?$`
-	profilePattern = `^[A-Za-z0-9._-]+$`
 	sshUserPattern = `^[A-Za-z0-9._-]{1,32}$`
 
-	maxNameRunes    = 40
+	maxNameRunes    = 160
 	maxVersionBytes = 128
-	maxProfileBytes = 64
 
 	defaultRegistry            = "https://registry.npmjs.org"
 	defaultDirectAccessSSHUser = "root"
@@ -30,7 +31,6 @@ const (
 var (
 	instanceIDRE = regexp.MustCompile(instanceIDPattern)
 	semverRE     = regexp.MustCompile(semverPattern)
-	profileRE    = regexp.MustCompile(profilePattern)
 	sshUserRE    = regexp.MustCompile(sshUserPattern)
 )
 
@@ -42,7 +42,7 @@ func defaultSettings() Settings {
 	}
 }
 
-// normalizeName 去除首尾空白，校验 1-40 字符、禁止控制字符与路径分隔符。
+// normalizeName 去除首尾空白，校验 1-160 字符、禁止控制字符与路径分隔符。
 func normalizeName(raw string) (string, error) {
 	name := strings.TrimSpace(raw)
 	if name == "" {
@@ -79,22 +79,15 @@ func normalizeVersion(raw string) (string, error) {
 
 // normalizeProfile 校验 profile 名称。
 func normalizeProfile(raw string) (string, error) {
-	profile := raw
-	if profile == "" {
-		return "", fmt.Errorf("%w: profile 不能为空（例如 web）", ErrInvalidInput)
+	if err := profilecheck.Validate(raw); err != nil {
+		return "", fmt.Errorf("%w: %v", ErrInvalidInput, err)
 	}
-	if len(profile) > maxProfileBytes {
-		return "", fmt.Errorf("%w: profile 名称过长", ErrInvalidInput)
-	}
-	if !profileRE.MatchString(profile) {
-		return "", fmt.Errorf("%w: profile %q 只允许字母、数字、点、下划线和连字符", ErrInvalidInput, profile)
-	}
-	return profile, nil
+	return raw, nil
 }
 
 func normalizePort(raw int) (int, error) {
-	if raw < 1 || raw > 65535 {
-		return 0, fmt.Errorf("%w: 端口须在 1-65535 之间（当前 %d）", ErrInvalidInput, raw)
+	if !ports.ValidInstance(raw) {
+		return 0, fmt.Errorf("%w: 端口须在 %d-%d 之间（当前 %d）", ErrInvalidInput, ports.InstanceMin, ports.Max, raw)
 	}
 	return raw, nil
 }

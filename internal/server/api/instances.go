@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/apierr"
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/ports"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/server/job"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/store"
 )
@@ -277,7 +278,7 @@ func (a *API) runtimeInstalled(version string) bool {
 // dial is used instead of a bind to avoid TIME_WAIT false positives (the same
 // approach as internal/process).
 func portInUse(port int) bool {
-	if port < 1 || port > 65535 {
+	if !ports.ValidInstance(port) {
 		return true
 	}
 	conn, err := net.DialTimeout("tcp", net.JoinHostPort("127.0.0.1", strconv.Itoa(port)), portProbeTimeout)

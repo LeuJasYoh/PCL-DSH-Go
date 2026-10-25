@@ -27,10 +27,10 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"unicode/utf8"
 
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/apierr"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/logging"
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/passhash"
 )
 
 // SessionTTLDefault is the sliding session lifetime (12h, docs/IMPLEMENTATION_SPEC.md 4.1).
@@ -44,11 +44,7 @@ const (
 	LoginLockForDefault     = 60 * time.Second
 )
 
-// Password rules for a changed password (docs/M1_INTERFACES.md 3).
-const (
-	minPasswordLen = 8
-	maxPasswordLen = 64
-)
+// Password policy is defined in internal/passhash.
 
 // cleanupInterval throttles the periodic sweep of expired sessions/failures.
 const cleanupInterval = time.Minute
@@ -400,9 +396,8 @@ func (m *Manager) ChangePassword(sessionID, oldPassword, newPassword string) err
 	if oldPassword == "" {
 		return apierr.Validation("当前密码不能为空。")
 	}
-	length := utf8.RuneCountInString(newPassword)
-	if length < minPasswordLen || length > maxPasswordLen {
-		return apierr.Newf(http.StatusBadRequest, apierr.CodeValidation, "新密码长度须为 %d-%d 个字符（当前 %d）。", minPasswordLen, maxPasswordLen, length)
+	if err := passhash.Validate(newPassword); err != nil {
+		return apierr.New(http.StatusBadRequest, apierr.CodeValidation, err.Error())
 	}
 	if newPassword == oldPassword {
 		return apierr.Validation("新密码不能与当前密码相同。")

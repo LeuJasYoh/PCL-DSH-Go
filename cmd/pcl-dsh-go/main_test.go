@@ -3,6 +3,9 @@
 package main
 
 import (
+	"io"
+	"os"
+	"strings"
 	"testing"
 )
 
@@ -23,5 +26,32 @@ func TestRunRejectsInvalidArgs(t *testing.T) {
 func TestRunHelp(t *testing.T) {
 	if code := run([]string{"--help"}); code != 0 {
 		t.Fatalf("run(--help) = %d, want 0", code)
+	}
+}
+
+func TestRunVersion(t *testing.T) {
+	previousVersion := version
+	version = "test-version"
+	defer func() { version = previousVersion }()
+
+	originalStdout := os.Stdout
+	reader, writer, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("创建 stdout 管道失败：%v", err)
+	}
+	os.Stdout = writer
+	code := run([]string{"--version"})
+	_ = writer.Close()
+	os.Stdout = originalStdout
+	output, readErr := io.ReadAll(reader)
+	_ = reader.Close()
+	if readErr != nil {
+		t.Fatalf("读取 stdout 失败：%v", readErr)
+	}
+	if code != 0 {
+		t.Fatalf("run(--version) = %d, want 0", code)
+	}
+	if got := strings.TrimSpace(string(output)); got != "test-version" {
+		t.Fatalf("run(--version) 输出 = %q, want %q", got, "test-version")
 	}
 }

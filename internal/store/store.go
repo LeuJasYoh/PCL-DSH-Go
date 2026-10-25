@@ -42,10 +42,10 @@ var (
 // Instance 是 instances.json 中的一条实例记录。
 type Instance struct {
 	ID        string `json:"id"`        // i- + 12 位十六进制
-	Name      string `json:"name"`      // 1-40 字符，已去首尾空白
+	Name      string `json:"name"`      // 1-160 字符，已去首尾空白
 	Version   string `json:"version"`   // 精确 SemVer，创建后不可变
 	Profile   string `json:"profile"`   // [A-Za-z0-9._-]+，创建后不可变
-	Port      int    `json:"port"`      // 1-65535
+	Port      int    `json:"port"`      // 1024-65535
 	CreatedAt int64  `json:"createdAt"` // 毫秒
 	UpdatedAt int64  `json:"updatedAt"` // 毫秒
 }

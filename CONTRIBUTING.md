@@ -36,6 +36,7 @@ GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build ./...
 - 前端/文档变更：`pwsh -File scripts/frontend-build.ps1` 通过；文档相对链接/图片路径有效。
 - 安全相关改动（认证/会话/CSRF/日志脱敏/归档/路径/SSRF）必须附测试，fail-closed。
 - 新增 Go 文件首行加 SPDX：`// SPDX-License-Identifier: GPL-3.0-or-later`。
+- 项目版本以仓库根 `VERSION` 为准；不要在其他脚本/代码里硬编码展示版本，`web/package.json` 和 `web/package-lock.json` 的项目版本需同步（CI 会检查 package.json）；详情见 [开发与发布](docs/DEVELOPMENT.md#8-版本与发布流程)。
 - 不提交 `bin/`、`web/dist`、`release/`、`node_modules`、日志、数据、密钥或测试环境凭据。
 
 ## PR 检查清单
@@ -56,4 +57,4 @@ GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build ./...
 
 - 用户文档在 `docs/` 根目录；历史设计资料只放在 `docs/dev/`，不要混入用户文档。
 - 真实 DSH 验收证据在 `docs/evidence/`（由维护者/QA 维护，勿放真实凭据）。
-- 版本变更时更新 [docs/CHANGELOG.md](docs/CHANGELOG.md)，项目版本与 DSH 运行时版本相互独立。
+- 版本变更时更新根 `VERSION` 与 [docs/CHANGELOG.md](docs/CHANGELOG.md)，项目版本与 DSH 运行时版本相互独立。

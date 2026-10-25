@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/ports"
 )
 
 // ProxyEnvironment is the loopback-safe NO_PROXY value injected into DSH
@@ -172,8 +174,8 @@ func assembleLaunchCommand(nodePath, entryPath string, capabilities Capabilities
 	if !validProfileName(profile) {
 		return nil, fmt.Errorf("profile 名称无效：%q", profile)
 	}
-	if port < 1 || port > 65535 {
-		return nil, fmt.Errorf("端口应为 1–65535")
+	if !ports.ValidInstance(port) {
+		return nil, fmt.Errorf("端口应为 %d–%d", ports.InstanceMin, ports.Max)
 	}
 	command := []string{nodePath, entryPath}
 	switch {

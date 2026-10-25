@@ -2,7 +2,9 @@
 
 **在 Linux 服务器上用 WebUI 管理 DeepSeek Harness（DSH）实例**的开源管理器：Go 单二进制、内置 Node/pnpm、自带 Web 管理界面，配合 Nginx 即可完成安装、运行时下载、实例启停、工作台访问与插件管理。
 
-当前版本 **0.2.1**（本项目的独立版本号；与 DSH 运行时的 `0.2.1-rc.3` 等版本号互不绑定，仅表示已验证的 DSH 基线，见 [docs/CHANGELOG.md](docs/CHANGELOG.md)）。
+项目版本以仓库根 [`VERSION`](VERSION) 为准，与 DSH 运行时版本相互独立；已验证的 DSH 基线为 `0.2.1-rc.3`。
+
+> 本文描述当前源码。尚未发布的改动见 [CHANGELOG · Unreleased](docs/CHANGELOG.md#unreleased)，下载旧发行包不会自动包含这些改动。下方截图为 0.2.1 发行时的界面记录；当前源码已精简顶部标题栏，使用规则以文字说明为准。
 
 ![登录页](docs/images/login.png)
 
@@ -20,6 +22,14 @@
 
 ![首页](docs/images/home.png)
 
+## 输入规则
+
+- **实例名称**：1–160 个字符；不能包含控制字符或路径分隔符。
+- **DSH 版本**：完整 SemVer，如 `0.2.1-rc.3`；不接受 `latest`、版本范围或 `v` 前缀。
+- **Profile**：DSH 的命名运行配置，默认 `web`；支持中文等 Unicode 字母、数字和内部空格，最多 64 个字符。完整规则见 [用户指南](docs/USER_GUIDE.md#profile-是什么)。
+- **实例端口**：手动填写 1024–65535；留空自动分配，从 3080 起检查空闲端口。管理器 HTTP 端口是独立配置。
+- **新管理员密码**：8–256 个字符，不含控制字符；只持久化加盐哈希，不保存修改后的明文密码。
+
 ## 典型使用流程
 
 1. 安装并启动管理器（见下方「快速开始」）。
@@ -33,10 +43,11 @@
 > 需要 Linux x86_64、systemd、Nginx（生产部署）。管理器只监听 `127.0.0.1:8080`，对外统一由 Nginx 提供服务。
 
 ```bash
-# 1. 下载并校验 release（以 0.2.1 为例；文件名中的版本号以实际 release 为准）
-sha256sum -c pcl-dsh-go-0.2.1-linux-amd64.tar.gz.sha256
-tar -xzf pcl-dsh-go-0.2.1-linux-amd64.tar.gz
-cd pcl-dsh-go-0.2.1-linux-amd64
+# 1. 下载并校验 release（VERSION 改为实际 release 版本，如 0.2.1）
+VERSION=0.2.1
+sha256sum -c "pcl-dsh-go-$VERSION-linux-amd64.tar.gz.sha256"
+tar -xzf "pcl-dsh-go-$VERSION-linux-amd64.tar.gz"
+cd "pcl-dsh-go-$VERSION-linux-amd64"
 sha256sum -c SHA256SUMS
 
 # 2. 安装（root）：创建 pcl-dsh 用户、/opt/pcl-dsh-go、systemd 与 Nginx site
@@ -63,12 +74,13 @@ sudo cat /var/lib/pcl-dsh-go/initial-password
 | `--pcl.tool-root` | 空 | 内置 Node/pnpm 的 tools 目录（空表示自动查找） |
 | `--pcl.max-running-instances` | `0`（不限制） | 同时运行的 DSH 实例上限；`0` 不限制，2C/1.6 GiB 建议显式设为 `1` |
 | `--pcl.dev-mode` | `false` | 调试接口开关，仅开发/测试使用 |
+| `--version` | — | 打印构建时注入的项目版本并退出，不启动服务 |
 
 完整参数、环境变量、数据目录与端口说明见 [docs/CONFIGURATION.md](docs/CONFIGURATION.md)。
 
 ## 安全模型
 
-- **单管理员**：不提供账户系统；管理员密码使用 BCrypt（cost 10）保存，首次启动生成 24 位初始密码（`initial-password` 0600），首次登录强制修改。
+- **单管理员**：不提供账户系统；管理员密码使用 bcrypt-sha256（BCrypt cost 10，兼容旧 BCrypt 哈希）保存，首次启动生成 24 位初始密码（`initial-password` 0600），首次登录强制修改。
 - **会话与请求防护**：服务端会话 Cookie（12 小时滑动过期）+ CSRF 双提交校验；登录失败按 IP 限流；首登未改密时除认证/健康检查外全部返回 `403`。
 - **最小暴露面**：管理器默认只监听 `127.0.0.1`；systemd unit 使用 `NoNewPrivileges/ProtectSystem=strict` 等沙箱；Nginx 对敏感路径关闭 access log。
 - **敏感数据**：日志/审计自动脱敏，token、密码、Cookie、一次性 URL 不写入日志；数据目录 0700、凭据文件 0600。
@@ -97,13 +109,16 @@ sudo cat /var/lib/pcl-dsh-go/initial-password
 
 ## 路线图与待办（Roadmap / TODO）
 
-以下为后续不破坏兼容性的改进方向（非时间承诺；欢迎在 Issue 中讨论或认领）：
+已完成的源码改进包括根 `VERSION`、构建/CI/发布版本读取与校验、输入规则整理、8–256 字符密码、任务状态字段、Cookie 名称统一和顶部栏精简，详见 [Unreleased](docs/CHANGELOG.md#unreleased)。
 
-- **简化部署流程**：收敛一键安装/升级/回滚体验，减少手工 Nginx/systemd 配置与前置检查，提供交互式安装与更清晰的失败恢复路径。
-- **版本号单一化**：以仓库根 `VERSION` 为唯一事实源，构建、CI、release 与验收脚本统一读取，消除当前分散在多处的硬编码版本字符串。
-- **减少硬编码常量**：端口、路径、默认值、registry/镜像地址等收敛为集中配置与常量表，便于不同环境定制。
-- **前端彻底重构**：整理组件/状态/API 分层与类型定义，降低耦合，补齐单元/组件测试与可访问性支持。
-- **工作台旧 Cookie 自动恢复**：检测到 DSH 上游鉴权失败时自动清理旧 `dsh-auth-*` Cookie 并走 token 引导（当前需手动清 Cookie，见 [CHANGELOG](docs/CHANGELOG.md) 的 Known issues）。
+后续事项仍需分别确认范围，不代表排期或兼容性承诺：
+
+- **部署与卸载体验**：完善安装/升级/回滚及失败恢复，统一自定义数据目录的处理；卸载脚本当前限制见 [部署文档](docs/DEPLOYMENT.md#10-卸载)。
+- **剩余常量整理**：实例端口、Profile、密码策略和 Go Cookie 名称已集中；目录布局、registry/SSH/日志默认值等仍待逐项评估。
+- **DSH 验收基线参数化**：测试脚本仍有 `0.2.1-rc.3` 和对应发行批次数量的固定断言；它们与项目 `VERSION` 分开管理，历史证据不追改。
+- **前端与许可来源梳理**：改善前端结构、测试和可访问性；MIT 是待评估目标，需要核实代码、素材和贡献授权，必要时取得另行授权或独立替换，目前仍按 GPL/HMCL 发布。
+- **第三方发行声明**：按实际 Go/Vue/Node/pnpm 依赖补齐声明及相应分发义务，不将随包依赖笼统标记为 MIT。
+- **工作台旧 Cookie 自动恢复**：检测 DSH 上游鉴权失败并重新引导；本次 Cookie 常量整理未解决旧 Cookie 问题（当前仍需手动清理，见 [已知问题](docs/CHANGELOG.md#known-issues)）。
 
 ## 许可与致谢
 

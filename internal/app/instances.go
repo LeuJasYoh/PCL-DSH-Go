@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/apierr"
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/ports"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/process"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/server/proxy"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/store"
@@ -108,8 +109,8 @@ func (a *App) allocatePort(ctx context.Context) (int, error) {
 
 // checkPortAvailable validates an explicitly requested instance port.
 func (a *App) checkPortAvailable(ctx context.Context, port int) error {
-	if port < 1 || port > 65535 {
-		return validationError(fmt.Sprintf("端口须在 1-65535 之间（当前 %d）。", port))
+	if !ports.ValidInstance(port) {
+		return validationError(fmt.Sprintf("端口须在 %d-%d 之间（当前 %d）。", ports.InstanceMin, ports.Max, port))
 	}
 	for _, existing := range a.store.ListInstances() {
 		if existing.Port == port {
@@ -131,7 +132,7 @@ func (a *App) checkPortAvailable(ctx context.Context, port int) error {
 // successful probe closes the listener immediately; callers must still tolerate
 // a concurrent grab before the DSH process binds it.
 func portBindable(ctx context.Context, port int) (bool, error) {
-	if port < 1 || port > 65535 {
+	if !ports.ValidInstance(port) {
 		return false, nil
 	}
 	var listenConfig net.ListenConfig

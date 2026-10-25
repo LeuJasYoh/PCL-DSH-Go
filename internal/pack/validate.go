@@ -13,14 +13,13 @@ import (
 	"strings"
 	"unicode"
 
+	profilecheck "github.com/LeuJasYoh/PCL-DSH-Go/internal/profile"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/safe"
 )
 
 var (
 	// semverExactRE matches an exact SemVer version (no ranges).
 	semverExactRE = regexp.MustCompile("^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(\\.(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?(\\+([0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*))?$")
-	// profileNameRE matches the profile names accepted by the instance store.
-	profileNameRE = regexp.MustCompile("^[A-Za-z0-9._-]+$")
 	// npmPackageRE matches an npm package name.
 	npmPackageRE = regexp.MustCompile("^(@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*$")
 	// gitCoordRE matches the github:owner/repo#path:/package coordinate form.
@@ -247,8 +246,8 @@ func validateRelativePath(rel string, limits safe.Limits) error {
 
 // validateProfileName validates a profile name used in package manifests.
 func validateProfileName(name string) error {
-	if name == "" || len(name) > 100 || name == "node_modules" || !profileNameRE.MatchString(name) {
-		return validationError("非法 profile 名称：" + name)
+	if err := profilecheck.Validate(name); err != nil {
+		return validationError("非法 profile 名称：" + err.Error())
 	}
 	return nil
 }

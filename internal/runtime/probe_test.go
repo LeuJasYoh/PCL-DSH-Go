@@ -262,7 +262,7 @@ func TestProbeCapabilitiesInputValidation(t *testing.T) {
 		mutate func(*probeOptions)
 	}{
 		{"version", func(o *probeOptions) { o.Version = "latest" }},
-		{"profile", func(o *probeOptions) { o.Profile = "bad profile" }},
+		{"profile", func(o *probeOptions) { o.Profile = "bad/profile" }},
 		{"data root", func(o *probeOptions) { o.DataRoot = "" }},
 		{"node path", func(o *probeOptions) { o.NodePath = "" }},
 		{"entry path", func(o *probeOptions) { o.EntryPath = "" }},

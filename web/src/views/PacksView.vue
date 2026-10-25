@@ -380,7 +380,7 @@ function redownload(): void {
             :placeholder="preview.dshVersion ? '留空使用包声明的 ' + preview.dshVersion : '留空使用包声明或已安装的兼容版本'"
             :disabled="importSubmitting || jobs.active"
           />
-          <p class="form-hint">请输入精确版本号，例如 0.1.0-rc.6；留空时由后端按包声明与已安装版本解析。</p>
+          <p class="form-hint">请输入完整 SemVer 版本，例如 1.2.3-rc.1；留空时由后端按包声明与已安装版本解析。</p>
         </div>
         <p v-if="importError" class="validation-error" data-testid="pack-import-error" role="alert">{{ importError }}</p>
         <div class="toolbar">

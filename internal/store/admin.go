@@ -13,10 +13,8 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"unicode"
-	"unicode/utf8"
 
-	"golang.org/x/crypto/bcrypt"
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/passhash"
 )
 
 const (
@@ -28,10 +26,6 @@ const (
 	InitialPasswordFileName = "initial-password"
 
 	initialPasswordLength  = 24
-	bcryptCost             = 10
-	minPasswordRunes       = 8
-	maxPasswordRunes       = 64
-	maxPasswordBytes       = 72 // BCrypt 输入上限：超过 72 字节会失败，绝不截断密码
 	adminFilePermission    = 0o600
 	initialPasswordNewline = "\n"
 )
@@ -51,7 +45,7 @@ type adminFile struct {
 }
 
 // AdminStore 是单管理员密码凭据的并发安全访问入口。
-// 密码只以 BCrypt 哈希形式落盘；初始密码仅写入 initial-password 文件一次。
+// 密码只以加盐哈希（bcrypt-sha256，兼容旧 BCrypt）落盘；初始密码仅写入 initial-password 文件一次。
 type AdminStore struct {
 	mu sync.RWMutex
 
@@ -65,7 +59,7 @@ type AdminStore struct {
 }
 
 // OpenAdmin 打开或引导 <data-root>/config/admin.json（schemaVersion 1，0600）。
-// 首次（文件不存在）：生成 24 位字母数字初始密码，BCrypt cost 10 写入 admin.json
+// 首次（文件不存在）：生成 24 位字母数字初始密码，bcrypt-sha256（cost 10）写入 admin.json
 // （initialPasswordPending=true），同时把明文密码写入 <data-root>/initial-password（0600）。
 // 已存在且 pending=true：保留 initial-password；pending=false：清理残留 initial-password。
 // 损坏的 admin.json 返回明确错误且绝不覆盖。
@@ -110,7 +104,7 @@ func (a *AdminStore) InitialPasswordPending() bool {
 // 调用方可以记录该路径，但绝不可打印密码内容。
 func (a *AdminStore) InitialPasswordPath() string { return a.initialPasswordPath }
 
-// VerifyPassword 用 BCrypt 校验明文密码；空密码返回 false。
+// VerifyPassword 用版本化哈希校验明文密码；空密码返回 false。
 func (a *AdminStore) VerifyPassword(plain string) (bool, error) {
 	if plain == "" {
 		return false, nil
@@ -121,16 +115,14 @@ func (a *AdminStore) VerifyPassword(plain string) (bool, error) {
 	if len(hash) == 0 {
 		return false, nil
 	}
-	if err := bcrypt.CompareHashAndPassword(hash, []byte(plain)); err != nil {
-		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
-			return false, nil
-		}
+	ok, err := passhash.Verify(string(hash), plain)
+	if err != nil {
 		return false, fmt.Errorf("校验管理员密码失败: %w", err)
 	}
-	return true, nil
+	return ok, nil
 }
 
-// ChangePassword 校验原密码后设置新密码：新密码 8-64 字符且不等于旧密码。
+// ChangePassword 校验原密码后设置新密码：新密码 8-256 字符且不等于旧密码。
 // 成功后写回 admin.json（pending=false）并删除 initial-password。
 // 任何错误都不会泄漏密码明文。
 func (a *AdminStore) ChangePassword(oldPassword, newPassword string) error {
@@ -140,11 +132,12 @@ func (a *AdminStore) ChangePassword(oldPassword, newPassword string) error {
 	if len(a.passwordHash) == 0 {
 		return errors.New("管理员凭据尚未初始化，无法修改密码")
 	}
-	if err := bcrypt.CompareHashAndPassword(a.passwordHash, []byte(oldPassword)); err != nil {
-		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
-			return ErrWrongPassword
-		}
+	ok, err := passhash.Verify(string(a.passwordHash), oldPassword)
+	if err != nil {
 		return fmt.Errorf("校验原密码失败: %w", err)
+	}
+	if !ok {
+		return ErrWrongPassword
 	}
 	if err := validateNewPassword(newPassword); err != nil {
 		return err
@@ -152,14 +145,14 @@ func (a *AdminStore) ChangePassword(oldPassword, newPassword string) error {
 	if newPassword == oldPassword {
 		return fmt.Errorf("%w: 新密码不能与当前密码相同", ErrInvalidInput)
 	}
-	newHash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcryptCost)
+	newHash, err := passhash.Hash(newPassword)
 	if err != nil {
 		return fmt.Errorf("生成新密码哈希失败: %w", err)
 	}
-	if err := a.persistLocked(newHash, false); err != nil {
+	if err := a.persistLocked([]byte(newHash), false); err != nil {
 		return err
 	}
-	a.passwordHash = newHash
+	a.passwordHash = []byte(newHash)
 	a.pending = false
 	// 密码已持久化；初始密码文件清理失败不影响改密结果，下次 OpenAdmin 会再次清理。
 	_ = os.Remove(a.initialPasswordPath)
@@ -192,8 +185,8 @@ func (a *AdminStore) load(data []byte) error {
 	if hash == "" {
 		return fmt.Errorf("管理员凭据 %s 缺少 passwordHash；请修复或备份后删除该文件", a.adminPath)
 	}
-	if _, err := bcrypt.Cost([]byte(hash)); err != nil {
-		return fmt.Errorf("管理员凭据 %s 的 passwordHash 不是合法 BCrypt 哈希: %w", a.adminPath, err)
+	if err := passhash.ValidateHash(hash); err != nil {
+		return fmt.Errorf("管理员凭据 %s 的 passwordHash 不是受支持的密码哈希: %w", a.adminPath, err)
 	}
 	if file.CreatedAt < 0 {
 		return fmt.Errorf("管理员凭据 %s 的 createdAt 无效", a.adminPath)
@@ -218,7 +211,7 @@ func (a *AdminStore) bootstrap() error {
 	if err != nil {
 		return fmt.Errorf("生成初始管理员密码失败: %w", err)
 	}
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcryptCost)
+	hash, err := passhash.Hash(password)
 	if err != nil {
 		return fmt.Errorf("生成管理员密码哈希失败: %w", err)
 	}
@@ -228,11 +221,11 @@ func (a *AdminStore) bootstrap() error {
 	if err := atomicWriteFile(a.initialPasswordPath, []byte(password+initialPasswordNewline), adminFilePermission); err != nil {
 		return fmt.Errorf("写入初始密码文件 %s 失败: %w", a.initialPasswordPath, err)
 	}
-	if err := a.persistLocked(hash, true, createdAt); err != nil {
+	if err := a.persistLocked([]byte(hash), true, createdAt); err != nil {
 		_ = os.Remove(a.initialPasswordPath)
 		return err
 	}
-	a.passwordHash = hash
+	a.passwordHash = []byte(hash)
 	a.pending = true
 	a.createdAt = createdAt
 	return nil
@@ -260,22 +253,10 @@ func (a *AdminStore) persistLocked(hash []byte, pending bool, createdAt ...int64
 	return nil
 }
 
-// validateNewPassword 校验新密码：8-64 字符、不含控制字符、BCrypt 72 字节以内。
-func validateNewPassword(password string) error {
-	if password == "" {
-		return fmt.Errorf("%w: 新密码不能为空", ErrInvalidInput)
-	}
-	runes := utf8.RuneCountInString(password)
-	if runes < minPasswordRunes || runes > maxPasswordRunes {
-		return fmt.Errorf("%w: 新密码长度须为 8-64 个字符（当前 %d 个字符）", ErrInvalidInput, runes)
-	}
-	for _, r := range password {
-		if unicode.IsControl(r) {
-			return fmt.Errorf("%w: 新密码不能包含换行或控制字符", ErrInvalidInput)
-		}
-	}
-	if len(password) > maxPasswordBytes {
-		return fmt.Errorf("%w: 新密码过长（BCrypt 最多支持 %d 字节）", ErrInvalidInput, maxPasswordBytes)
+// validateNewPassword 校验新密码：8-256 字符、不含控制字符。
+func validateNewPassword(raw string) error {
+	if err := passhash.Validate(raw); err != nil {
+		return fmt.Errorf("%w: %v", ErrInvalidInput, err)
 	}
 	return nil
 }

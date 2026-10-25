@@ -186,7 +186,7 @@ func TestProfileInstallEnvironmentValidation(t *testing.T) {
 		{
 			name: "profile spaces",
 			setup: func(f *launchFixture) (*Service, config.Dirs, string, string, string, string) {
-				return f.service, f.dirs, launchTestInstanceID, "bad profile", "https://registry.npmjs.org", ""
+				return f.service, f.dirs, launchTestInstanceID, "bad/profile", "https://registry.npmjs.org", ""
 			},
 		},
 		{

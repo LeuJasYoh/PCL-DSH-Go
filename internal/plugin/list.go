@@ -11,11 +11,11 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"regexp"
 	"sort"
 	"strings"
 
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/apierr"
+	profilecheck "github.com/LeuJasYoh/PCL-DSH-Go/internal/profile"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/store"
 )
 
@@ -32,12 +32,9 @@ const (
 	sourceCommunity = "社区"
 )
 
-var profileNamePattern = regexp.MustCompile(`^[A-Za-z0-9._-]{1,128}$`)
-
-// validProfileName mirrors the instance-store profile rules and additionally
-// rejects "." and "..".
+// validProfileName mirrors the shared profile rules used by the instance store.
 func validProfileName(profile string) bool {
-	return profileNamePattern.MatchString(profile) && profile != "." && profile != ".."
+	return profilecheck.Valid(profile)
 }
 
 // profileManifest is the subset of the profile package.json read by List.

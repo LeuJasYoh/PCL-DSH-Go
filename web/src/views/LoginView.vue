@@ -93,6 +93,11 @@ async function submitChange(): Promise<void> {
     error.value = '请输入新密码。'
     return
   }
+  const passwordLength = Array.from(newPassword.value).length
+  if (passwordLength < 8 || passwordLength > 256) {
+    error.value = '新密码长度须为 8–256 个字符。'
+    return
+  }
   if (newPassword.value !== confirmPassword.value) {
     error.value = '两次输入的新密码不一致。'
     return

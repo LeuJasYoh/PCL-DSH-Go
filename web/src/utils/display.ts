@@ -1,30 +1,11 @@
-import type { InstanceSummary, StatusSnapshot } from '@/api/types'
-
-export const APP_VERSION = '0.1.0'
-
-const TASK_PREFIX = '进行中：'
+import type { InstanceSummary } from '@/api/types'
 
 export type InstanceStatusKind = 'running' | 'starting' | 'ready' | 'error' | 'unknown'
-
-export function statusToText(status: StatusSnapshot | null): string {
-  if (!status) return ''
-  return status.message || status.code || ''
-}
 
 export function shortStatus(value: string | null | undefined, max = 160): string {
   if (!value) return ''
   const first = value.replace(/[\r\n]+/g, ' ').trim()
   return first.length > max ? first.slice(0, max - 3) + '…' : first
-}
-
-export function isTaskStatus(status: StatusSnapshot | null): boolean {
-  return statusToText(status).startsWith(TASK_PREFIX)
-}
-
-export function taskPhase(status: StatusSnapshot | null): string {
-  const text = statusToText(status)
-  if (!text.startsWith(TASK_PREFIX)) return ''
-  return text.slice(TASK_PREFIX.length).trim()
 }
 
 /** Active process states (starting/running/not-ready/stopping) show "停止". */

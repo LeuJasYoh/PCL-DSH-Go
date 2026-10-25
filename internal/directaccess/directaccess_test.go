@@ -218,7 +218,7 @@ func TestBuildSSHUser(t *testing.T) {
 }
 
 func TestBuildInvalidPort(t *testing.T) {
-	for _, port := range []int{0, -1, 65536} {
+	for _, port := range []int{0, -1, 1023, 65536} {
 		_, err := Build(Input{Host: "example.com", Port: port})
 		if err == nil {
 			t.Fatalf("Build(port=%d) succeeded, want a 400 error", port)

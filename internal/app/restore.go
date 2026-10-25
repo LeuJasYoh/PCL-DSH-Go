@@ -9,11 +9,11 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"time"
 
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/apierr"
+	profilecheck "github.com/LeuJasYoh/PCL-DSH-Go/internal/profile"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/runtime"
 	"github.com/LeuJasYoh/PCL-DSH-Go/internal/tools"
 )
@@ -30,12 +30,10 @@ const (
 	profileInstallDrainTimeout = 10 * time.Second
 )
 
-var profileNameRE = regexp.MustCompile("^[A-Za-z0-9._-]{1,128}$")
-
-// validateProfileName mirrors the store/runtime profile rules (docs/M3_INTERFACES.md §6).
+// validateProfileName mirrors the shared profile rules used by store/runtime.
 func validateProfileName(profile string) error {
-	if !profileNameRE.MatchString(profile) {
-		return validationError("profile 名称只能包含字母、数字、点、下划线和连字符（1-128 字符）。")
+	if err := profilecheck.Validate(profile); err != nil {
+		return validationError(err.Error())
 	}
 	return nil
 }

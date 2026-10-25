@@ -10,6 +10,7 @@
 export interface StatusSnapshot {
   code: string
   message: string
+  phase: string
 }
 
 /** One configured instance (docs/IMPLEMENTATION_SPEC.md `4.3 InstanceDto). */

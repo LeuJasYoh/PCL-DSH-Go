@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 	"unicode/utf8"
+
+	"github.com/LeuJasYoh/PCL-DSH-Go/internal/protocol"
 )
 
 func TestParseWorkbenchPath(t *testing.T) {
@@ -136,6 +138,17 @@ func TestHasTokenQuery(t *testing.T) {
 		if got := hasTokenQuery(test.query); got != test.want {
 			t.Errorf("hasTokenQuery(%q) = %v, want %v", test.query, got, test.want)
 		}
+	}
+}
+
+func TestConsoleCookieNamesUseSharedProtocol(t *testing.T) {
+	for _, name := range []string{protocol.SessionCookieName, protocol.CSRFCookieName} {
+		if !isConsoleCookieName(name) {
+			t.Fatalf("isConsoleCookieName(%q) = false, want true", name)
+		}
+	}
+	if isConsoleCookieName(protocol.DSHAuthCookiePrefix + "x") {
+		t.Fatalf("isConsoleCookieName(%q) = true, want false", protocol.DSHAuthCookiePrefix+"x")
 	}
 }
 
