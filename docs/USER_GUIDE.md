@@ -1,6 +1,6 @@
 # 用户指南
 
-> 对应当前源码，版本见 [`VERSION`](../VERSION)，未发布改动见 [CHANGELOG](CHANGELOG.md#unreleased)。截图保留 0.2.1 发行时的界面，当前顶部栏与部分输入规则已调整；旧发行包以随包文档为准。
+> 对应当前源码与 **0.2.2** 发行包，版本见 [`VERSION`](../VERSION)，变更见 [CHANGELOG](CHANGELOG.md)。截图保留 0.2.1 发行时的界面，0.2.2 的顶部栏和部分输入规则已调整；旧发行包以随包文档为准。
 
 本文介绍 PCL-DSH-Go WebUI 的完整使用流程。安装与系统运维见 [部署与运维](DEPLOYMENT.md)，参数与数据布局见 [配置参考](CONFIGURATION.md)。
 

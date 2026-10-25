@@ -2,9 +2,9 @@
 
 **在 Linux 服务器上用 WebUI 管理 DeepSeek Harness（DSH）实例**的开源管理器：Go 单二进制、内置 Node/pnpm、自带 Web 管理界面，配合 Nginx 即可完成安装、运行时下载、实例启停、工作台访问与插件管理。
 
-项目版本以仓库根 [`VERSION`](VERSION) 为准，与 DSH 运行时版本相互独立；已验证的 DSH 基线为 `0.2.1-rc.3`。
+项目版本以仓库根 [`VERSION`](VERSION) 为准，当前为 **0.2.2**，与 DSH 运行时版本相互独立；已验证的 DSH 基线为 `0.2.1-rc.3`。
 
-> 本文描述当前源码。尚未发布的改动见 [CHANGELOG · Unreleased](docs/CHANGELOG.md#unreleased)，下载旧发行包不会自动包含这些改动。下方截图为 0.2.1 发行时的界面记录；当前源码已精简顶部标题栏，使用规则以文字说明为准。
+> 本文对应当前源码与 0.2.2 发行包。0.2.2 已精简顶部标题栏，但下方截图仍保留 0.2.1 发行时的界面记录；下载/部署请以 [CHANGELOG](docs/CHANGELOG.md) 和文字说明为准。
 
 ![登录页](docs/images/login.png)
 
@@ -43,8 +43,8 @@
 > 需要 Linux x86_64、systemd、Nginx（生产部署）。管理器只监听 `127.0.0.1:8080`，对外统一由 Nginx 提供服务。
 
 ```bash
-# 1. 下载并校验 release（VERSION 改为实际 release 版本，如 0.2.1）
-VERSION=0.2.1
+# 1. 下载并校验 release（VERSION 改为实际 release 版本，如 0.2.2）
+VERSION=0.2.2
 sha256sum -c "pcl-dsh-go-$VERSION-linux-amd64.tar.gz.sha256"
 tar -xzf "pcl-dsh-go-$VERSION-linux-amd64.tar.gz"
 cd "pcl-dsh-go-$VERSION-linux-amd64"
@@ -122,6 +122,6 @@ sudo cat /var/lib/pcl-dsh-go/initial-password
 
 ## 许可与致谢
 
-本项目以 **GPL-3.0-or-later** 发布，并包含 HMCL 第 7 条附加条款；完整文本见 [LICENSE](LICENSE)、[LICENSES/](LICENSES/) 与 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+本项目以 **GPL-3.0-or-later** 发布，并包含 HMCL 第 7 条附加条款；完整文本见 [LICENSE](LICENSE)、[LICENSES/](LICENSES/) 与 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。项目自身的 GPL/第三方声明与许可证文本必须随源码和发行包保留。
 
-界面与交互设计复用/改编自 [PCL-DSH-Linux](https://github.com/LeuJasYoh/pcl-dsh-linux) / HDSL（Hello Minecraft! Launcher 生态）项目，相关版权与许可声明按原项目保留。DeepSeek Harness（DSH）为 DeepSeek 的项目；本项目与 DeepSeek 官方无隶属关系。感谢 Go、Vue、Vite、Nginx 等开源项目。
+PCL-DSH-Go 的 Go 代码、打包和文档版权归其贡献者所有；界面与交互设计改编自 [PCL-DSH-Linux](https://github.com/LeuJasYoh/pcl-dsh-linux) / HDSL（Hello Minecraft! Launcher 生态），HDSL 与 HMCL 的版权及附加条款按上游保留。HDSL 原有 MIT 授权只适用于其原先按 MIT 提供的部分，不覆盖改编后的 WebUI 或组合程序。DSH 由 DeepSeek 维护，本项目与 DeepSeek 官方无隶属关系；DSH 运行时由用户另行下载，遵守其自身许可。感谢 Go、Vue、Vite、Nginx 等开源项目。

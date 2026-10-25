@@ -1,7 +1,7 @@
 {
   "name": "pcl-dsh-go-web",
   "private": true,
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "PCL-DSH-Go Web UI: Vue 3 + TypeScript + Vite management console for DeepSeek Harness instances",
   "type": "module",
   "engines": {

@@ -58,5 +58,4 @@ PCL-DSH-Go 的 Web 管理界面（Vue 3 + TypeScript + Vite + Vue Router + Pinia
 
 ## 许可
 
-界面改编自 Hello Minecraft! Launcher（版权所有 © 2013-2026 huangyuhui 及贡献者），
-按 GPL-3.0-or-later + HMCL 附加条款发布；相关文本随 public/licenses/ 打包。
+界面改编自 HDSL / PCL-DSH-Linux，上游包含 Hello Minecraft! Launcher（版权所有 © 2013-2026 huangyuhui 及贡献者）；按 GPL-3.0-or-later + HMCL 附加条款发布。相关文本随 public/licenses/ 打包，实际依赖声明见仓库根 THIRD_PARTY_NOTICES.md。

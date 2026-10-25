@@ -1,5 +1,6 @@
 * text=auto
 /VERSION text eol=lf
+LICENSES/** text eol=lf
 
 # This repository is maintained on Windows but developed/run on Linux and WSL.
 # Force LF for every text format so scripts and Go sources stay usable from
