@@ -1,6 +1,6 @@
 # 贡献指南
 
-感谢参与 PCL-DSH-Go！本文说明开发环境、PR 流程与贡献约定。项目以 **GPL-3.0-or-later + HMCL 第 7 条附加条款** 发布（见 [LICENSE](LICENSE)、[LICENSES/](LICENSES/)、[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)）。
+感谢参与 PCL-DSH-Go！本文说明开发环境、PR 流程与贡献约定。项目原创代码以 **MIT** 发布；旧 `web/src` 派生视图继续按 **GPL-3.0-or-later + HMCL 第 7 条附加条款** 保留（见 [LICENSE](LICENSE)、[LICENSES/LEGACY-WEB-GPL.md](LICENSES/LEGACY-WEB-GPL.md)、[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)）。
 
 ## 行为准则
 
@@ -35,7 +35,7 @@ GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build ./...
 
 - 前端/文档变更：`pwsh -File scripts/frontend-build.ps1` 通过；文档相对链接/图片路径有效。
 - 安全相关改动（认证/会话/CSRF/日志脱敏/归档/路径/SSRF）必须附测试，fail-closed。
-- 新增 Go 文件首行加 SPDX：`// SPDX-License-Identifier: GPL-3.0-or-later`。
+- 新增原创 Go/脚本文件首行加 SPDX：`// SPDX-License-Identifier: MIT`；修改旧前端派生文件时保留其 GPL/HMCL 声明。
 - 项目版本以仓库根 `VERSION` 为准；不要在其他脚本/代码里硬编码展示版本，`web/package.json` 和 `web/package-lock.json` 的项目版本需同步（CI 会检查 package.json）；详情见 [开发与发布](docs/DEVELOPMENT.md#8-版本与发布流程)。
 - 不提交 `bin/`、`web/dist`、`release/`、`node_modules`、日志、数据、密钥或测试环境凭据。
 
@@ -47,11 +47,11 @@ GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build ./...
 - [ ] 安全/权限行为有测试或说明
 - [ ] 文档/CHANGELOG 已更新（用户可见行为变更）
 - [ ] 未提交构建产物/密钥/日志；未修改 Windows DSH 或参考仓库
-- [ ] 保留 GPL/HMCL 许可与第三方版权声明
+- [ ] 保留 MIT、旧前端 GPL/HMCL 例外与第三方版权声明
 
 ## 贡献许可声明
 
-提交 PR 即表示你同意：你的贡献以 **GPL-3.0-or-later** 授权并入本项目，并同意项目整体继续附带 HMCL 第 7 条附加条款；你确认有权提交该内容，复制自第三方的代码/资产会保留其版权与许可声明。
+提交 PR 即表示你同意：你的原创贡献以 **MIT** 授权并入本项目；修改旧 `web/src` 派生文件时，该部分继续按 GPL/HMCL 授权，并保留其版权与许可声明。你确认有权提交该内容，复制自第三方的代码/资产会保留其版权与许可声明。
 
 ## 文档与报告
 

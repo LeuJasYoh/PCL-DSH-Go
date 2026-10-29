@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: MIT
 
 // Package runtime implements DSH runtime discovery, installation, capability
 // probing, and launch planning.

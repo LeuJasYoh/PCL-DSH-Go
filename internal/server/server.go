@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: MIT
 
 // Package server wires the manager's HTTP surface: the authenticated REST API
 // v1 (internal/server/api) and the /workbench reverse proxy

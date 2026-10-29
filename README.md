@@ -118,12 +118,12 @@ sudo cat /var/lib/pcl-dsh-go/initial-password
 - **部署与卸载体验**：完善安装/升级/回滚及失败恢复，统一自定义数据目录的处理；卸载脚本当前限制见 [部署文档](docs/DEPLOYMENT.md#10-卸载)。
 - **剩余常量整理**：实例端口、Profile、密码策略和 Go Cookie 名称已集中；目录布局、registry/SSH/日志默认值等仍待逐项评估。
 - **DSH 验收基线参数化**：测试脚本仍有 `0.2.1-rc.3` 和对应发行批次数量的固定断言；它们与项目 `VERSION` 分开管理，历史证据不追改。
-- **前端与许可来源梳理**：0.3.0 新壳层、主题、概览和活动面板已落地（clean-room 实现）；旧 `web/src` 的业务视图仍包含 HDSL/HMCL 派生代码，在完全替换前项目整体继续按 GPL/HMCL 发布，替换完成后再切换根许可证与 SPDX 头。
+- **前端与许可来源梳理**：0.3.0 新壳层、主题、概览和活动面板已落地（clean-room 实现），原创代码与 clean-room 壳层已切换为 MIT；旧 `web/src` 的业务视图仍包含 HDSL/HMCL 派生代码，按 [LICENSES/LEGACY-WEB-GPL.md](LICENSES/LEGACY-WEB-GPL.md) 保留 GPL/HMCL，包含这些视图的组合发行仍受 GPL 约束，替换完成后移除例外。
 - **第三方发行声明**：按实际 Go/Vue/Node/pnpm 依赖补齐声明及相应分发义务，不将随包依赖笼统标记为 MIT。
 - **工作台旧 Cookie 自动恢复**：检测 DSH 上游鉴权失败并重新引导；本次 Cookie 常量整理未解决旧 Cookie 问题（当前仍需手动清理，见 [已知问题](docs/CHANGELOG.md#known-issues)）。
 
 ## 许可与致谢
 
-本项目以 **GPL-3.0-or-later** 发布，并包含 HMCL 第 7 条附加条款；完整文本见 [LICENSE](LICENSE)、[LICENSES/](LICENSES/) 与 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。项目自身的 GPL/第三方声明与许可证文本必须随源码和发行包保留。
+PCL-DSH-Go 的原创代码、打包和文档以 **MIT** 发布（[LICENSE](LICENSE)）；0.3.0 新增的 clean-room 壳层同样为 MIT。旧 `web/src` 中仍保留的 HDSL/HMCL 派生视图、样式与测试继续按 **GPL-3.0-or-later + HMCL 第 7 条附加条款** 授权，详见 [LICENSES/LEGACY-WEB-GPL.md](LICENSES/LEGACY-WEB-GPL.md)；因此包含这些旧视图的组合发行版仍受 GPL 约束，直到它们被完全替换。已发布的 **0.3.0** 发行包仍按当时的 GPL 声明授权，MIT 不追溯已发布版本。第三方依赖、HDSL/HMCL 版权与附加条款按上游保留，完整声明见 [LICENSES/](LICENSES/) 与 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
 
 PCL-DSH-Go 的 Go 代码、打包和文档版权归 **LeuJasYoh** 及其贡献者所有；界面与交互设计改编自 [PCL-DSH-Linux](https://github.com/LeuJasYoh/pcl-dsh-linux) / HDSL（Hello Minecraft! Launcher 生态），HDSL 与 HMCL 的版权及附加条款按上游保留。HDSL 原有 MIT 授权只适用于其原先按 MIT 提供的部分，不覆盖改编后的 WebUI 或组合程序。DSH 由 DeepSeek 维护，本项目与 DeepSeek 官方无隶属关系；DSH 运行时由用户另行下载，遵守其自身许可。感谢 Go、Vue、Vite、Nginx 等开源项目。

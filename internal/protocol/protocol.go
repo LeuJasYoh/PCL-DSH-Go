@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: MIT
 
 // Package protocol holds cookie and header names shared by the console,
 // the workbench proxy and the web client. Keep web/src/config.ts in sync.

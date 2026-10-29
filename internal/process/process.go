@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: MIT
 
 // Package process 负责启动、就绪探测、状态查询与停止由本管理器创建的 DSH 子进程。
 //

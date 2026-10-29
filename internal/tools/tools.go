@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: MIT
 
 // Package tools 定位内置 Node/pnpm 工具链、探测版本，并为子进程构造命令与环境。
 // 接口与语义见 docs/M0_INTERFACES.md 第 4 节与 docs/DSH_INTEGRATION.md 1.1/1.2。

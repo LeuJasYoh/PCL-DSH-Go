@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # PCL-DSH-Go | release builder (M5)
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: MIT
 #
 # Assembles a self-contained Linux amd64 release from an already built
 # bin/pcl-dsh-go, web/dist and the bundled Node/pnpm toolchain, then writes

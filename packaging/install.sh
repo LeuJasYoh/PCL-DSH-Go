@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # PCL-DSH-Go | install release to /opt/pcl-dsh-go + systemd + Nginx (M5)
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: MIT
 set -euo pipefail
 
 PREFIX="/opt/pcl-dsh-go"

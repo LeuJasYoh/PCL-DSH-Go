@@ -207,7 +207,7 @@ async function retryBackend(): Promise<void> {
 
     <footer class="login-footer">
       <p>界面改编自 HDSL / Hello Minecraft! Launcher · 版权所有 © 2013-2026 huangyuhui 及贡献者</p>
-      <p>PCL-DSH-Go 2026 · GPLv3 或后续版本 · 含 HMCL 附加条款</p>
+      <p>PCL-DSH-Go 2026 · 原创代码 MIT · 旧 WebUI 派生部分 GPL/HMCL · 本组合发行按 GPL 提供</p>
     </footer>
   </div>
 </template>

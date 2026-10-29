@@ -4,7 +4,9 @@
 
 ## [Unreleased]
 
-暂无。
+### Changed
+
+- 原创代码与 0.3.0 clean-room 壳层切换为 **MIT**（根 `LICENSE`、Go/脚本 SPDX）。旧 `web/src` 的 HDSL/HMCL 派生视图继续按 **GPL-3.0-or-later + HMCL §7** 保留，详见 `LICENSES/LEGACY-WEB-GPL.md`；包含旧视图的组合发行仍受 GPL 约束，待 clean-room 替换后移除例外。已发布的 0.3.0 包不变，MIT 不追溯。
 
 ## [0.3.0] - 2026-10-30
 

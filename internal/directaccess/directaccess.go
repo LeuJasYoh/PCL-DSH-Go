@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: MIT
 
 // Package directaccess builds the DTO for the "direct login" flow of the
 // console: the SSH tunnel command that maps the instance's loopback port to the

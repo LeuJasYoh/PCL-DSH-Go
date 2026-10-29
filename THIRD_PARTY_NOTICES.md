@@ -2,10 +2,14 @@
 
 ## 项目许可 / Project license
 
-PCL-DSH-Go is distributed under **GNU GPL version 3 or any later version
-(GPL-3.0-or-later)**, together with the HMCL additional terms in
-[LICENSES/HMCL-ADDITIONAL-TERMS.md](LICENSES/HMCL-ADDITIONAL-TERMS.md). The full
-GPL text is in [LICENSE](LICENSE). The corresponding source is this repository.
+PCL-DSH-Go original code, packaging, documentation and the clean-room 0.3.0
+shell are distributed under the **MIT license** in [LICENSE](LICENSE). The
+pre-existing WebUI adapted from HDSL/HMCL remains under **GPL-3.0-or-later plus
+the HMCL additional terms**; see
+[LICENSES/LEGACY-WEB-GPL.md](LICENSES/LEGACY-WEB-GPL.md) and
+[LICENSES/HMCL-ADDITIONAL-TERMS.md](LICENSES/HMCL-ADDITIONAL-TERMS.md). A
+combined distribution that still contains those legacy WebUI files remains
+subject to GPL/HMCL until the legacy WebUI is fully replaced.
 
 The Go manager, packaging, tests and project documentation are Copyright (c) 2026
 LeuJasYoh and contributors.
@@ -23,9 +27,10 @@ The original HDSL MIT grant remains available for code that HDSL originally
 provided under MIT: [LICENSES/HDSL-MIT.txt](LICENSES/HDSL-MIT.txt). It does **not**
 relicense HMCL code, the adapted WebUI, or the combined GPL work as MIT.
 
-This notice records the current GPL distribution. It does not change the license
-of already-published releases, and it does not claim that an MIT transition has
-been completed.
+This notice records the current split: original code and the clean-room shell
+are MIT, while the legacy WebUI files remain GPL/HMCL. It does not change the
+license of already-published releases; the published 0.3.0 artifacts remain
+GPL/HMCL. It does not relicense HMCL or HDSL code.
 
 ## 前端与素材 / WebUI and artwork
 

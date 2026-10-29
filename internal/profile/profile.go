@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: MIT
 
 // Package profile validates DSH profile names used as directories under
 // $DSH_HOME/profiles and as --profile command-line arguments.

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: MIT
 
 // Package logging 提供 slog JSON 日志（stdout 与按日文件）、审计日志、脱敏工具与日志 tail。
 // 接口与语义见 docs/M0_INTERFACES.md 第 3 节与 docs/M1_INTERFACES.md 第 4 节。

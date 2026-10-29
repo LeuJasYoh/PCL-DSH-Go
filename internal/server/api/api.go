@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: MIT
 
 // Package api implements the manager's authenticated REST API v1: middleware
 // (trace ids, security headers, sessions, first-login gate, CSRF, busy gate),

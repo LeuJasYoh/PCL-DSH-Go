@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: MIT
 
 // Package safe 是实现整合包安全归档的核心：ZIP/TAR 限值与路径规则、条目冲突检测、
 // 链接/特殊文件拒绝、CRC 与压缩比校验、安全的解包（父链无符号链接、目标不越界、

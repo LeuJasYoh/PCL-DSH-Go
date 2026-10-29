@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: MIT
 
 // Package proxy implements the /workbench reverse proxy that exposes a
 // running DSH instance (loopback port) to the console for HTTP, SSE and

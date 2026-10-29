@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: MIT
 
 // Package apierr defines the HTTP error model shared by the API, the
 // orchestrator and the job manager: an HTTP status plus a stable machine code,

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: MIT
 
 // Package plugin lists the plugins of a DSH instance profile and mutates them
 // through the installed DSH CLI using an embedded Node bridge

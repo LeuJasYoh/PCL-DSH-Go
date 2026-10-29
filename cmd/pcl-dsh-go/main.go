@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: MIT
 
 // Command pcl-dsh-go is the PCL-DSH-Go manager: a small Go service that manages
 // one DeepSeek Harness instance on a Linux host and reverse-proxies its

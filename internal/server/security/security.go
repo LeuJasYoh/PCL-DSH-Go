@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: MIT
 
 // Package security implements the single-administrator authentication layer of
 // the manager: in-memory sessions with sliding expiry, login rate limiting by

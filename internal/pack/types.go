@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: MIT
 
 // Package pack implements the M3 integration-package service: format detection,
 // preview, and (import.go/export.go) safe restore and export of .dspack v2/v3

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: MIT
 
 // Package config 提供管理器启动配置解析、data-root 目录初始化与单实例文件锁。
 // 接口与语义见 docs/M0_INTERFACES.md 第 2 节。

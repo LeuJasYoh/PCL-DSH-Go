@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: MIT
 
 // Package job implements the job manager used by the M1/M3 API: at most one
 // globally active long-running task (install / probe / launch / pack import /

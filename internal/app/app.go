@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: MIT
 
 // Package app is the M1 orchestration layer. It wires the runtime, process and
 // store packages into the operations exposed by the HTTP API and the job
