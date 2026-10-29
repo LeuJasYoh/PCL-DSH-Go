@@ -40,7 +40,11 @@ export function displayInstanceStatus(status: string): string {
   if (kind === 'running') return '运行中'
   if (kind === 'starting') return '启动中'
   if (kind === 'error') return status || '需要检查'
-  if (kind === 'ready') return status || '未启动'
+  if (kind === 'ready') {
+    const value = (status || '').toLowerCase()
+    if (!value || value === 'stopped' || value === 'ready' || value === 'idle') return '已停止'
+    return status
+  }
   return status || '未启动'
 }
 

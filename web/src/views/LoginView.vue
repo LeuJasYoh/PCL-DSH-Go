@@ -3,10 +3,8 @@ import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import { ApiError } from '@/api/client'
-import iconUrl from '@/assets/icons/hdsl.webp'
 import { useAuthStore } from '@/stores/auth'
 import { useNotifyStore } from '@/stores/notify'
-import { resolveBackground } from '@/utils/backgrounds'
 import { safeRedirect } from '@/utils/display'
 import { describeApiError } from '@/utils/errors'
 
@@ -25,7 +23,6 @@ const busy = ref(false)
 const passwordInput = ref<HTMLInputElement | null>(null)
 const newPasswordInput = ref<HTMLInputElement | null>(null)
 
-const background = computed(() => 'url("' + resolveBackground('builtin:whale-01') + '")')
 const backendDown = computed(() => auth.backendError !== null)
 
 function focusCurrent(): void {
@@ -127,11 +124,10 @@ async function retryBackend(): Promise<void> {
 </script>
 
 <template>
-  <div class="login-page" data-testid="page-login" :style="{ backgroundImage: background }">
+  <div class="login-page" data-testid="page-login">
     <div class="login-page__scrim" aria-hidden="true"></div>
     <div class="card login-card">
       <div class="login-brand">
-        <img class="login-logo" :src="iconUrl" alt="PCL-DSH-Go" />
         <div>
           <p class="login-title">PCL-DSH-Go</p>
           <p class="login-subtitle">Web 管理界面 · {{ auth.version }}</p>

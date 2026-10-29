@@ -1,277 +1,121 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
-import { instancesApi } from '@/api'
-import type { CreateInstanceInput } from '@/api/types'
-import HomeLaunchPane from '@/components/HomeLaunchPane.vue'
-import HomeTaskCard from '@/components/HomeTaskCard.vue'
-import InstanceDialog from '@/components/InstanceDialog.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import { useJobStore } from '@/stores/jobs'
-import { useNotifyStore } from '@/stores/notify'
 import { useAppStateStore } from '@/stores/state'
-import { backgroundPosition, resolveBackground } from '@/utils/backgrounds'
-import { displayPort, isRunningStatus } from '@/utils/display'
-import { describeApiError } from '@/utils/errors'
+import { displayInstanceStatus, displayPort, isRunningStatus } from '@/utils/display'
 
 const router = useRouter()
 const appState = useAppStateStore()
 const jobs = useJobStore()
-const notify = useNotifyStore()
 
-const pending = ref(false)
-const dialogOpen = ref(false)
-const saving = ref(false)
-const dialogError = ref('')
-const homeMessage = ref('')
-
-// M4: one fixed default background; background switching was removed.
-const backgroundStyle = computed(() => ({
-  backgroundImage: 'url("' + resolveBackground() + '")',
-  backgroundPosition: backgroundPosition(),
-}))
 const current = computed(() => appState.currentInstance)
 const running = computed(() => current.value !== null && isRunningStatus(current.value.status))
-const webReady = computed(() => {
-  const status = (current.value?.status ?? '').toLowerCase()
-  return status === 'running' || status === '运行中' || status === '已启动'
+const installedRuntime = computed(() => {
+  const instance = current.value
+  if (!instance) return null
+  return appState.runtimes.find((runtime) => runtime.installed && runtime.version === instance.version) ?? null
 })
-const runtimeInstalled = computed(
-  () =>
-    current.value !== null &&
-    appState.runtimes.some((item) => item.installed && item.version === current.value?.version),
-)
-const firstLaunchHint = computed(() => current.value !== null && !running.value && !runtimeInstalled.value)
-const busy = computed(() => pending.value || jobs.active || saving.value)
-
-const taskVisible = computed(() => jobs.active)
-const taskPhase = computed(() => jobs.progressText)
-
-const launchLabel = computed(() => {
-  if (!current.value) return '创建实例'
-  if (jobs.active && jobs.type === 'LAUNCH_INSTANCE') return '启动中…'
-  if (running.value) return '打开 Web 界面'
-  return runtimeInstalled.value ? '启动实例' : '下载并启动'
+const installedCount = computed(() => appState.runtimes.filter((runtime) => runtime.installed).length)
+const recentLine = computed(() => {
+  if (jobs.active) return jobs.typeLabel + ' · ' + jobs.progressText
+  if (jobs.jobId) return jobs.typeLabel + ' · ' + jobs.stateLabel
+  return '暂无任务记录'
 })
-const launchSub = computed(() => {
-  if (!current.value) return ''
-  if (jobs.active && jobs.type === 'LAUNCH_INSTANCE') return jobs.progressText
-  return current.value.name
-})
-
-const installedVersions = computed(() =>
-  appState.runtimes.filter((runtime) => runtime.installed).map((runtime) => runtime.version),
-)
 
 onMounted(() => {
   void appState.refresh()
 })
 
-function goLogs(): void {
-  void router.push({ name: 'logs' })
-}
-
-function openCreate(): void {
-  if (busy.value) return
-  dialogOpen.value = true
-  dialogError.value = ''
-}
-
-async function submitCreate(input: CreateInstanceInput): Promise<void> {
-  if (saving.value) return
-  saving.value = true
-  dialogError.value = ''
-  const hadCurrent = appState.currentInstanceId !== null
-  try {
-    const created = await instancesApi.create(input)
-    if (!hadCurrent && created) {
-      // First instance: select it so the home launch button becomes usable immediately.
-      try {
-        await instancesApi.select(created.id)
-      } catch {
-        // Selection is a convenience; the instance list offers it explicitly.
-      }
-    }
-    notify.success('实例已创建。')
-    dialogOpen.value = false
-    await appState.refresh()
-  } catch (caught) {
-    dialogError.value = describeApiError(caught, '创建实例')
-  } finally {
-    saving.value = false
-  }
-}
-
-async function handleLaunch(): Promise<void> {
-  if (busy.value) return
-  homeMessage.value = ''
-  if (!current.value) {
-    openCreate()
-    return
-  }
-  if (running.value) {
-    await openWeb()
-    return
-  }
-  pending.value = true
-  try {
-    const job = await instancesApi.launch(current.value.id)
-    jobs.begin(job, { instanceId: current.value.id })
-    notify.success('已提交任务：' + jobs.typeLabel + '（' + job.id + '）。')
-    await appState.refresh()
-  } catch (caught) {
-    homeMessage.value = describeApiError(caught, '启动实例')
-    notify.error(homeMessage.value)
-  } finally {
-    pending.value = false
-  }
-}
-
-async function openWeb(): Promise<void> {
-  if (!current.value || busy.value) return
-  if (!webReady.value) {
-    homeMessage.value = '网页服务尚未确认就绪，请等待启动完成或查看任务日志。'
-    notify.info(homeMessage.value)
-    return
-  }
-  pending.value = true
-  homeMessage.value = ''
-  try {
-    const result = await instancesApi.webUrl(current.value.id)
-    if (!result.url) {
-      homeMessage.value = '后端没有返回 Web 界面地址。'
-      notify.error(homeMessage.value)
-      return
-    }
-    const opened = window.open(result.url, '_blank', 'noopener')
-    if (!opened) notify.info('浏览器阻止了新窗口，请允许本页弹出窗口后重试。')
-  } catch (caught) {
-    homeMessage.value = describeApiError(caught, '打开 Web 界面')
-    notify.error(homeMessage.value)
-  } finally {
-    pending.value = false
-  }
-}
-
-async function stopInstance(): Promise<void> {
-  if (!current.value || busy.value) return
-  pending.value = true
-  homeMessage.value = ''
-  try {
-    await instancesApi.stop(current.value.id)
-    notify.success('已停止实例。')
-    await appState.refresh()
-  } catch (caught) {
-    homeMessage.value = describeApiError(caught, '停止实例')
-    notify.error(homeMessage.value)
-  } finally {
-    pending.value = false
-  }
-}
-
-async function selectInstance(id: string): Promise<void> {
-  if (id === appState.currentInstanceId || busy.value) return
-  try {
-    await instancesApi.select(id)
-    appState.setCurrentInstanceId(id)
-    await appState.refresh()
-    notify.success('已切换当前实例。')
-  } catch (caught) {
-    notify.error(describeApiError(caught, '切换实例'))
-  }
+function go(name: string): void {
+  void router.push({ name })
 }
 </script>
 
 <template>
-  <div class="home-page" data-testid="page-home" :style="backgroundStyle">
-    <div class="home-page__shade" aria-hidden="true"></div>
-
-    <section
-      v-if="current && !taskVisible"
-      class="card content-card home-instance-card"
-      data-testid="home-current-instance"
-    >
-      <div class="home-instance-card__heading">
-        <span class="section-title">当前实例</span>
-        <StatusBadge :status="current.status" />
+  <div class="page next-page" data-testid="page-home">
+    <header class="next-page-head">
+      <div>
+        <p class="next-eyebrow">实例 / 概览</p>
+        <div class="next-title-row">
+          <h1 class="next-title">{{ current?.name ?? '未选择实例' }}</h1>
+          <StatusBadge v-if="current" :status="current.status" />
+        </div>
+        <p v-if="current" class="next-sub">
+          {{ current.version }} · {{ current.profile }} · 端口 {{ displayPort(current) }}
+        </p>
+        <p v-else class="next-sub">创建实例后，这里会显示运行状态、资源和最近任务。</p>
       </div>
-      <p class="home-instance-card__name" data-testid="home-instance-name">{{ current.name }}</p>
-      <p class="home-instance-card__meta" data-testid="home-instance-meta">
-        Harness {{ current.version || '—' }} · {{ current.profile }} · 端口 {{ displayPort(current) }}
-      </p>
-    </section>
+    </header>
 
-    <div v-if="taskVisible" class="home-task-slot">
-      <HomeTaskCard
-        :phase="taskPhase"
-        :started-at="jobs.elapsedBase"
-        :type-label="jobs.typeLabel"
-        :job-id="jobs.jobId"
-        :logs-tail="jobs.logTail"
-        @view="goLogs"
-      />
+    <div v-if="appState.error" class="card next-empty" role="alert">
+      <p class="next-empty__title">读取工作空间失败</p>
+      <p class="next-empty__text">{{ appState.error }}</p>
+      <button class="btn btn-secondary btn--small" type="button" @click="appState.refresh()">重试</button>
     </div>
 
-    <button
-      v-if="running"
-      class="btn btn-secondary home-stop"
-      type="button"
-      data-testid="home-stop"
-      :disabled="busy || appState.taskActive"
-      @click="stopInstance"
-    >
-      停止
-    </button>
-
-    <div class="home-launch">
-      <HomeLaunchPane
-        :instances="appState.instances"
-        :current-id="appState.currentInstanceId"
-        :launch-label="launchLabel"
-        :launch-sub="launchSub"
-        :busy="busy || appState.taskActive"
-        @launch="handleLaunch"
-        @select="selectInstance"
-      />
+    <div v-else-if="!appState.loading && !current" class="card next-empty" data-testid="home-no-instance-note">
+      <p class="next-empty__title">还没有实例</p>
+      <p class="next-empty__text">打开实例管理，创建第一个 Harness 工作区；创建后顶栏会同步显示启动操作。</p>
+      <button class="btn btn-primary btn--small" type="button" @click="go('instances')">创建实例</button>
     </div>
 
-    <div v-if="appState.error" class="home-message card content-card" role="alert">
-      <p class="paragraph">{{ appState.error }}</p>
-      <div class="toolbar">
-        <button class="btn btn-secondary btn--small" type="button" @click="appState.refresh()">
-          重试读取工作空间
-        </button>
+    <template v-else-if="current">
+      <section class="card next-workspace" data-testid="home-current-instance">
+        <div class="next-workspace__main">
+          <div class="next-workspace__heading">
+            <span class="next-workspace__name" data-testid="home-instance-name">{{ current.name }}</span>
+            <span class="next-badge">{{ current.version }}</span>
+            <span v-if="running" class="next-badge is-ok">运行中</span>
+          </div>
+          <p class="next-workspace__meta" data-testid="home-instance-meta">
+            Harness {{ current.version }} · {{ current.profile }} · 端口 {{ displayPort(current) }} · {{ displayInstanceStatus(current.status) }}
+          </p>
+          <p class="next-workspace__path">{{ current.path || '工作目录由后端返回' }}</p>
+          <p class="next-workspace__hint">
+            顶栏的主操作始终作用于当前实例；实例切换、资源库和设置会同步更新作用域。
+          </p>
+        </div>
+        <div class="next-workspace__side">
+          <div class="next-metric"><span>运行时</span><strong>{{ installedRuntime ? '已安装' : '未安装' }}</strong></div>
+          <div class="next-metric"><span>当前任务</span><strong>{{ jobs.active ? '进行中' : (jobs.jobId ? '已结束' : '空闲') }}</strong></div>
+          <div class="next-metric"><span>内置工具</span><strong>{{ installedCount }} 个运行时</strong></div>
+        </div>
+      </section>
+
+      <div class="next-overview-grid">
+        <section class="card next-panel">
+          <header class="next-panel__head">
+            <span>最近活动</span>
+            <button class="next-link" type="button" @click="go('logs')">完整日志 →</button>
+          </header>
+          <p class="next-panel__lead">{{ recentLine }}</p>
+          <p v-if="jobs.error" class="next-error">{{ jobs.error.message }}（{{ jobs.error.code }}）</p>
+          <pre v-if="jobs.logTail.length" class="next-mini-log">{{ jobs.logTail.join('\n') }}</pre>
+          <p v-else class="next-muted">启动实例或安装运行时后，最近几行任务输出会显示在这里。</p>
+        </section>
+
+        <section class="card next-panel">
+          <header class="next-panel__head"><span>快捷入口</span></header>
+          <button class="next-quick" type="button" @click="go('runtimes')"><span>运行时</span><small>安装与版本查询</small><span>→</span></button>
+          <button class="next-quick" type="button" @click="go('packs')"><span>整合包</span><small>预览、导入与导出</small><span>→</span></button>
+          <button class="next-quick" type="button" @click="go('settings')"><span>设置</span><small>代理、软件源与 SSH 用户</small><span>→</span></button>
+        </section>
       </div>
-    </div>
-    <div v-else-if="homeMessage" class="home-message card content-card" role="alert">
-      <p class="paragraph">{{ homeMessage }}</p>
-    </div>
 
-    <!-- Bottom-left hints share one absolutely positioned, vertically stacked
-         container so they can never overlap each other. -->
-    <div class="home-notes" data-testid="home-notes">
-      <div v-if="firstLaunchHint" class="card content-card" data-testid="first-launch-hint">
-        <p>首次启动将下载 Harness 和依赖。</p>
-        <p>下载阶段和已用时会显示在这里，可查看任务或取消。</p>
+      <div class="next-stats">
+        <div><span>实例</span><strong>{{ appState.instances.length }}</strong></div>
+        <div><span>运行时</span><strong>{{ installedCount }}</strong></div>
+        <div><span>警告</span><strong>{{ appState.warnings.length }}</strong></div>
+        <div><span>后端</span><strong>{{ appState.backendState === 'ok' ? '正常' : appState.backendState }}</strong></div>
       </div>
-      <p v-if="!current && !appState.loading" class="first-launch-note" data-testid="home-no-instance-note">
-        当前工作空间还没有实例。点击右下角“创建实例”开始。
-      </p>
-      <p class="first-launch-note" data-testid="home-model-note">
-        本管理器不保存模型凭据或 API Key；请在启动后的 DSH 工作台内完成模型配置。
-      </p>
-    </div>
 
-    <InstanceDialog
-      v-if="dialogOpen"
-      mode="create"
-      :instance="null"
-      :installed-versions="installedVersions"
-      :submitting="saving"
-      :submit-error="dialogError"
-      @create="submitCreate"
-      @close="dialogOpen = false"
-    />
+      <p v-if="appState.warnings.length" class="next-warning">{{ appState.warnings.join(' · ') }}</p>
+      <p class="next-note" data-testid="home-model-note">
+        管理器不保存模型凭据或 API Key；请在启动后的 DSH 工作台内完成模型配置。
+      </p>
+    </template>
   </div>
 </template>

@@ -2,9 +2,11 @@
 
 **在 Linux 服务器上用 WebUI 管理 DeepSeek Harness（DSH）实例**的开源管理器：Go 单二进制、内置 Node/pnpm、自带 Web 管理界面，配合 Nginx 即可完成安装、运行时下载、实例启停、工作台访问与插件管理。
 
-项目版本以仓库根 [`VERSION`](VERSION) 为准，当前为 **0.2.4**，与 DSH 运行时版本相互独立；已验证的 DSH 基线为 `0.2.1-rc.3`。
+**维护者**：[LeuJasYoh](https://github.com/LeuJasYoh) · **仓库**：[github.com/LeuJasYoh/PCL-DSH-Go](https://github.com/LeuJasYoh/PCL-DSH-Go)
 
-> 本文对应当前源码与 0.2.4 发行包。0.2.2 起已精简顶部标题栏，但下方截图仍保留 0.2.1 发行时的界面记录；下载/部署请以 [CHANGELOG](docs/CHANGELOG.md) 和文字说明为准。
+项目版本以仓库根 [`VERSION`](VERSION) 为准，当前为 **0.3.0**，与 DSH 运行时版本相互独立；已验证的 DSH 基线为 `0.2.1-rc.3`。
+
+> 本文对应当前源码与 0.3.0 发行包。0.3.0 起使用新的三入口壳层、全局活动面板和深浅主题；截图对应当前版本，下载/部署请以 [CHANGELOG](docs/CHANGELOG.md) 和文字说明为准。
 
 ![登录页](docs/images/login.png)
 
@@ -16,7 +18,7 @@
 - **直连登录**：运行中的实例可生成 SSH 隧道命令 + 一次性 token URL，SSH 用户可在设置中配置。
 - **整合包**：`.dspack`（v2/v3）与 Overture snapshot 的预览、导入（生成实例）、导出（下载 artifact），全程走安全归档校验。
 - **已装插件**：按实例 profile 列出/安装/更新/移除插件，内置 bundle 受保护，操作以任务进度展示。
-- **任务与日志**：最近任务列表、任务详情、SSE 实时进度与取消；管理器日志查看（默认 tail 800 行，自动脱敏）。
+- **任务与日志**：底部全局活动面板显示任务进度、最近日志与取消入口；完整日志页仍保留（默认 tail 800 行，自动脱敏）。
 - **设置**：npm registry、HTTP 代理、直连登录 SSH 用户。
 - **部署友好**：提供 Linux release（内置 Node 24.22.1 + pnpm 11.28.5）、systemd unit、Nginx site 模板、install/uninstall/reset 脚本与 SHA256 校验；服务器无需系统 Node/npm/JDK。
 
@@ -43,8 +45,8 @@
 > 需要 Linux x86_64、systemd、Nginx（生产部署）。管理器只监听 `127.0.0.1:8080`，对外统一由 Nginx 提供服务。
 
 ```bash
-# 1. 下载并校验 release（VERSION 改为实际 release 版本，如 0.2.4）
-VERSION=0.2.4
+# 1. 下载并校验 release（VERSION 改为实际 release 版本，如 0.3.0）
+VERSION=0.3.0
 sha256sum -c "pcl-dsh-go-$VERSION-linux-amd64.tar.gz.sha256"
 tar -xzf "pcl-dsh-go-$VERSION-linux-amd64.tar.gz"
 cd "pcl-dsh-go-$VERSION-linux-amd64"
@@ -116,7 +118,7 @@ sudo cat /var/lib/pcl-dsh-go/initial-password
 - **部署与卸载体验**：完善安装/升级/回滚及失败恢复，统一自定义数据目录的处理；卸载脚本当前限制见 [部署文档](docs/DEPLOYMENT.md#10-卸载)。
 - **剩余常量整理**：实例端口、Profile、密码策略和 Go Cookie 名称已集中；目录布局、registry/SSH/日志默认值等仍待逐项评估。
 - **DSH 验收基线参数化**：测试脚本仍有 `0.2.1-rc.3` 和对应发行批次数量的固定断言；它们与项目 `VERSION` 分开管理，历史证据不追改。
-- **前端与许可来源梳理**：改善前端结构、测试和可访问性；MIT 是待评估目标，需要核实代码、素材和贡献授权，必要时取得另行授权或独立替换，目前仍按 GPL/HMCL 发布。
+- **前端与许可来源梳理**：0.3.0 新壳层、主题、概览和活动面板已落地（clean-room 实现）；旧 `web/src` 的业务视图仍包含 HDSL/HMCL 派生代码，在完全替换前项目整体继续按 GPL/HMCL 发布，替换完成后再切换根许可证与 SPDX 头。
 - **第三方发行声明**：按实际 Go/Vue/Node/pnpm 依赖补齐声明及相应分发义务，不将随包依赖笼统标记为 MIT。
 - **工作台旧 Cookie 自动恢复**：检测 DSH 上游鉴权失败并重新引导；本次 Cookie 常量整理未解决旧 Cookie 问题（当前仍需手动清理，见 [已知问题](docs/CHANGELOG.md#known-issues)）。
 
@@ -124,4 +126,4 @@ sudo cat /var/lib/pcl-dsh-go/initial-password
 
 本项目以 **GPL-3.0-or-later** 发布，并包含 HMCL 第 7 条附加条款；完整文本见 [LICENSE](LICENSE)、[LICENSES/](LICENSES/) 与 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。项目自身的 GPL/第三方声明与许可证文本必须随源码和发行包保留。
 
-PCL-DSH-Go 的 Go 代码、打包和文档版权归其贡献者所有；界面与交互设计改编自 [PCL-DSH-Linux](https://github.com/LeuJasYoh/pcl-dsh-linux) / HDSL（Hello Minecraft! Launcher 生态），HDSL 与 HMCL 的版权及附加条款按上游保留。HDSL 原有 MIT 授权只适用于其原先按 MIT 提供的部分，不覆盖改编后的 WebUI 或组合程序。DSH 由 DeepSeek 维护，本项目与 DeepSeek 官方无隶属关系；DSH 运行时由用户另行下载，遵守其自身许可。感谢 Go、Vue、Vite、Nginx 等开源项目。
+PCL-DSH-Go 的 Go 代码、打包和文档版权归 **LeuJasYoh** 及其贡献者所有；界面与交互设计改编自 [PCL-DSH-Linux](https://github.com/LeuJasYoh/pcl-dsh-linux) / HDSL（Hello Minecraft! Launcher 生态），HDSL 与 HMCL 的版权及附加条款按上游保留。HDSL 原有 MIT 授权只适用于其原先按 MIT 提供的部分，不覆盖改编后的 WebUI 或组合程序。DSH 由 DeepSeek 维护，本项目与 DeepSeek 官方无隶属关系；DSH 运行时由用户另行下载，遵守其自身许可。感谢 Go、Vue、Vite、Nginx 等开源项目。

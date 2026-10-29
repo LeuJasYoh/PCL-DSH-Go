@@ -1,30 +1,27 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, watch } from 'vue'
+import { onBeforeUnmount, onMounted, watch } from 'vue'
 
 import { useAuthStore } from '@/stores/auth'
 import { useJobStore } from '@/stores/jobs'
 import { useNotifyStore } from '@/stores/notify'
 import { POLL_BUSY_MS, POLL_IDLE_MS, useAppStateStore } from '@/stores/state'
-import { backgroundPosition, resolveBackground } from '@/utils/backgrounds'
+import { useUiStore } from '@/stores/ui'
 
-import FooterBar from './FooterBar.vue'
-import PageHeader from './PageHeader.vue'
-import SideNav from './SideNav.vue'
+import NextActivityPanel from './NextActivityPanel.vue'
+import NextCommandBar from './NextCommandBar.vue'
+import NextCommandPalette from './NextCommandPalette.vue'
+import NextContextSidebar from './NextContextSidebar.vue'
+import NextNavRail from './NextNavRail.vue'
 
 const appState = useAppStateStore()
 const auth = useAuthStore()
 const jobs = useJobStore()
 const notify = useNotifyStore()
+const ui = useUiStore()
 let restoredJob = false
 
-// M4: one fixed default background; switching/upload was removed.
-const backdropStyle = computed(() => ({
-  backgroundImage: 'url("' + resolveBackground() + '")',
-  backgroundPosition: backgroundPosition(),
-}))
+ui.applyTheme()
 
-// Polling only exists for authenticated sessions: the login page (or the brief
-// pre-seed render before the router guard resolves) must not hit /api/state.
 watch(
   () => auth.authenticated,
   (authenticated) => {
@@ -35,24 +32,21 @@ watch(
     appState.startPolling()
     if (!restoredJob) {
       restoredJob = true
-      // A page refresh during a long task restores the SSE subscription.
       void jobs.restore()
     }
   },
   { immediate: true },
 )
 
-// Idle polling is 1.5s; while a background task runs it degrades to 3s
-// because SSE is the source of truth for the task itself.
 watch(
   () => jobs.active,
   (active) => {
     appState.setPollInterval(active ? POLL_BUSY_MS : POLL_IDLE_MS)
+    if (active) ui.setActivityOpen(true)
   },
   { immediate: true },
 )
 
-// Central task completion notices + consistency refresh (SSE is authoritative).
 watch(
   () => jobs.state,
   (next, previous) => {
@@ -70,28 +64,43 @@ watch(
   },
 )
 
+function onKeydown(event: KeyboardEvent): void {
+  const modifier = event.ctrlKey || event.metaKey
+  if (modifier && event.key.toLowerCase() === 'k') {
+    event.preventDefault()
+    ui.setPaletteOpen(!ui.paletteOpen)
+    return
+  }
+  if (modifier && event.key.toLowerCase() === 'j') {
+    event.preventDefault()
+    ui.toggleActivity()
+    return
+  }
+  if (event.key === 'Escape') ui.setPaletteOpen(false)
+}
+
 onMounted(() => {
-  // The auth watcher above starts polling once the session is confirmed.
   if (auth.authenticated) appState.startPolling()
+  document.addEventListener('keydown', onKeydown)
 })
 
 onBeforeUnmount(() => {
   appState.stopPolling()
+  document.removeEventListener('keydown', onKeydown)
 })
 </script>
 
 <template>
-  <div class="app-shell">
-    <div class="shell-backdrop" :style="backdropStyle" aria-hidden="true"></div>
-    <PageHeader />
-    <div class="shell-body">
-      <SideNav />
-      <main class="shell-main" data-testid="shell-content">
-        <div class="shell-content">
-          <slot />
-        </div>
+  <div class="next-shell">
+    <NextCommandBar />
+    <div class="next-body">
+      <NextNavRail />
+      <NextContextSidebar />
+      <main class="next-main" data-testid="shell-content">
+        <slot />
       </main>
     </div>
-    <FooterBar />
+    <NextActivityPanel />
+    <NextCommandPalette />
   </div>
 </template>

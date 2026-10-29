@@ -125,6 +125,7 @@ bash scripts/build-release.sh \
 - 日常提交、推送不等于发版；本轮变更保留在 `Unreleased`，正式发行时再确定版本号、创建 tag 并生成发布包。
 - 发布包内置 Node 24.22.1 + pnpm 11.28.5（`tools/`），目标机不依赖系统 Node/npm；发布产物为 Linux amd64 release tar.gz + sha256，发布说明引用 CHANGELOG。
 - 发版前检查：CI 全绿、`scripts/frontend-build.ps1` 成功、release 构建成功、干净 WSL 安装/升级/回滚验收通过。
+- Windows 交叉构建：Linux 二进制可用 `GOOS=linux GOARCH=amd64` 构建，并以同一 `-X main.version` 生成 Windows 检查二进制验证版本；`build-release.sh` 可设 `PCL_DSH_CROSS_BUILD=1` 跳过 ELF 执行校验并对 NTFS 文件强制可执行归档模式。正式发布仍建议在 WSL/Linux 重跑脚本与安装验收。
 - 不要提交 `bin/`、`web/dist`、`release/`、`node_modules` 等构建产物。
 
 ## 9. 代码与文档规范

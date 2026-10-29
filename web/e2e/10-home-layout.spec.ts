@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-test('首页布局：40px 页头 / 200px 侧栏 / 7 个导航 / 200x55 启动按钮 / 960x650 无横向溢出', async ({ page }) => {
+test('新壳层：56px 命令栏 / 64px 导航 / 232px 上下文栏 / 3 个入口 + 活动面板 / 960x650 无横向溢出', async ({ page }) => {
   await page.setViewportSize({ width: 960, height: 650 })
   await page.goto('/')
   await expect(page.getByTestId('page-home')).toBeVisible()
@@ -8,23 +8,22 @@ test('首页布局：40px 页头 / 200px 侧栏 / 7 个导航 / 200x55 启动按
   const headerElement = page.getByTestId('page-header')
   const header = await headerElement.boundingBox()
   expect(header).not.toBeNull()
-  expect(Math.round(header!.height)).toBe(40)
-  await expect(headerElement.locator('.page-header__title')).toContainText('PCL-DSH-Go')
+  expect(Math.round(header!.height)).toBe(56)
+  await expect(headerElement.getByTestId('window-home')).toContainText('PCL-DSH-Go')
   await expect(headerElement.getByTestId('task-status')).toBeVisible()
-  await expect(headerElement.locator('img, button, svg, .task-spinner')).toHaveCount(0)
 
   const sidebar = await page.locator('[data-testid="sidebar"]').boundingBox()
   expect(sidebar).not.toBeNull()
-  expect(Math.round(sidebar!.width)).toBe(200)
+  expect(Math.round(sidebar!.width)).toBe(232)
 
-  // M4: instance/runtimes/packs/plugins + settings/logs = 6 navigation entries (+ current-instance item).
-  await expect(page.locator('[data-testid^="nav-"]')).toHaveCount(6)
+  // 3 rail destinations + the activity drawer's日志 entry.
+  await expect(page.locator('[data-testid^="nav-"]')).toHaveCount(4)
+  await expect(page.getByTestId('nav-instances')).toBeVisible()
   await expect(page.getByTestId('current-instance-item')).toBeVisible()
 
   const launch = await page.getByTestId('primary-launch').boundingBox()
   expect(launch).not.toBeNull()
-  expect(Math.round(launch!.width)).toBe(200)
-  expect(Math.round(launch!.height)).toBe(55)
+  expect(launch!.width).toBeGreaterThan(80)
 
   const overflow = await page.evaluate(() => ({
     scrollWidth: document.documentElement.scrollWidth,

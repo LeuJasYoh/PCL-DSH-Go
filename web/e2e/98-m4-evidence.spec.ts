@@ -44,7 +44,7 @@ test('G8 页面巡检 + console 无错误 + 无账户/目录/背景请求 + 截�
   }
 
   // No legacy account/catalog/background navigation or copy-version actions.
-  await expect(page.locator('[data-testid^="nav-"]')).toHaveCount(6)
+  await expect(page.locator('[data-testid^="nav-"]')).toHaveCount(4)
   await expect(page.getByText('账户', { exact: true })).toHaveCount(0)
   await expect(page.getByText('插件目录')).toHaveCount(0)
   expect(legacyRequests, 'no legacy API requests').toEqual([])

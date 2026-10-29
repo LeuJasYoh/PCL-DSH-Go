@@ -14,7 +14,7 @@ const routes: RouteRecordRaw[] = [
     path: '/',
     name: 'home',
     component: () => import('@/views/HomeView.vue'),
-    meta: { title: '启动' },
+    meta: { title: '概览' },
   },
   {
     path: '/instances',
@@ -26,7 +26,7 @@ const routes: RouteRecordRaw[] = [
     path: '/runtimes',
     name: 'runtimes',
     component: () => import('@/views/RuntimesView.vue'),
-    meta: { title: '下载' },
+    meta: { title: '运行时' },
   },
   {
     path: '/plugins',
@@ -44,7 +44,7 @@ const routes: RouteRecordRaw[] = [
     path: '/logs',
     name: 'logs',
     component: () => import('@/views/LogsView.vue'),
-    meta: { title: '任务与日志' },
+    meta: { title: '活动日志' },
   },
   {
     path: '/settings',
@@ -83,7 +83,7 @@ router.beforeEach(async (to) => {
 })
 
 router.afterEach((to) => {
-  const page = to.meta.title ?? '启动'
+  const page = to.meta.title ?? '概览'
   document.title = page + ' · PCL-DSH-Go'
 })
 

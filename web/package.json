@@ -1,8 +1,13 @@
 {
   "name": "pcl-dsh-go-web",
   "private": true,
-  "version": "0.2.4",
+  "version": "0.3.0",
   "description": "PCL-DSH-Go Web UI: Vue 3 + TypeScript + Vite management console for DeepSeek Harness instances",
+  "author": "LeuJasYoh",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LeuJasYoh/PCL-DSH-Go.git"
+  },
   "type": "module",
   "engines": {
     "node": ">=20.19.0"

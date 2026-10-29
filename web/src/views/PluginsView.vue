@@ -7,7 +7,6 @@ import AppIcon from '@/components/AppIcon.vue'
 import AppNotice from '@/components/AppNotice.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import EmptyState from '@/components/EmptyState.vue'
-import TaskProgressStrip from '@/components/TaskProgressStrip.vue'
 import { useJobStore } from '@/stores/jobs'
 import { useNotifyStore } from '@/stores/notify'
 import { useAppStateStore } from '@/stores/state'
@@ -263,7 +262,6 @@ async function confirmRemove(): Promise<void> {
         </p>
       </AppNotice>
 
-      <TaskProgressStrip />
 
       <EmptyState
         v-if="instances.length === 0"

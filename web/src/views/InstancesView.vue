@@ -10,7 +10,6 @@ import DirectAccessDialog from '@/components/DirectAccessDialog.vue'
 import EmptyState from '@/components/EmptyState.vue'
 import InstanceDialog from '@/components/InstanceDialog.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
-import TaskProgressStrip from '@/components/TaskProgressStrip.vue'
 import { useJobStore } from '@/stores/jobs'
 import { useNotifyStore } from '@/stores/notify'
 import { useAppStateStore } from '@/stores/state'
@@ -224,7 +223,6 @@ async function confirmDelete(): Promise<void> {
         </button>
       </div>
 
-      <TaskProgressStrip />
 
       <div v-if="appState.loading && appState.lastUpdatedAt === null" class="card card--flat">
         <div class="loading-row"><span class="spinner"></span>正在读取实例列表…</div>

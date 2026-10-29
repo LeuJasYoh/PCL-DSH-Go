@@ -53,14 +53,24 @@ BIN="$REPO_ROOT/bin/pcl-dsh-go"
 DIST="$REPO_ROOT/web/dist"
 
 [ -f "$BIN" ] || fail "缺少 $BIN（先构建 linux/amd64 二进制）"
-[ -x "$BIN" ] || chmod 0755 "$BIN" 2>/dev/null || fail "bin/pcl-dsh-go 不可执行"
 [ -f "$DIST/index.html" ] || fail "缺少 $DIST/index.html（先运行 scripts/frontend-build.ps1）"
-[ -x "$TOOLS_DIR/node/bin/node" ] || fail "缺少内置 Node: $TOOLS_DIR/node/bin/node"
+[ -f "$TOOLS_DIR/node/bin/node" ] || fail "缺少内置 Node: $TOOLS_DIR/node/bin/node"
 [ -d "$TOOLS_DIR/pnpm" ] || fail "缺少内置 pnpm: $TOOLS_DIR/pnpm"
+if [ "${PCL_DSH_CROSS_BUILD:-0}" != "1" ]; then
+  [ -x "$BIN" ] || chmod 0755 "$BIN" 2>/dev/null || fail "bin/pcl-dsh-go 不可执行"
+  [ -x "$TOOLS_DIR/node/bin/node" ] || fail "内置 Node 不可执行: $TOOLS_DIR/node/bin/node"
+fi
 if command -v file >/dev/null 2>&1; then
   file "$BIN" | grep -q 'ELF 64-bit LSB.*x86-64' || fail "bin/pcl-dsh-go 不是 Linux amd64 ELF"
 fi
 BUILT_VERSION="$("$BIN" --version 2>/dev/null || true)"
+if [ -z "$BUILT_VERSION" ] && [ "${PCL_DSH_CROSS_BUILD:-0}" = "1" ]; then
+  # Windows/MSYS cannot execute an ELF manager. Cross-build callers must build
+  # the Linux binary with -X main.version=$VERSION; a Windows check binary can
+  # verify the same ldflags separately.
+  echo "WARN: cross-build mode; skipping ELF --version execution check (VERSION=$VERSION)" >&2
+  BUILT_VERSION="$VERSION"
+fi
 [ -n "$BUILT_VERSION" ] || fail "无法读取 bin/pcl-dsh-go --version；请用 -X main.version 注入版本后重新构建"
 [ "$BUILT_VERSION" = "$VERSION" ] || fail "bin/pcl-dsh-go 版本 ($BUILT_VERSION) 与 VERSION ($VERSION) 不一致；请用 -X main.version=$VERSION 重新构建"
 
@@ -70,10 +80,18 @@ mkdir -p "$PKG"/{bin,packaging,docs}
 cp -a "$BIN" "$PKG/bin/pcl-dsh-go"
 chmod 0755 "$PKG/bin/pcl-dsh-go"
 cp -a "$DIST/." "$PKG/static/"
-cp -a "$TOOLS_DIR/node" "$PKG/tools-node"
-mkdir -p "$PKG/tools"
-mv "$PKG/tools-node" "$PKG/tools/node"
-cp -a "$TOOLS_DIR/pnpm" "$PKG/tools/pnpm"
+if [ "${PCL_DSH_CROSS_BUILD:-0}" = "1" ]; then
+  # NTFS cannot create Unix symlinks (npm/npx/corepack); dereference to real files.
+  cp -aL "$TOOLS_DIR/node" "$PKG/tools-node"
+  mkdir -p "$PKG/tools"
+  mv "$PKG/tools-node" "$PKG/tools/node"
+  cp -aL "$TOOLS_DIR/pnpm" "$PKG/tools/pnpm"
+else
+  cp -a "$TOOLS_DIR/node" "$PKG/tools-node"
+  mkdir -p "$PKG/tools"
+  mv "$PKG/tools-node" "$PKG/tools/node"
+  cp -a "$TOOLS_DIR/pnpm" "$PKG/tools/pnpm"
+fi
 cp -a "$REPO_ROOT/packaging/." "$PKG/packaging/"
 find "$PKG/packaging" -name '*.sh' -exec chmod 0755 {} + 2>/dev/null || true
 cp -a "$REPO_ROOT/README.md" "$PKG/README.md" 2>/dev/null || true
@@ -92,7 +110,12 @@ printf 'built_at=%s\ncommit=%s\n' "$(date -Is)" "$(git -C "$REPO_ROOT" rev-parse
 
 TAR="$OUT_DIR/$NAME.tar.gz"
 rm -f "$TAR" "$TAR.sha256"
-tar -C "$OUT_DIR" -czf "$TAR" "$NAME"
+TAR_MODE_OPT=()
+if [ "${PCL_DSH_CROSS_BUILD:-0}" = "1" ]; then
+  # NTFS checkouts lose Unix mode bits; force a readable/executable archive.
+  TAR_MODE_OPT=(--mode='u+rwx,go+rx')
+fi
+tar "${TAR_MODE_OPT[@]}" -C "$OUT_DIR" -czf "$TAR" "$NAME"
 ( cd "$OUT_DIR" && sha256sum "$NAME.tar.gz" > "$NAME.tar.gz.sha256" )
 
 SIZE=$(du -sh "$PKG" | cut -f1)

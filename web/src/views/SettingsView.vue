@@ -5,7 +5,6 @@ import { settingsApi } from '@/api'
 import type { AppSettings } from '@/api/types'
 import AppIcon from '@/components/AppIcon.vue'
 import AppNotice from '@/components/AppNotice.vue'
-import TaskProgressStrip from '@/components/TaskProgressStrip.vue'
 import LicenseDialog from '@/components/m4/LicenseDialog.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useNotifyStore } from '@/stores/notify'
@@ -151,7 +150,6 @@ function openLicense(tab: LicenseTab): void {
         </button>
       </div>
 
-      <TaskProgressStrip />
 
       <div v-if="loading" class="card card--flat">
         <div class="loading-row"><span class="spinner"></span>正在读取设置…</div>

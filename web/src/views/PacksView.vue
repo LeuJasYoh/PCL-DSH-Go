@@ -6,7 +6,6 @@ import { ApiError, artifactsApi, instancesApi, jobResults, packsApi } from '@/ap
 import type { ArtifactRef, PackExportMode, PackPreviewDto } from '@/api/types'
 import AppIcon from '@/components/AppIcon.vue'
 import AppNotice from '@/components/AppNotice.vue'
-import TaskProgressStrip from '@/components/TaskProgressStrip.vue'
 import PackPreviewPanel from '@/components/m4/PackPreviewPanel.vue'
 import { useJobStore } from '@/stores/jobs'
 import { useNotifyStore } from '@/stores/notify'
@@ -295,7 +294,6 @@ function redownload(): void {
         <span class="toolbar__spacer"></span>
       </div>
 
-      <TaskProgressStrip />
 
       <AppNotice title="先预览，再导入" tone="info">
         <p class="paragraph">
