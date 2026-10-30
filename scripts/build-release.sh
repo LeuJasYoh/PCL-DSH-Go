@@ -65,11 +65,18 @@ if command -v file >/dev/null 2>&1; then
 fi
 BUILT_VERSION="$("$BIN" --version 2>/dev/null || true)"
 if [ -z "$BUILT_VERSION" ] && [ "${PCL_DSH_CROSS_BUILD:-0}" = "1" ]; then
-  # Windows/MSYS cannot execute an ELF manager. Cross-build callers must build
-  # the Linux binary with -X main.version=$VERSION; a Windows check binary can
-  # verify the same ldflags separately.
-  echo "WARN: cross-build mode; skipping ELF --version execution check (VERSION=$VERSION)" >&2
-  BUILT_VERSION="$VERSION"
+  # An ELF manager cannot be executed on Windows/MSYS, so the injected version
+  # cannot be read from the packaged binary. Verify it two ways instead of
+  # trusting $VERSION: a stale bin/pcl-dsh-go would otherwise ship silently.
+  STALE="$(find "$REPO_ROOT/cmd" "$REPO_ROOT/internal" "$REPO_ROOT/go.mod" -newer "$BIN" 2>/dev/null || true)"
+  [ -z "$STALE" ] || fail "bin/pcl-dsh-go 比源码陈旧，请先重新构建：$(echo "$STALE" | head -3 | tr '\n' ' ')"
+  CHECK_BIN="$REPO_ROOT/bin/.version-check-$$.exe"
+  GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath \
+    -ldflags "-s -w -X main.version=$VERSION" -o "$CHECK_BIN" ./cmd/pcl-dsh-go \
+    || fail "无法构建版本检查二进制"
+  BUILT_VERSION="$("$CHECK_BIN" --version 2>/dev/null || true)"
+  rm -f "$CHECK_BIN"
+  echo "WARN: cross-build mode; ELF execution check replaced by host check binary (VERSION=$VERSION)" >&2
 fi
 [ -n "$BUILT_VERSION" ] || fail "无法读取 bin/pcl-dsh-go --version；请用 -X main.version 注入版本后重新构建"
 [ "$BUILT_VERSION" = "$VERSION" ] || fail "bin/pcl-dsh-go 版本 ($BUILT_VERSION) 与 VERSION ($VERSION) 不一致；请用 -X main.version=$VERSION 重新构建"
