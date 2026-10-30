@@ -315,7 +315,7 @@
 
 .launch-button:disabled {
   cursor: not-allowed;
-  background: #7c88cf;
+  background: color-mix(in srgb, var(--monet-primary) 45%, transparent);
 }
 
 .launch-button__main {
@@ -355,7 +355,7 @@
 
 .launch-menu:disabled {
   cursor: not-allowed;
-  background: #7c88cf;
+  background: color-mix(in srgb, var(--monet-primary) 45%, transparent);
 }
 
 .launch-arrow {
@@ -584,9 +584,9 @@
   font-family: var(--font-mono);
   font-size: 12px;
   line-height: 1.6;
-  color: #222;
+  color: var(--next-terminal-text);
   white-space: pre-wrap;
-  background: rgba(255, 255, 255, 0.82);
+  background: var(--next-terminal);
   border-radius: var(--radius);
 }
 
@@ -620,8 +620,8 @@
 }
 
 .toast--success {
-  color: #fff;
-  background: #2f6b35;
+  color: var(--next-primary-ink);
+  background: var(--next-ok);
 }
 
 .toast--error {

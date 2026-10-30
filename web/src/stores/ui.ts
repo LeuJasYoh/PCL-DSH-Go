@@ -22,7 +22,7 @@ export const useUiStore = defineStore('ui', () => {
   function applyTheme(): void {
     document.documentElement.dataset.theme = theme.value
     const meta = document.querySelector('meta[name="theme-color"]')
-    if (meta) meta.setAttribute('content', theme.value === 'dark' ? '#09090a' : '#f8f7f4')
+    if (meta) meta.setAttribute('content', theme.value === 'dark' ? '#121212' : '#f5f5f5')
   }
 
   function setTheme(next: Theme): void {

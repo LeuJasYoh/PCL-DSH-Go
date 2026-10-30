@@ -4,9 +4,9 @@
 
 **维护者**：[LeuJasYoh](https://github.com/LeuJasYoh) · **仓库**：[github.com/LeuJasYoh/PCL-DSH-Go](https://github.com/LeuJasYoh/PCL-DSH-Go)
 
-项目版本以仓库根 [`VERSION`](VERSION) 为准，当前为 **0.3.0**，与 DSH 运行时版本相互独立；已验证的 DSH 基线为 `0.2.1-rc.3`。
+项目版本以仓库根 [`VERSION`](VERSION) 为准，当前为 **0.3.1**，与 DSH 运行时版本相互独立；已验证的 DSH 基线为 `0.2.1-rc.3`。
 
-> 本文对应当前源码与 0.3.0 发行包。0.3.0 起使用新的三入口壳层、全局活动面板和深浅主题；截图对应当前版本，下载/部署请以 [CHANGELOG](docs/CHANGELOG.md) 和文字说明为准。
+> 本文对应当前源码与 0.3.1 发行包。0.3.0 起使用新的三入口壳层、全局活动面板和深浅主题；0.3.1 把视觉层整体换成 Frost（中性色阶 + 单一强调色 + 10% 着色激活态）。截图对应当前版本，下载/部署请以 [CHANGELOG](docs/CHANGELOG.md) 和文字说明为准。
 
 ![登录页](docs/images/login.png)
 
@@ -45,8 +45,8 @@
 > 需要 Linux x86_64、systemd、Nginx（生产部署）。管理器只监听 `127.0.0.1:8080`，对外统一由 Nginx 提供服务。
 
 ```bash
-# 1. 下载并校验 release（VERSION 改为实际 release 版本，如 0.3.0）
-VERSION=0.3.0
+# 1. 下载并校验 release（VERSION 改为实际 release 版本，如 0.3.1）
+VERSION=0.3.1
 sha256sum -c "pcl-dsh-go-$VERSION-linux-amd64.tar.gz.sha256"
 tar -xzf "pcl-dsh-go-$VERSION-linux-amd64.tar.gz"
 cd "pcl-dsh-go-$VERSION-linux-amd64"

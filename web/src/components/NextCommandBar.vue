@@ -38,8 +38,20 @@ function closeMenus(event: MouseEvent): void {
   if (!target?.closest('.next-command__more-wrap')) moreMenu.value = false
 }
 
-onMounted(() => document.addEventListener('click', closeMenus))
-onBeforeUnmount(() => document.removeEventListener('click', closeMenus))
+function closeMenusOnEscape(event: KeyboardEvent): void {
+  if (event.key !== 'Escape') return
+  instanceMenu.value = false
+  moreMenu.value = false
+}
+
+onMounted(() => {
+  document.addEventListener('click', closeMenus)
+  document.addEventListener('keydown', closeMenusOnEscape)
+})
+onBeforeUnmount(() => {
+  document.removeEventListener('click', closeMenus)
+  document.removeEventListener('keydown', closeMenusOnEscape)
+})
 
 async function chooseInstance(id: string): Promise<void> {
   instanceMenu.value = false
